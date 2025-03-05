@@ -46,6 +46,8 @@ export default {
         card: {
           DEFAULT: "rgba(255, 255, 255, 0.8)",
           foreground: "#1E293B",
+          dark: "rgba(26, 31, 44, 0.8)",
+          darkForeground: "#E2E8F0",
         },
         success: {
           DEFAULT: "#22C55E",
@@ -54,6 +56,13 @@ export default {
         destructive: {
           DEFAULT: "#EF4444",
           hover: "#DC2626",
+        },
+        dark: {
+          100: "#403E43",
+          200: "#221F26",
+          300: "#1A1F2C",
+          400: "#222222",
+          500: "#333333",
         },
       },
       borderRadius: {

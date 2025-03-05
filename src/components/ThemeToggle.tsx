@@ -9,54 +9,29 @@ interface ThemeToggleProps {
 
 const ThemeToggle = ({ isDarkMode, toggleDarkMode }: ThemeToggleProps) => {
   return (
-    <div
-      className={`flex w-16 h-8 p-1 rounded-full cursor-pointer transition-all duration-300
-        ${isDarkMode 
-          ? "bg-zinc-950 border border-zinc-800" 
-          : "bg-white border border-zinc-200"}`}
+    <button
       onClick={toggleDarkMode}
-      role="button"
-      tabIndex={0}
+      className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500
+        ${isDarkMode 
+          ? "bg-gray-800 text-blue-400 hover:bg-gray-700" 
+          : "bg-white text-yellow-500 hover:bg-gray-100 shadow-md"}`}
+      aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
     >
-      <div className="flex justify-between items-center w-full">
-        <div
-          className={`flex justify-center items-center w-6 h-6 rounded-full transition-transform duration-300
+      <div className="relative w-6 h-6">
+        <Sun 
+          className={`absolute inset-0 transition-all duration-300 transform 
             ${isDarkMode 
-              ? "transform translate-x-0 bg-zinc-800" 
-              : "transform translate-x-8 bg-gray-200"}`}
-        >
-          {isDarkMode ? (
-            <Moon 
-              className="w-4 h-4 text-white" 
-              size={16}
-            />
-          ) : (
-            <Sun 
-              className="w-4 h-4 text-gray-700" 
-              size={16}
-            />
-          )}
-        </div>
-        <div
-          className={`flex justify-center items-center w-6 h-6 rounded-full transition-transform duration-300
+              ? "opacity-0 rotate-90 scale-0" 
+              : "opacity-100 rotate-0 scale-100"}`}
+        />
+        <Moon 
+          className={`absolute inset-0 transition-all duration-300 transform 
             ${isDarkMode 
-              ? "bg-transparent" 
-              : "transform -translate-x-8"}`}
-        >
-          {isDarkMode ? (
-            <Sun 
-              className="w-4 h-4 text-gray-500" 
-              size={16}
-            />
-          ) : (
-            <Moon 
-              className="w-4 h-4 text-black" 
-              size={16}
-            />
-          )}
-        </div>
+              ? "opacity-100 rotate-0 scale-100" 
+              : "opacity-0 -rotate-90 scale-0"}`}
+        />
       </div>
-    </div>
+    </button>
   );
 };
 
