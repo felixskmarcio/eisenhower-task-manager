@@ -2,6 +2,7 @@
 import React from 'react';
 import Matrix from '@/components/Matrix';
 import ThemeToggle from '@/components/ThemeToggle';
+import NavBar from '@/components/NavBar';
 import { useTheme } from '@/contexts/ThemeContext';
 
 const Index = () => {
@@ -9,7 +10,7 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-[#1A1F2C]' : 'bg-gradient-to-br from-gray-50 to-gray-100'} py-8 transition-colors duration-300`}>
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 pb-20 sm:pb-0">
         <div className="flex justify-between items-center mb-12">
           <div>
             <h1 className={`text-4xl font-bold mb-4 ${isDarkMode ? 'text-gradient' : 'text-gray-900'}`}>
@@ -23,6 +24,7 @@ const Index = () => {
         </div>
         <Matrix />
       </div>
+      <NavBar />
     </div>
   );
 };
