@@ -47,7 +47,10 @@ npm i
 
 # Passo 4: Inicie o servidor de desenvolvimento {#passo-4-inicie-o-servidor-de-desenvolvimento  data-source-line="104"}
 npm run dev
-``` {data-source-line="106"}
+```sh
+# Passo 5: Abra o projeto no navegador {#passo-5-abra-o-projeto-no-navegador  data-source-line="106"}
+npm run start
+```
 </details>
 
 <details>
