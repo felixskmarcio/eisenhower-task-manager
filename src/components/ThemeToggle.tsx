@@ -9,54 +9,40 @@ interface ThemeToggleProps {
 
 const ThemeToggle = ({ isDarkMode, toggleDarkMode }: ThemeToggleProps) => {
   return (
-    <div
-      className={`flex w-16 h-8 p-1 rounded-full cursor-pointer transition-all duration-300
-        ${isDarkMode 
-          ? "bg-zinc-950 border border-zinc-800" 
-          : "bg-white border border-zinc-200"}`}
+    <button
       onClick={toggleDarkMode}
+      className={`relative inline-flex h-9 w-16 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+        ${isDarkMode 
+          ? "bg-zinc-800 border border-zinc-700" 
+          : "bg-blue-100 border border-blue-200"}`}
       role="button"
-      tabIndex={0}
+      aria-pressed={isDarkMode}
+      aria-label="Toggle dark mode"
     >
-      <div className="flex justify-between items-center w-full">
-        <div
-          className={`flex justify-center items-center w-6 h-6 rounded-full transition-transform duration-300
-            ${isDarkMode 
-              ? "transform translate-x-0 bg-zinc-800" 
-              : "transform translate-x-8 bg-gray-200"}`}
-        >
-          {isDarkMode ? (
-            <Moon 
-              className="w-4 h-4 text-white" 
-              size={16}
-            />
-          ) : (
-            <Sun 
-              className="w-4 h-4 text-gray-700" 
-              size={16}
-            />
-          )}
-        </div>
-        <div
-          className={`flex justify-center items-center w-6 h-6 rounded-full transition-transform duration-300
-            ${isDarkMode 
-              ? "bg-transparent" 
-              : "transform -translate-x-8"}`}
-        >
-          {isDarkMode ? (
-            <Sun 
-              className="w-4 h-4 text-gray-500" 
-              size={16}
-            />
-          ) : (
-            <Moon 
-              className="w-4 h-4 text-black" 
-              size={16}
-            />
-          )}
-        </div>
-      </div>
-    </div>
+      <span className="sr-only">Toggle dark mode</span>
+      <span
+        className={`absolute left-1 flex h-7 w-7 transform items-center justify-center rounded-full transition-transform duration-300 ease-in-out
+          ${isDarkMode 
+            ? "translate-x-8 bg-zinc-950 text-blue-400" 
+            : "translate-x-0 bg-white text-yellow-500 shadow-md"}`}
+      >
+        {isDarkMode ? (
+          <Moon className="h-4 w-4" />
+        ) : (
+          <Sun className="h-4 w-4" />
+        )}
+      </span>
+      <span 
+        className={`absolute right-2 transition-opacity duration-300 ${isDarkMode ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <Sun className="h-4 w-4 text-zinc-400" />
+      </span>
+      <span 
+        className={`absolute left-2 transition-opacity duration-300 ${isDarkMode ? 'opacity-0' : 'opacity-100'}`}
+      >
+        <Moon className="h-4 w-4 text-zinc-400" />
+      </span>
+    </button>
   );
 };
 
