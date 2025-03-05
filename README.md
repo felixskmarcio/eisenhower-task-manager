@@ -1,69 +1,84 @@
-# Welcome to your Lovable project
+# 🦅 Task Eagle Eye
 
-## Project info
+> Gerencie suas tarefas com a precisão de uma águia
 
-**URL**: https://lovable.dev/projects/98e15206-53c1-4cd3-8523-18b87945cecf
+## 🚀 Visão Geral
 
-## How can I edit this code?
+Task Eagle Eye é uma aplicação moderna de gerenciamento de tarefas que combina interface intuitiva com funcionalidades poderosas para maximizar sua produtividade.
 
-There are several ways of editing your application.
+## 💻 Tecnologias
 
-**Use Lovable**
+<div align="center">
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/Tailwind-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind" />
+  <img src="https://img.shields.io/badge/shadcn/ui-000000?style=for-the-badge&logo=shadcnui&logoColor=white" alt="shadcn/ui" />
+</div>
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/98e15206-53c1-4cd3-8523-18b87945cecf) and start prompting.
+## 🔧 Instalação e Uso
 
-Changes made via Lovable will be committed automatically to this repo.
+### Pré-requisitos
+- Node.js & npm - [instale com nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-**Use your preferred IDE**
+### Opções de Desenvolvimento
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+<details>
+<summary><b>📱 Usar Claude IA (Sem Configuração)</b></summary>
+<br>
+Acesse o <a href="https://claude.site/artifacts/e0d54848-736e-4222-98ea-739271c4f284">Projeto no Claude IA</a> e comece a desenvolver.
+<br><br>
+Alterações feitas via Claude IA serão automaticamente commitadas neste repositório.
+</details>
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+<details>
+<summary><b>💻 Usar seu IDE Preferido</b></summary>
+<br>
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Passo 1: Clone o repositório {#passo-1-clone-o-repositório  data-source-line="95"}
+git clone <URL_DO_GIT>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Passo 2: Navegue até o diretório do projeto {#passo-2-navegue-até-o-diretório-do-projeto  data-source-line="98"}
+cd task-eagle-eye
 
-# Step 3: Install the necessary dependencies.
+# Passo 3: Instale as dependências {#passo-3-instale-as-dependências  data-source-line="101"}
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Passo 4: Inicie o servidor de desenvolvimento {#passo-4-inicie-o-servidor-de-desenvolvimento  data-source-line="104"}
 npm run dev
-```
+``` {data-source-line="106"}
+</details>
 
-**Edit a file directly in GitHub**
+<details>
+<summary><b>🌐 Editar Diretamente no GitHub</b></summary>
+<br>
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Navegue até o(s) arquivo(s) desejado(s)
+2. Clique no botão "Editar" (ícone de lápis) no canto superior direito
+3. Faça suas alterações e confirme o commit
+</details>
 
-**Use GitHub Codespaces**
+<details>
+<summary><b>☁️ Usar GitHub Codespaces</b></summary>
+<br>
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. Navegue até a página principal do repositório
+2. Clique no botão "Code" (verde)
+3. Selecione a aba "Codespaces"
+4. Clique em "New codespace"
+5. Edite os arquivos e faça commit das alterações quando terminar
+</details>
 
-## What technologies are used for this project?
+## 🌟 Funcionalidades
 
-This project is built with .
+- ⏱️ **Gerenciamento de tempo** - Acompanhe o tempo gasto em cada tarefa
+- 📊 **Dashboards personalizados** - Visualize seu progresso com gráficos intuitivos
+- 🔔 **Notificações inteligentes** - Receba lembretes no momento certo
+- 🔄 **Sincronização em nuvem** - Acesse suas tarefas em qualquer dispositivo
+- 🤝 **Colaboração em equipe** - Compartilhe projetos e delegue tarefas
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📝 Licença
 
-## How can I deploy this project?
+Este projeto está licenciado sob a Licença MIT - veja o arquivo LICENSE para detalhes.
 
-Simply open [Lovable](https://lovable.dev/projects/98e15206-53c1-4cd3-8523-18b87945cecf) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
