@@ -13,10 +13,10 @@ const Index = () => {
         <div className="flex justify-between items-center mb-12">
           <div>
             <h1 className={`text-4xl font-bold mb-4 ${isDarkMode ? 'text-gradient' : 'text-gray-900'}`}>
-              Eisenhower Task Manager
+              Matriz de Eisenhower
             </h1>
             <p className={`text-lg max-w-2xl ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Organize and prioritize your tasks efficiently using the Eisenhower Matrix method.
+              Organize e priorize suas tarefas de forma eficiente usando o método da Matriz de Eisenhower.
             </p>
           </div>
           <ThemeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
