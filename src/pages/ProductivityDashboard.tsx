@@ -251,23 +251,23 @@ const ProductivityDashboard = () => {
         <Card className="p-4">
           <h2 className="text-xl font-semibold mb-4">Estatísticas Gerais</h2>
           <div className="space-y-4">
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-              <h3 className="font-medium">Total de Tarefas</h3>
-              <p className="text-2xl font-bold">{tasks.length}</p>
+            <div className="bg-secondary p-4 rounded-lg">
+              <h3 className="font-medium text-secondary-foreground">Total de Tarefas</h3>
+              <p className="text-2xl font-bold text-secondary-foreground">{tasks.length}</p>
             </div>
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-              <h3 className="font-medium">Tarefas Concluídas</h3>
-              <p className="text-2xl font-bold">{tasks.filter(t => t.completed).length}</p>
+            <div className="bg-secondary p-4 rounded-lg">
+              <h3 className="font-medium text-secondary-foreground">Tarefas Concluídas</h3>
+              <p className="text-2xl font-bold text-secondary-foreground">{tasks.filter(t => t.completed).length}</p>
             </div>
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-              <h3 className="font-medium">Taxa de Conclusão</h3>
-              <p className="text-2xl font-bold">
+            <div className="bg-secondary p-4 rounded-lg">
+              <h3 className="font-medium text-secondary-foreground">Taxa de Conclusão</h3>
+              <p className="text-2xl font-bold text-secondary-foreground">
                 {((tasks.filter(t => t.completed).length / tasks.length) * 100).toFixed(0)}%
               </p>
             </div>
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-              <h3 className="font-medium">Quadrante com Mais Tarefas</h3>
-              <p className="text-2xl font-bold">
+            <div className="bg-secondary p-4 rounded-lg">
+              <h3 className="font-medium text-secondary-foreground">Quadrante com Mais Tarefas</h3>
+              <p className="text-2xl font-bold text-secondary-foreground">
                 {taskDistributionByQuadrant.reduce((prev, current) => 
                   (prev.value > current.value) ? prev : current
                 ).name}
