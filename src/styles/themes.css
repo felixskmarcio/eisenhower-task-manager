@@ -1,0 +1,389 @@
+/* Tema personalizado para cores específicas baseado em seleções de temas */
+
+/* Variáveis base e transições para todos os temas */
+:root {
+  --transition-speed: 0.3s;
+}
+
+/* Transição suave ao mudar de tema para todos os elementos */
+* {
+  transition: background-color var(--transition-speed) ease,
+              color var(--transition-speed) ease,
+              border-color var(--transition-speed) ease,
+              box-shadow var(--transition-speed) ease;
+}
+
+/* Estilos globais aplicados a todos os temas */
+.theme-bg {
+  min-height: 100vh;
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--theme-bg);
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
+}
+
+/* Estilos compartilhados para todos os temas */
+[data-theme] {
+  /* Variáveis compartilhadas entre todos os temas */
+  --radius: 0.5rem;
+  --header-height: 4rem;
+}
+
+/* TEMA LIGHT */
+[data-theme="light"] {
+  /* Backgrounds e variáveis de gradientes */
+  --theme-bg: hsl(210, 20%, 98%);
+  --bg-gradient: linear-gradient(to bottom right, hsl(210, 20%, 98%), hsl(210, 16%, 93%));
+  
+  /* Sombras personalizadas */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.1);
+  
+  /* Cores de texto personalizadas */
+  --header-text: hsl(222, 47%, 11%);
+  --subtitle-text: hsl(215, 16%, 47%);
+  
+  /* Componentes específicos */
+  .matrix-card {
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(8px);
+  }
+  
+  .task-item {
+    background-color: white;
+    border-color: hsl(214, 32%, 91%);
+    color: hsl(222, 47%, 11%);
+  }
+  
+  .dashboard-card {
+    background-color: white;
+    box-shadow: var(--shadow-md);
+  }
+  
+  /* Elementos de texto */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--header-text);
+  }
+  
+  p, a, span, li {
+    color: var(--text-color, inherit);
+  }
+}
+
+/* TEMA DARK */
+[data-theme="dark"] {
+  /* Backgrounds e variáveis de gradientes */
+  --theme-bg: hsl(222, 47%, 11%);
+  --bg-gradient: linear-gradient(to bottom right, hsl(222, 47%, 11%), hsl(215, 28%, 17%));
+  
+  /* Sombras personalizadas */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.6);
+  
+  /* Cores de texto personalizadas */
+  --header-text: hsl(213, 31%, 91%);
+  --subtitle-text: hsl(214, 16%, 76%);
+  
+  /* Componentes específicos */
+  .matrix-card {
+    background-color: rgba(30, 41, 59, 0.8);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+  }
+  
+  .task-item {
+    background-color: hsl(215, 28%, 17%);
+    border-color: hsl(216, 34%, 17%);
+    color: hsl(213, 31%, 91%);
+  }
+  
+  .dashboard-card {
+    background-color: hsl(215, 28%, 17%);
+    box-shadow: var(--shadow-md);
+  }
+  
+  /* Elementos de texto */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--header-text);
+  }
+  
+  p, a, span, li {
+    color: var(--text-color, inherit);
+  }
+}
+
+/* TEMA SYNTHWAVE */
+[data-theme="synthwave"] {
+  /* Backgrounds e variáveis de gradientes */
+  --theme-bg: hsl(266, 55%, 12%);
+  --bg-gradient: linear-gradient(to bottom right, hsl(266, 55%, 12%), hsl(292, 45%, 20%));
+  
+  /* Sombras personalizadas com glow */
+  --shadow-sm: 0 1px 2px rgba(191, 66, 245, 0.2);
+  --shadow-md: 0 2px 8px rgba(191, 66, 245, 0.25);
+  --shadow-lg: 0 4px 12px rgba(191, 66, 245, 0.35), 0 0 20px rgba(191, 66, 245, 0.15);
+  
+  /* Cores de texto personalizadas */
+  --header-text: hsl(280, 100%, 80%);
+  --subtitle-text: hsl(285, 70%, 70%);
+  
+  /* Componentes específicos */
+  .matrix-card {
+    background-color: rgba(38, 12, 65, 0.75);
+    box-shadow: 0 4px 12px rgba(191, 66, 245, 0.3), 0 0 20px rgba(191, 66, 245, 0.1);
+    backdrop-filter: blur(10px);
+    border-color: rgba(191, 66, 245, 0.4) !important;
+  }
+  
+  .task-item {
+    background-color: hsl(270, 50%, 15%);
+    border-color: hsl(280, 70%, 35%);
+    color: hsl(280, 100%, 90%);
+    box-shadow: 0 2px 8px rgba(191, 66, 245, 0.2);
+  }
+  
+  .dashboard-card {
+    background-color: hsla(272, 51%, 18%, 0.9);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid hsla(280, 70%, 35%, 0.3);
+  }
+  
+  /* Elementos de texto */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--header-text);
+    text-shadow: 0 0 8px rgba(191, 66, 245, 0.5);
+  }
+  
+  p, a, span, li {
+    color: var(--text-color, hsl(280, 100%, 90%));
+  }
+  
+  /* Botões especiais */
+  .btn-primary {
+    background: linear-gradient(to right, hsl(280, 100%, 50%), hsl(340, 100%, 50%));
+    border: none;
+    color: white;
+    box-shadow: 0 2px 10px rgba(191, 66, 245, 0.5);
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(to right, hsl(280, 100%, 60%), hsl(340, 100%, 60%));
+    box-shadow: 0 4px 15px rgba(191, 66, 245, 0.7);
+  }
+}
+
+/* TEMA CYBERPUNK */
+[data-theme="cyberpunk"] {
+  /* Backgrounds e variáveis de gradientes */
+  --theme-bg: hsl(225, 60%, 7%);
+  --bg-gradient: linear-gradient(to bottom right, hsl(225, 60%, 7%), hsl(225, 70%, 12%));
+  
+  /* Sombras personalizadas com glow */
+  --shadow-sm: 0 1px 2px rgba(0, 230, 255, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 230, 255, 0.3);
+  --shadow-lg: 0 4px 12px rgba(0, 230, 255, 0.3), 0 0 20px rgba(0, 230, 255, 0.1);
+  
+  /* Cores de texto personalizadas */
+  --header-text: hsl(180, 100%, 75%);
+  --subtitle-text: hsl(190, 90%, 60%);
+  
+  /* Componentes específicos */
+  .matrix-card {
+    background-color: rgba(20, 20, 35, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 230, 255, 0.3), 0 0 20px rgba(0, 230, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-color: rgba(0, 230, 255, 0.4) !important;
+  }
+  
+  .task-item {
+    background-color: hsl(225, 50%, 15%);
+    border-color: hsl(180, 100%, 40%);
+    color: hsl(180, 100%, 85%);
+    box-shadow: 0 2px 8px rgba(0, 230, 255, 0.2);
+  }
+  
+  .dashboard-card {
+    background-color: hsla(225, 60%, 12%, 0.9);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid hsla(180, 100%, 40%, 0.3);
+  }
+  
+  /* Elementos de texto */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--header-text);
+    text-shadow: 0 0 8px rgba(0, 230, 255, 0.5);
+  }
+  
+  p, a, span, li {
+    color: var(--text-color, hsl(180, 100%, 90%));
+  }
+  
+  /* Botões especiais */
+  .btn-primary {
+    background: linear-gradient(to right, hsl(180, 100%, 50%), hsl(210, 100%, 50%));
+    border: none;
+    color: white;
+    box-shadow: 0 2px 10px rgba(0, 230, 255, 0.5);
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(to right, hsl(180, 100%, 60%), hsl(210, 100%, 60%));
+    box-shadow: 0 4px 15px rgba(0, 230, 255, 0.7);
+  }
+}
+
+/* TEMA DRACULA */
+[data-theme="dracula"] {
+  /* Backgrounds e variáveis de gradientes */
+  --theme-bg: hsl(231, 15%, 18%);
+  --bg-gradient: linear-gradient(to bottom right, hsl(231, 15%, 18%), hsl(232, 14%, 12%));
+  
+  /* Paleta Dracula */
+  --dracula-background: hsl(231, 15%, 18%);
+  --dracula-foreground: hsl(60, 30%, 96%);
+  --dracula-comment: hsl(225, 27%, 51%);
+  --dracula-pink: hsl(326, 100%, 74%);
+  --dracula-purple: hsl(265, 89%, 78%);
+  --dracula-green: hsl(135, 94%, 65%);
+  --dracula-orange: hsl(31, 100%, 71%);
+  --dracula-cyan: hsl(191, 97%, 77%);
+  
+  /* Sombras personalizadas */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.5);
+  
+  /* Cores de texto personalizadas */
+  --header-text: var(--dracula-purple);
+  --subtitle-text: var(--dracula-comment);
+  
+  /* Componentes específicos */
+  .matrix-card {
+    background-color: rgba(40, 42, 54, 0.8);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(8px);
+    border-color: rgba(98, 114, 164, 0.5) !important;
+  }
+  
+  .task-item {
+    background-color: var(--dracula-background);
+    border-color: var(--dracula-comment);
+    color: var(--dracula-foreground);
+  }
+  
+  .dashboard-card {
+    background-color: hsl(232, 14%, 21%);
+    box-shadow: var(--shadow-md);
+    border: 1px solid hsla(232, 14%, 31%, 0.5);
+  }
+  
+  /* Elementos de texto */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--header-text);
+  }
+  
+  p, a, span, li {
+    color: var(--dracula-foreground);
+  }
+  
+  /* Botões especiais */
+  .btn-primary {
+    background-color: var(--dracula-pink);
+    border: none;
+    color: var(--dracula-background);
+  }
+  
+  .btn-primary:hover {
+    background-color: hsl(326, 100%, 84%);
+    color: var(--dracula-background);
+  }
+  
+  .btn-secondary {
+    background-color: var(--dracula-cyan);
+    color: var(--dracula-background);
+  }
+}
+
+/* TEMA NORD */
+[data-theme="nord"] {
+  /* Backgrounds e variáveis de gradientes */
+  --theme-bg: hsl(220, 16%, 22%);
+  --bg-gradient: linear-gradient(to bottom right, hsl(220, 16%, 22%), hsl(222, 16%, 18%));
+  
+  /* Paleta Nord */
+  --nord0: hsl(220, 16%, 22%);
+  --nord1: hsl(222, 16%, 28%);
+  --nord2: hsl(220, 17%, 32%);
+  --nord3: hsl(220, 16%, 36%);
+  --nord4: hsl(219, 28%, 88%);
+  --nord5: hsl(218, 27%, 92%);
+  --nord6: hsl(218, 27%, 94%);
+  --nord7: hsl(179, 25%, 65%);
+  --nord8: hsl(193, 43%, 67%);
+  --nord9: hsl(210, 34%, 63%);
+  --nord10: hsl(213, 32%, 52%);
+  --nord11: hsl(354, 42%, 56%);
+  --nord12: hsl(14, 51%, 63%);
+  --nord13: hsl(40, 71%, 73%);
+  --nord14: hsl(92, 28%, 65%);
+  --nord15: hsl(311, 20%, 63%);
+  
+  /* Sombras personalizadas */
+  --shadow-sm: 0 1px 2px rgba(46, 52, 64, 0.4);
+  --shadow-md: 0 2px 8px rgba(46, 52, 64, 0.5);
+  --shadow-lg: 0 4px 12px rgba(46, 52, 64, 0.5);
+  
+  /* Cores de texto personalizadas */
+  --header-text: var(--nord8);
+  --subtitle-text: var(--nord9);
+  
+  /* Componentes específicos */
+  .matrix-card {
+    background-color: var(--nord1);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(8px);
+    border-color: var(--nord3) !important;
+  }
+  
+  .task-item {
+    background-color: var(--nord0);
+    border-color: var(--nord3);
+    color: var(--nord4);
+  }
+  
+  .dashboard-card {
+    background-color: var(--nord1);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--nord3);
+  }
+  
+  /* Elementos de texto */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--header-text);
+  }
+  
+  p, a, span, li {
+    color: var(--nord4);
+  }
+  
+  /* Botões especiais */
+  .btn-primary {
+    background-color: var(--nord10);
+    border: none;
+    color: var(--nord6);
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--nord9);
+    color: var(--nord6);
+  }
+  
+  .btn-secondary {
+    background-color: var(--nord7);
+    color: var(--nord0);
+  }
+}

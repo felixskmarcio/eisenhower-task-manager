@@ -1,3 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Your existing theme variables can remain */
+  }
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;

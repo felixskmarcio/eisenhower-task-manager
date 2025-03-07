@@ -1,40 +1,42 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+type ThemeType = 'light' | 'dark' | 'cupcake' | 'bumblebee' | 'emerald' | 'corporate' | 'synthwave' | 'retro' | 'cyberpunk' | 'valentine' | 'halloween' | 'garden' | 'forest' | 'aqua' | 'lofi' | 'pastel' | 'fantasy' | 'wireframe' | 'black' | 'luxury' | 'dracula' | 'cmyk' | 'autumn' | 'business' | 'acid' | 'lemonade' | 'night' | 'coffee' | 'winter' | 'dim' | 'nord' | 'sunset' | 'caramellatte' | 'abyss' | 'silk';
+
 type ThemeContextType = {
-  isDarkMode: boolean;
-  toggleDarkMode: () => void;
+  currentTheme: ThemeType;
+  setTheme: (theme: ThemeType) => void;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Check if dark mode is stored in localStorage, otherwise use system preference
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      return savedTheme === 'dark';
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  // Check if theme is stored in localStorage, otherwise use default theme
+  const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
+    const savedTheme = localStorage.getItem('theme') as ThemeType;
+    return savedTheme && [
+      'light', 'dark', 'cupcake', 'bumblebee', 'emerald', 'corporate', 'synthwave', 'retro', 
+      'cyberpunk', 'valentine', 'halloween', 'garden', 'forest', 'aqua', 'lofi', 'pastel', 
+      'fantasy', 'wireframe', 'black', 'luxury', 'dracula', 'cmyk', 'autumn', 'business', 
+      'acid', 'lemonade', 'night', 'coffee', 'winter', 'dim', 'nord', 'sunset', 'caramellatte', 
+      'abyss', 'silk'
+    ].includes(savedTheme)
+      ? savedTheme
+      : 'light';
   });
 
-  // Apply dark mode class to document when theme changes
+  // Apply theme when it changes
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    localStorage.setItem('theme', currentTheme);
+  }, [currentTheme]);
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(prev => !prev);
+  const setTheme = (theme: ThemeType) => {
+    setCurrentTheme(theme);
   };
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleDarkMode }}>
+    <ThemeContext.Provider value={{ currentTheme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

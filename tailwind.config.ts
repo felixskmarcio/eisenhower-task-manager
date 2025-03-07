@@ -1,8 +1,8 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["class"],
+  plugins: [require("daisyui")],
+  darkMode: "class",
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -25,24 +25,26 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "#2DD4BF",
-          hover: "#14B8A6",
-          light: "#99F6E4",
-          dark: "#0F766E",
-        },
-        secondary: {
-          DEFAULT: "#64748B",
-          hover: "#475569",
-          light: "#CBD5E1",
-          dark: "#334155",
-        },
-        urgent: {
-          DEFAULT: "#FB923C",
-          hover: "#F97316",
-          light: "#FFEDD5",
-          dark: "#C2410C",
-        },
+        primary: "var(--color-primary)",
+        "primary-content": "var(--color-primary-content)",
+        secondary: "var(--color-secondary)",
+        "secondary-content": "var(--color-secondary-content)",
+        accent: "var(--color-accent)",
+        "accent-content": "var(--color-accent-content)",
+        neutral: "var(--color-neutral)",
+        "neutral-content": "var(--color-neutral-content)",
+        "base-100": "var(--color-base-100)",
+        "base-200": "var(--color-base-200)",
+        "base-300": "var(--color-base-300)",
+        "base-content": "var(--color-base-content)",
+        info: "var(--color-info)",
+        "info-content": "var(--color-info-content)",
+        success: "var(--color-success)",
+        "success-content": "var(--color-success-content)",
+        warning: "var(--color-warning)",
+        "warning-content": "var(--color-warning-content)",
+        error: "var(--color-error)",
+        "error-content": "var(--color-error-content)",
         card: {
           DEFAULT: "rgba(255, 255, 255, 0.8)",
           foreground: "#1E293B",
@@ -96,5 +98,14 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
-} satisfies Config;
+  plugins: [require("tailwindcss-animate"), require("daisyui")],
+  daisyui: {
+    themes: [
+      'light', 'dark', 'cupcake', 'bumblebee', 'emerald', 'corporate', 'synthwave', 'retro',
+      'cyberpunk', 'valentine', 'halloween', 'garden', 'forest', 'aqua', 'lofi', 'pastel',
+      'fantasy', 'wireframe', 'black', 'luxury', 'dracula', 'cmyk', 'autumn', 'business',
+      'acid', 'lemonade', 'night', 'coffee', 'winter', 'dim', 'nord', 'sunset', 'caramellatte',
+      'abyss', 'silk'
+    ],
+  },
+}
