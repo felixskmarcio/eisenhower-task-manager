@@ -1,5 +1,4 @@
-import { TubelightNavbar } from "@/components/ui/tubelight-navbar"
-import { Clock, Star, CheckCircle, Share, Settings, Home } from "lucide-react"
+// Layout component imports removed as they're not needed here
 
 // In your layout component
 export default function RootLayout({
@@ -7,44 +6,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const navItems = [
-    {
-      name: "Início",
-      url: "/",
-      icon: Home,
-    },
-    {
-      name: "Tarefas",
-      url: "/tarefas",
-      icon: Clock,
-    },
-    {
-      name: "Matriz",
-      url: "/matriz",
-      icon: Star,
-    },
-    {
-      name: "Concluídas",
-      url: "/concluidas",
-      icon: CheckCircle,
-    },
-    {
-      name: "Compartilhar",
-      url: "/compartilhar",
-      icon: Share,
-    },
-    {
-      name: "Config",
-      url: "/config",
-      icon: Settings,
-    },
-  ]
+  // Navigation items removed as they're not needed here
 
   return (
     <html lang="pt-BR">
-      <body className={cn("min-h-screen bg-background antialiased", fontSans.variable)}>
+      <body className="min-h-screen bg-background antialiased">
         {children}
-        <TubelightNavbar items={navItems} />
       </body>
     </html>
   )

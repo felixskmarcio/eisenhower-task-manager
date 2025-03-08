@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Clock, Star, CheckCircle, Share2, Settings, Plus, Trash2 } from 'lucide-react';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Clock, CheckCircle, Plus, Trash2, BarChart2, Activity, ChevronLeft, ChevronRight, Volume2, Headphones } from 'lucide-react';
 import AddTaskModal from './AddTaskModal';
 import { formatDate } from '@/utils/dateUtils';
-import { useTheme } from '../contexts/ThemeContext';
 
 interface Task {
   id: string;
@@ -18,8 +18,6 @@ interface Task {
 }
 
 export const Matrix = () => {
-  const { currentTheme } = useTheme();
-  
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: '1',
@@ -69,42 +67,51 @@ export const Matrix = () => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [activeView, setActiveView] = useState<'matrix' | 'tasks' | 'completed'>('matrix');
-  const [newTask, setNewTask] = useState<Omit<Task, 'id' | 'quadrant' | 'completed' | 'createdAt' | 'completedAt'>>({
-    title: '',
+  const [newTask, setNewTask] = useState<Omit<Task, 'id' | 'quadrant' | 'completed' | 'createdAt' | 'completedAt'>>({    title: '',
     description: '',
     urgency: 5,
     importance: 5,
   });
-
+  const [selectedDate, setSelectedDate] = useState<number>(14); // Default to day 14
+  const [salesData, setSalesData] = useState<number[]>([4, 6, 8, 10, 5, 7, 9, 12, 14, 16, 13, 15, 18, 20, 17, 19]);
+  const [pageScore, setPageScore] = useState<number>(91);
+  const [recentOrders, setRecentOrders] = useState([
+    { name: 'Charlie Chapman', status: 'send' },
+    { name: 'Howard Hudson', status: 'failed' },
+    { name: 'Fiona Fisher', status: 'in progress' },
+    { name: 'Nick Nelson', status: 'completed' },
+    { name: 'Amanda Anderson', status: 'completed' },
+  ]);
+  
   // Definição dos quadrantes usando as variáveis de cor do tema atual
   const quadrants = [
     { 
       title: 'Fazer', 
       description: 'Importante e Urgente',
-      color: 'bg-error/80',
-      borderColor: 'border-error',
-      textColor: 'text-error-content'
+      color: 'bg-gradient-to-br from-[#44253b]/90 to-[#2a1423]/95 backdrop-blur-md',
+      borderColor: 'border-[#ff79c6]',
+      textColor: 'text-[#ff79c6]'
     },
     { 
       title: 'Agendar', 
       description: 'Importante, mas Não Urgente',
-      color: 'bg-success/80',
-      borderColor: 'border-success',
-      textColor: 'text-success-content'
+      color: 'bg-gradient-to-br from-[#253844]/90 to-[#142a2a]/95 backdrop-blur-md',
+      borderColor: 'border-[#8be9fd]',
+      textColor: 'text-[#8be9fd]'
     },
     { 
       title: 'Delegar', 
       description: 'Não Importante, mas Urgente',
-      color: 'bg-warning/80',
-      borderColor: 'border-warning',
-      textColor: 'text-warning-content'
+      color: 'bg-gradient-to-br from-[#443825]/90 to-[#2a2314]/95 backdrop-blur-md',
+      borderColor: 'border-[#f1fa8c]',
+      textColor: 'text-[#f1fa8c]'
     },
     { 
       title: 'Eliminar', 
       description: 'Não Importante e Não Urgente',
-      color: 'bg-secondary/80',
-      borderColor: 'border-secondary',
-      textColor: 'text-secondary-content'
+      color: 'bg-gradient-to-br from-[#252844]/90 to-[#14142a]/95 backdrop-blur-md',
+      borderColor: 'border-[#bd93f9]',
+      textColor: 'text-[#bd93f9]'
     }
   ];
 
@@ -164,7 +171,11 @@ export const Matrix = () => {
     setTasks(tasks.map(task => {
       if (task.id === taskId) {
         const completedAt = !task.completed ? new Date() : null;
-        return { ...task, completed: !task.completed, completedAt };
+        const newTask = { ...task, completed: !task.completed, completedAt };
+        if (newTask.completed) {
+          setActiveView('completed');
+        }
+        return newTask;
       }
       return task;
     }));
@@ -179,28 +190,31 @@ export const Matrix = () => {
     <div 
       draggable 
       onDragStart={(e) => handleDragStart(e, task)}
-      className={`p-3 rounded-lg border matrix-card transition-all duration-200 
-        ${task.quadrant === 0 ? 'border-error bg-base-100' : 
-              task.quadrant === 1 ? 'border-success bg-base-100' : 
-              task.quadrant === 2 ? 'border-warning bg-base-100' : 
-              'border-secondary bg-base-100'}
-        ${task.completed ? 'opacity-60' : 'hover:scale-102'}`}
+      className={`p-4 rounded-xl border matrix-card transition-all duration-300 shadow-md hover:shadow-lg 
+        ${task.quadrant === 0 ? 'border-[#ff79c6]/30 bg-[#282a36]/70 hover:border-[#ff79c6]/80' : 
+              task.quadrant === 1 ? 'border-[#8be9fd]/30 bg-[#282a36]/70 hover:border-[#8be9fd]/80' : 
+              task.quadrant === 2 ? 'border-[#f1fa8c]/30 bg-[#282a36]/70 hover:border-[#f1fa8c]/80' : 
+              'border-[#bd93f9]/30 bg-[#282a36]/70 hover:border-[#bd93f9]/80'}
+        ${task.completed ? 'opacity-60' : 'hover:scale-[1.02]'} backdrop-blur-sm`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h3 className={`font-bold text-lg ${task.completed ? 'line-through opacity-75' : ''}`}>
+          <h3 className={`font-bold text-lg ${task.completed ? 'line-through opacity-75' : task.quadrant === 0 ? 'text-[#ff79c6]' : 
+              task.quadrant === 1 ? 'text-[#8be9fd]' : 
+              task.quadrant === 2 ? 'text-[#f1fa8c]' : 
+              'text-[#bd93f9]'}`}>
             {task.title}
           </h3>
           {task.description && (
-            <p className={`text-sm opacity-80 ${task.completed ? 'line-through' : ''}`}>
+            <p className={`text-sm text-gray-300 mt-1 ${task.completed ? 'line-through' : ''}`}>
               {task.description}
             </p>
           )}
-          <p className={`text-xs mt-1 opacity-60`}>
+          <p className={`text-xs mt-2 text-gray-400`}>
             Criada em: {formatDate(task.createdAt)}
           </p>
           {task.completed && task.completedAt && (
-            <p className={`text-xs opacity-60`}>
+            <p className={`text-xs text-gray-400`}>
               Concluída em: {formatDate(task.completedAt)}
             </p>
           )}
@@ -208,17 +222,17 @@ export const Matrix = () => {
         <div className="flex space-x-2">
           <button 
             onClick={() => toggleTaskCompletion(task.id)}
-            className={`flex-shrink-0 p-2 rounded-full transition-colors shadow-sm hover:shadow-md
+            className={`flex-shrink-0 p-2 rounded-full transition-all duration-300 shadow-sm hover:shadow-md
             ${task.completed 
-              ? 'bg-success text-success-content' 
-              : 'bg-base-200 text-base-content hover:bg-base-300'}`}
+              ? 'bg-[#50fa7b]/90 text-[#282a36]' 
+              : 'bg-[#44475a] text-gray-300 hover:bg-[#6272a4] hover:text-white'}`}
           >
-            <CheckCircle size={16} className={task.completed ? 'opacity-100' : 'opacity-50'} />
+            <CheckCircle size={16} className={task.completed ? 'opacity-100' : 'opacity-70'} />
           </button>
           <button 
             onClick={() => deleteTask(task.id)}
-            className={`flex-shrink-0 p-2 rounded-full transition-colors shadow-sm hover:shadow-md
-            bg-base-200 text-error hover:bg-error hover:text-error-content`}
+            className={`flex-shrink-0 p-2 rounded-full transition-all duration-300 shadow-sm hover:shadow-md
+            bg-[#44475a] text-[#ff5555] hover:bg-[#ff5555] hover:text-white`}
           >
             <Trash2 size={16} />
           </button>
@@ -227,75 +241,106 @@ export const Matrix = () => {
     </div>
   );
 
-  return (
-    <div className="theme-bg min-h-screen p-4 transition-colors duration-300">
-      <Card className="max-w-7xl mx-auto rounded-xl overflow-hidden shadow-xl bg-base-100">
-        <div className="flex justify-between items-center p-6 border-b border-base-300">
-          <div>
-            <h1 className="text-2xl font-bold text-base-content">Matriz de Eisenhower</h1>
-            <p className="text-sm opacity-70 text-base-content">Organize suas tarefas por importância e urgência</p>
-          </div>
-          
-          <div className="flex space-x-2">
-            <button 
-              onClick={() => setActiveView('matrix')}
-              className={`px-3 py-2 rounded-md transition-colors 
-                ${activeView === 'matrix' 
-                  ? 'bg-primary text-primary-content' 
-                  : 'hover:bg-base-200 text-base-content'}`}
-            >
-              Matriz
-            </button>
-            <button 
-              onClick={() => setActiveView('tasks')}
-              className={`px-3 py-2 rounded-md transition-colors 
-                ${activeView === 'tasks' 
-                  ? 'bg-primary text-primary-content' 
-                  : 'hover:bg-base-200 text-base-content'}`}
-            >
-              Tarefas
-            </button>
-            <button 
-              onClick={() => setActiveView('completed')}
-              className={`px-3 py-2 rounded-md transition-colors 
-                ${activeView === 'completed' 
-                  ? 'bg-primary text-primary-content' 
-                  : 'hover:bg-base-200 text-base-content'}`}
-            >
-              Concluídas
-            </button>
-          </div>
-          
-          <button 
-            onClick={() => setIsAddModalOpen(true)}
-            className="btn btn-primary"
-          >
-            <Plus size={18} className="mr-1" />
-            Nova Tarefa
-          </button>
-        </div>
+  // Componente para renderizar o gráfico de barras
+  const BarChart = () => {
+    const maxValue = Math.max(...salesData);
+    
+    return (
+      <div className="flex items-end h-24 gap-1">
+        {salesData.map((value, index) => (
+          <div 
+            key={index} 
+            className="bg-white w-3 rounded-t-sm" 
+            style={{ height: `${(value / maxValue) * 100}%` }}
+          />
+        ))}
+      </div>
+    );
+  };
 
-        {activeView === 'matrix' && (
-          <div className="grid grid-cols-2 gap-4 p-6">
+  // Componente para renderizar o calendário
+  const Calendar = () => {
+    const days = [12, 13, 14, 15, 16, 17, 18];
+    const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    
+    return (
+      <div className="flex justify-between">
+        {days.map((day, index) => (
+          <div 
+            key={index} 
+            onClick={() => setSelectedDate(day)}
+            className={`flex flex-col items-center cursor-pointer ${selectedDate === day ? 'bg-[#bd93f9] text-white rounded-md' : ''} p-2`}
+          >
+            <span className="text-xs">{weekdays[index]}</span>
+            <span className="font-medium">{day}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Componente para renderizar o status de um pedido
+  const OrderStatus = ({ status }: { status: string }) => {
+    const getStatusStyles = () => {
+      switch (status) {
+        case 'send':
+          return 'bg-blue-500 text-white';
+        case 'failed':
+          return 'bg-red-500 text-white';
+        case 'in progress':
+          return 'bg-yellow-500 text-black';
+        case 'completed':
+          return 'bg-green-500 text-white';
+        default:
+          return 'bg-gray-500 text-white';
+      }
+    };
+
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs ${getStatusStyles()}`}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </span>
+    );
+  };
+
+  return (
+    <div className="container mx-auto p-6 mt-20 bg-[#1e1f29]/50 min-h-fit rounded-xl backdrop-blur-sm">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-[#ff79c6] to-[#bd93f9] bg-clip-text text-transparent">
+          Matriz de Eisenhower
+        </h1>
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="bg-gradient-to-r from-[#ff79c6] to-[#bd93f9] text-white px-4 py-2 flex items-center gap-2 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:opacity-90"
+        >
+          <Plus size={20} />
+          Nova Tarefa
+        </button>
+      </div>
+
+      <Tabs defaultValue="matrix" className="w-full">
+        <TabsList className="bg-[#282a36] mb-4">
+          <TabsTrigger value="matrix">Matriz</TabsTrigger>
+          <TabsTrigger value="completed">Concluídas</TabsTrigger>
+          <TabsTrigger value="all">Todas</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="matrix">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {quadrants.map((quadrant, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, index)}
-                className={`p-4 rounded-lg ${quadrant.color} min-h-[400px] border-2 border-dashed 
-                shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300
-                ${quadrant.borderColor} hover:border-opacity-90 border-opacity-50 matrix-card`}
+                className={`p-6 rounded-xl ${quadrant.color} min-h-[10vh] shadow-xl border ${quadrant.borderColor}/30 backdrop-filter hover:shadow-2xl transition-all duration-300`}
               >
-                <div className="mb-4">
-                  <h2 className={`text-xl font-bold ${quadrant.textColor}`}>
-                    {quadrant.title}
-                  </h2>
-                  <p className={`text-sm ${quadrant.textColor} opacity-70`}>
-                    {quadrant.description}
-                  </p>
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h2 className={`text-2xl font-bold ${quadrant.textColor}`}>{quadrant.title}</h2>
+                    <p className={`text-sm ${quadrant.textColor} opacity-80 mt-1`}>{quadrant.description}</p>
+                  </div>
                 </div>
-                
-                <div className="space-y-3 overflow-y-auto max-h-[320px] pr-1">
+                <div className="space-y-3">
                   {tasks
                     .filter(task => task.quadrant === index && !task.completed)
                     .map(task => (
@@ -305,176 +350,44 @@ export const Matrix = () => {
               </div>
             ))}
           </div>
-        )}
+        </TabsContent>
 
-        {activeView === 'tasks' && (
-          <div className="mb-6 p-6">
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold mb-2 text-base-content">Todas as Tarefas</h2>
-              <p className="text-sm opacity-70 text-base-content">Visualize e gerencie todas as suas tarefas em um só lugar</p>
-            </div>
-            
-            <div className="p-4 rounded-lg dashboard-card bg-base-200">
-              {tasks.length > 0 ? (
-                <div className="space-y-3">
-                  {tasks
-                    .filter(task => !task.completed)
-                    .sort((a, b) => {
-                      if (a.quadrant !== b.quadrant) return a.quadrant - b.quadrant;
-                      const aScore = a.importance * a.urgency;
-                      const bScore = b.importance * b.urgency;
-                      return bScore - aScore;
-                    })
-                    .map(task => (
-                      <div 
-                        key={task.id} 
-                        className={`p-4 rounded-lg ${task.quadrant === 0 ? 'bg-error/20' : 
-                                          task.quadrant === 1 ? 'bg-success/20' : 
-                                          task.quadrant === 2 ? 'bg-warning/20' : 
-                                          'bg-secondary/20'}`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <div className="flex items-center mb-1">
-                              <span 
-                                className={`inline-block w-3 h-3 rounded-full mr-2 ${
-                                  task.quadrant === 0 ? 'bg-error' : 
-                                  task.quadrant === 1 ? 'bg-success' : 
-                                  task.quadrant === 2 ? 'bg-warning' : 
-                                  'bg-secondary'}`}
-                              />
-                              <h3 className="font-bold text-lg text-base-content">{task.title}</h3>
-                            </div>
-                            {task.description && (
-                              <p className="text-sm opacity-80 mb-2 text-base-content">{task.description}</p>
-                            )}
-                            <div className="flex flex-col space-y-1 text-xs opacity-70 mb-2 text-base-content">
-                              <div className="flex space-x-4">
-                                <span>Quadrante: {quadrants[task.quadrant].title}</span>
-                                <span>Urgência: {task.urgency}/10</span>
-                                <span>Importância: {task.importance}/10</span>
-                              </div>
-                              <span>Criada em: {formatDate(task.createdAt)}</span>
-                            </div>
-                          </div>
-                          <div className="flex space-x-2">
-                            <button 
-                              onClick={() => toggleTaskCompletion(task.id)}
-                              className={`flex-shrink-0 p-2 rounded-full transition-colors
-                              ${task.completed 
-                                ? 'bg-success text-success-content' 
-                                : 'bg-base-300 text-base-content hover:bg-base-300'}`}
-                            >
-                              <CheckCircle size={16} />
-                            </button>
-                            <button 
-                              onClick={() => deleteTask(task.id)}
-                              className="flex-shrink-0 p-2 rounded-full transition-colors bg-base-300 text-error hover:bg-error hover:text-error-content"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-lg mb-4 text-base-content">Nenhuma tarefa pendente</p>
-                  <button 
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="btn btn-primary"
-                  >
-                    Adicionar Tarefa
-                  </button>
-                </div>
-              )}
+        <TabsContent value="completed">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-[#50fa7b]">Tarefas Concluídas</h2>
+            <div className="grid gap-3">
+              {tasks
+                .filter(task => task.completed)
+                .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
+                .map(task => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
             </div>
           </div>
-        )}
+        </TabsContent>
 
-        {activeView === 'completed' && (
-          <div className="mb-6 p-6">
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold mb-2 text-base-content">Tarefas Concluídas</h2>
-              <p className="text-sm opacity-70 text-base-content">Histórico de tarefas que você já finalizou</p>
-            </div>
-            
-            <div className="p-4 rounded-lg dashboard-card bg-base-200">
-              {tasks.filter(task => task.completed).length > 0 ? (
-                <div className="space-y-3">
-                  {tasks
-                    .filter(task => task.completed)
-                    .map(task => (
-                      <div 
-                        key={task.id} 
-                        className={`p-4 rounded-lg shadow-md opacity-80 
-                        ${task.quadrant === 0 ? 'bg-error/20' : 
-                              task.quadrant === 1 ? 'bg-success/20' : 
-                              task.quadrant === 2 ? 'bg-warning/20' : 
-                              'bg-secondary/20'}`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <div className="flex items-center mb-1">
-                              <span 
-                                className={`inline-block w-3 h-3 rounded-full mr-2 ${
-                                  task.quadrant === 0 ? 'bg-error' : 
-                                  task.quadrant === 1 ? 'bg-success' : 
-                                  task.quadrant === 2 ? 'bg-warning' : 
-                                  'bg-secondary'}`}
-                              />
-                              <h3 className="font-bold text-lg line-through text-base-content">{task.title}</h3>
-                              <span className="ml-2 text-xs px-2 py-1 bg-success text-success-content rounded-full">
-                                Concluída
-                              </span>
-                            </div>
-                            {task.description && (
-                              <p className="text-sm opacity-80 mb-2 line-through text-base-content">{task.description}</p>
-                            )}
-                            <div className="flex flex-col space-y-1 text-xs opacity-70 text-base-content">
-                              <span>Quadrante: {quadrants[task.quadrant].title}</span>
-                              <span>Criada em: {formatDate(task.createdAt)}</span>
-                              <span>Concluída em: {formatDate(task.completedAt)}</span>
-                            </div>
-                          </div>
-                          <div className="flex space-x-2">
-                            <button 
-                              onClick={() => toggleTaskCompletion(task.id)}
-                              className="flex-shrink-0 p-2 rounded-full bg-success text-success-content"
-                            >
-                              <CheckCircle size={16} />
-                            </button>
-                            <button 
-                              onClick={() => deleteTask(task.id)}
-                              className="flex-shrink-0 p-2 rounded-full transition-colors bg-base-300 text-error hover:bg-error hover:text-error-content"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-base-content">
-                  <p className="text-lg">Nenhuma tarefa concluída ainda</p>
-                </div>
-              )}
+        <TabsContent value="all">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-[#50fa7b]">Todas as Tarefas</h2>
+            <div className="grid gap-3">
+              {tasks
+                .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
+                .map(task => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
             </div>
           </div>
-        )}
-        
-        <AddTaskModal 
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          newTask={newTask}
-          setNewTask={setNewTask}
-          onAddTask={handleAddTask}
-        />
-      </Card>
+        </TabsContent>
+      </Tabs>
+
+      <AddTaskModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        onAddTask={handleAddTask}
+        isDarkMode={true}
+      />
     </div>
   );
 };
-
-export default Matrix;
