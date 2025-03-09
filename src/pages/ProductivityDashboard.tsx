@@ -208,7 +208,7 @@ const ProductivityDashboard = () => {
   };
   return <div className="p-6 bg-background/95 min-h-screen">
       <div className="mb-8 text-center backdrop-blur-sm">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text my-[46px] text-blue-700">Análise de Produtividade</h1>
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text my-[30px] text-blue-700">Análise de Produtividade</h1>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
