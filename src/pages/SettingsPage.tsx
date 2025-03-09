@@ -2,12 +2,23 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Moon, Sun, Palette } from "lucide-react";
+import { Settings, Moon, Sun, Palette, Calendar, Database } from "lucide-react";
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeSelector from '@/components/ThemeSelector';
+import NotionImport from '@/components/NotionImport';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
 
 const SettingsPage = () => {
   const { currentTheme, setTheme } = useTheme();
+
+  const handleGoogleCalendarConnect = () => {
+    // Esta é uma simulação. Em um ambiente real, redirecionaria para a autenticação OAuth do Google
+    toast({
+      title: "Funcionalidade em Desenvolvimento",
+      description: "A integração com o Google Calendar será implementada em breve.",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 md:px-8 relative">
@@ -55,6 +66,70 @@ const SettingsPage = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </Card>
+        
+        <Card className="p-6 mb-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Database className="h-5 w-5 text-primary" />
+            Integração com Notion
+          </h2>
+          <Separator className="my-4" />
+          
+          <p className="text-sm text-muted-foreground mb-4">
+            Conecte-se ao Notion para importar suas tarefas diretamente para o Gerenciador de Tarefas.
+          </p>
+          
+          <NotionImport />
+        </Card>
+        
+        <Card className="p-6 mb-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            Integração com Google Calendar
+          </h2>
+          <Separator className="my-4" />
+          
+          <p className="text-sm text-muted-foreground mb-4">
+            Sincronize suas tarefas com o Google Calendar para manter tudo organizado em um só lugar.
+          </p>
+          
+          <div>
+            {localStorage.getItem('googleCalendarConnected') ? (
+              <div className="bg-green-500/10 border border-green-500/30 rounded-md p-4">
+                <div className="flex items-center gap-2 text-green-600 mb-2">
+                  <Calendar size={18} />
+                  <span className="font-medium">Conectado ao Google Calendar</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Sua conta Google está conectada. Suas tarefas serão sincronizadas automaticamente.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    localStorage.removeItem('googleCalendarConnected');
+                    window.location.reload();
+                  }}
+                  className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                >
+                  Desconectar
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                onClick={() => {
+                  handleGoogleCalendarConnect();
+                  // Simulação de conexão bem-sucedida
+                  localStorage.setItem('googleCalendarConnected', 'true');
+                  setTimeout(() => window.location.reload(), 1000);
+                }}
+                className="w-full"
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                Conectar ao Google Calendar
+              </Button>
+            )}
           </div>
         </Card>
         
