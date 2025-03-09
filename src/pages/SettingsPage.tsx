@@ -2,10 +2,10 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Moon, Sun, Palette, Calendar, Database, Save } from "lucide-react";
+import { Settings, Moon, Sun, Palette, Calendar, Database, Save, FileText } from "lucide-react";
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeSelector from '@/components/ThemeSelector';
-import NotionImport from '@/components/NotionImport';
+import MarkdownImport from '@/components/MarkdownImport';
 import SupabaseIntegration from '@/components/SupabaseIntegration';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
@@ -86,16 +86,16 @@ const SettingsPage = () => {
         
         <Card className="p-6 mb-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Database className="h-5 w-5 text-primary" />
-            Integração com Notion
+            <FileText className="h-5 w-5 text-primary" />
+            Importar Arquivos Markdown
           </h2>
           <Separator className="my-4" />
           
           <p className="text-sm text-muted-foreground mb-4">
-            Conecte-se ao Notion para importar suas tarefas diretamente para o Gerenciador de Tarefas.
+            Importe arquivos Markdown (.md ou .markdown) diretamente para a Matriz de Eisenhower.
           </p>
           
-          <NotionImport />
+          <MarkdownImport />
         </Card>
         
         <Card className="p-6 mb-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">

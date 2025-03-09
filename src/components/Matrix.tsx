@@ -150,7 +150,6 @@ export const Matrix = () => {
     tags: [],
   });
   
-  // Add tag filter state
   const [tagFilters, setTagFilters] = useState<{
     project: string | null;
     context: string | null;
@@ -181,7 +180,6 @@ export const Matrix = () => {
     { name: 'Amanda Anderson', status: 'completed' },
   ]);
   
-  // Definição dos quadrantes usando as variáveis de cor do tema atual
   const quadrants = [
     { 
       title: 'Fazer', 
@@ -252,7 +250,8 @@ export const Matrix = () => {
       quadrant,
       completed: false,
       createdAt: new Date(),
-      completedAt: null
+      completedAt: null,
+      tags: newTask.tags
     };
 
     setTasks([...tasks, newTaskItem]);
@@ -262,6 +261,7 @@ export const Matrix = () => {
       description: undefined,
       urgency: 5,
       importance: 5,
+      tags: [],
     });
   };
   
@@ -283,7 +283,6 @@ export const Matrix = () => {
     setTasks(tasks.filter(task => task.id !== taskId));
   };
 
-  // Componente TaskCard
   const TaskCard = ({ task }: { task: Task }) => (
     <div 
       draggable 
@@ -342,7 +341,6 @@ export const Matrix = () => {
     </div>
   );
 
-  // Componente para renderizar o gráfico de barras
   const BarChart = () => {
     const maxValue = Math.max(...salesData);
     
@@ -359,7 +357,6 @@ export const Matrix = () => {
     );
   };
 
-  // Componente para renderizar o calendário
   const Calendar = () => {
     const days = [12, 13, 14, 15, 16, 17, 18];
     const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -380,7 +377,6 @@ export const Matrix = () => {
     );
   };
 
-  // Componente para renderizar o status de um pedido
   const OrderStatus = ({ status }: { status: string }) => {
     const getStatusStyles = () => {
       switch (status) {
