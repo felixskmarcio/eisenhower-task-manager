@@ -1,14 +1,16 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { FileText, Upload, Check, AlertTriangle } from "lucide-react";
+import { FileText, Upload, Check, AlertTriangle, Info } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { extractTasksFromMarkdown } from '@/utils/markdownUtils';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const MarkdownImport: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -16,6 +18,7 @@ const MarkdownImport: React.FC = () => {
       if (file.name.endsWith('.md') || file.name.endsWith('.markdown')) {
         setSelectedFile(file);
         setImportStatus('idle');
+        setErrorMessage("");
       } else {
         toast({
           title: "Formato de arquivo inválido",
@@ -50,10 +53,14 @@ const MarkdownImport: React.FC = () => {
           });
           
           setImportStatus('success');
+          setErrorMessage("");
         } else {
+          const errorMsg = "O arquivo não contém tarefas no formato esperado. Verifique se seu Markdown contém tarefas no formato adequado, como '- [ ] Tarefa' ou com marcadores 'Urgente:' e 'Importante:'.";
+          setErrorMessage(errorMsg);
+          
           toast({
             title: "Nenhuma tarefa encontrada",
-            description: "O arquivo não contém tarefas válidas para importação.",
+            description: errorMsg,
             variant: "destructive"
           });
           setImportStatus('error');
@@ -63,9 +70,12 @@ const MarkdownImport: React.FC = () => {
       
     } catch (error) {
       console.error('Erro ao importar arquivo:', error);
+      const errorMsg = "Ocorreu um erro ao processar o arquivo. Verifique o formato e tente novamente.";
+      setErrorMessage(errorMsg);
+      
       toast({
         title: "Erro ao importar",
-        description: "Ocorreu um erro ao processar o arquivo. Tente novamente.",
+        description: errorMsg,
         variant: "destructive"
       });
       setImportStatus('error');
@@ -143,13 +153,31 @@ const MarkdownImport: React.FC = () => {
           )}
           
           {importStatus === 'error' && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-md p-3 flex items-center gap-2">
-              <AlertTriangle size={16} className="text-red-500" />
-              <span className="text-sm text-muted-foreground">
-                Ocorreu um erro ao importar o arquivo
-              </span>
-            </div>
+            <Alert variant="destructive" className="mt-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Erro na importação</AlertTitle>
+              <AlertDescription>
+                {errorMessage}
+              </AlertDescription>
+            </Alert>
           )}
+          
+          <Alert variant="default" className="bg-primary/5 border-primary/20">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Formatos suportados</AlertTitle>
+            <AlertDescription>
+              <p className="text-sm mt-1">O importador suporta os seguintes formatos de tarefas:</p>
+              <ul className="list-disc pl-5 text-sm mt-2 space-y-1">
+                <li>Lista de tarefas Markdown: <code>- [ ] Título da tarefa #tag importance:8 urgency:7</code></li>
+                <li>Formato com metadados separados:<br />
+                  <code>Título da tarefa<br />
+                  Urgente: Sim/No<br />
+                  Importante: Sim/No<br />
+                  Status: ❶/❷/❸/❹</code>
+                </li>
+              </ul>
+            </AlertDescription>
+          </Alert>
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@ interface MarkdownTask {
 /**
  * Extrai tarefas de um arquivo Markdown.
  * Procura por cabeçalhos e listas de tarefas no formato Markdown.
+ * Também suporta formatos como "Urgente: Sim/No" e "Importante: Sim/No".
  */
 export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[] => {
   const tasks: MarkdownTask[] = [];
@@ -18,7 +19,12 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
   const lines = markdownContent.split('\n');
   
   let currentSection = "";
-  let currentTask: Partial<MarkdownTask> | null = null;
+  let currentTitle = "";
+  let description = "";
+  let urgency = 5;
+  let importance = 5;
+  let tags: string[] = [];
+  let isTaskStart = false;
   
   // Expressões regulares para identificar padrões no Markdown
   const headingRegex = /^#{1,6}\s+(.+)$/;
@@ -27,24 +33,54 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
   const urgencyRegex = /urgency[:=]\s*(\d+)/i;
   const tagsRegex = /#([a-zA-Z0-9_]+)/g;
   
-  for (const line of lines) {
+  // Novos padrões para suportar o formato adicional
+  const titleLineRegex = /^.+$/;
+  const importantLineRegex = /^Importante:\s*(Sim|Não|No|Yes)$/i;
+  const urgenteLineRegex = /^Urgente:\s*(Sim|Não|No|Yes)$/i;
+  const statusLineRegex = /^Status:\s*(.+)$/i;
+  
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    
+    // Verifica se é um cabeçalho no formato tradicional
     const headingMatch = line.match(headingRegex);
     const taskMatch = line.match(taskRegex);
     
     if (headingMatch) {
       // Encontrou um cabeçalho, define a seção atual
       currentSection = headingMatch[1].trim();
+      
+      // Se temos uma tarefa em andamento, vamos finalizá-la
+      if (isTaskStart && currentTitle) {
+        tasks.push({
+          title: currentTitle,
+          description: description || undefined,
+          importance: Math.min(Math.max(importance, 1), 10),
+          urgency: Math.min(Math.max(urgency, 1), 10),
+          tags: tags.length > 0 ? tags : undefined
+        });
+        
+        // Reseta os valores
+        currentTitle = "";
+        description = "";
+        urgency = 5;
+        importance = 5;
+        tags = [];
+        isTaskStart = false;
+      }
     } else if (taskMatch) {
-      // Encontrou uma tarefa no formato "- [ ] Descrição da tarefa"
+      // Formato tradicional: "- [ ] Descrição da tarefa"
       const isCompleted = taskMatch[1].toLowerCase() === 'x';
       const taskText = taskMatch[2].trim();
       
       // Se a tarefa estiver concluída, ignoramos (não queremos importar tarefas já concluídas)
       if (!isCompleted) {
         // Extrair tags da descrição da tarefa
-        const tags: string[] = [];
+        tags = [];
         let tagMatch;
-        while ((tagMatch = tagsRegex.exec(taskText)) !== null) {
+        const tagRegexClone = new RegExp(tagsRegex);
+        while ((tagMatch = tagRegexClone.exec(taskText)) !== null) {
           tags.push(tagMatch[1]);
         }
         
@@ -56,24 +92,124 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
         const urgencyMatch = cleanDescription.match(urgencyRegex);
         
         // Valores padrão ou extraídos
-        const importance = importanceMatch ? parseInt(importanceMatch[1], 10) : 5;
-        const urgency = urgencyMatch ? parseInt(urgencyMatch[1], 10) : 5;
+        importance = importanceMatch ? parseInt(importanceMatch[1], 10) : 5;
+        urgency = urgencyMatch ? parseInt(urgencyMatch[1], 10) : 5;
         
         // Título é a descrição limpa, sem os metadados
-        const title = cleanDescription
+        currentTitle = cleanDescription
           .replace(importanceRegex, '')
           .replace(urgencyRegex, '')
           .trim();
         
         tasks.push({
-          title,
-          description: currentSection !== title ? currentSection : undefined,
-          importance: Math.min(Math.max(importance, 1), 10), // Limitar entre 1 e 10
-          urgency: Math.min(Math.max(urgency, 1), 10), // Limitar entre 1 e 10
+          title: currentTitle,
+          description: currentSection !== currentTitle ? currentSection : undefined,
+          importance: Math.min(Math.max(importance, 1), 10),
+          urgency: Math.min(Math.max(urgency, 1), 10),
           tags: tags.length > 0 ? tags : undefined
         });
+        
+        // Reseta os valores
+        currentTitle = "";
+        description = "";
+        urgency = 5;
+        importance = 5;
+        tags = [];
       }
+    } else if (titleLineRegex.test(line) && !isTaskStart && line !== "") {
+      // Possível início de uma tarefa no novo formato
+      currentTitle = line;
+      isTaskStart = true;
+      
+      // Vamos tentar reunir informações sobre essa tarefa
+      let j = i + 1;
+      let foundTaskInfo = false;
+      
+      while (j < lines.length) {
+        const nextLine = lines[j].trim();
+        
+        const importantMatch = nextLine.match(importantLineRegex);
+        const urgenteMatch = nextLine.match(urgenteLineRegex);
+        const statusMatch = nextLine.match(statusLineRegex);
+        
+        if (importantMatch) {
+          const isImportant = importantMatch[1].toLowerCase() === 'sim' || importantMatch[1].toLowerCase() === 'yes';
+          importance = isImportant ? 9 : 3;
+          foundTaskInfo = true;
+        } else if (urgenteMatch) {
+          const isUrgent = urgenteMatch[1].toLowerCase() === 'sim' || urgenteMatch[1].toLowerCase() === 'yes';
+          urgency = isUrgent ? 9 : 3;
+          foundTaskInfo = true;
+        } else if (statusMatch) {
+          // Utilizamos o status para determinar os quadrantes
+          const status = statusMatch[1].trim();
+          
+          // Verifica se o status contém numerais como "❶", "❷", "❸", "❹"
+          if (status.includes("❶")) {
+            urgency = 9;
+            importance = 9;
+          } else if (status.includes("❷")) {
+            urgency = 3;
+            importance = 9;
+          } else if (status.includes("❸")) {
+            urgency = 9;
+            importance = 3;
+          } else if (status.includes("❹")) {
+            urgency = 3;
+            importance = 3;
+          }
+          
+          foundTaskInfo = true;
+        } else if (nextLine === "" || j === lines.length - 1 || nextLine.match(titleLineRegex)) {
+          // Uma linha em branco ou final do arquivo ou nova tarefa = fim da tarefa atual
+          break;
+        } else {
+          // Adicione à descrição
+          if (description) {
+            description += "\n" + nextLine;
+          } else {
+            description = nextLine;
+          }
+        }
+        
+        j++;
+      }
+      
+      // Se encontramos informações da tarefa, adicionamos à lista
+      if (foundTaskInfo) {
+        tasks.push({
+          title: currentTitle,
+          description: description || undefined,
+          importance: Math.min(Math.max(importance, 1), 10),
+          urgency: Math.min(Math.max(urgency, 1), 10),
+          tags: tags.length > 0 ? tags : undefined
+        });
+        
+        // Avançamos o índice para após esta tarefa
+        i = j - 1;
+      }
+      
+      // Reseta os valores
+      currentTitle = "";
+      description = "";
+      urgency = 5;
+      importance = 5;
+      tags = [];
+      isTaskStart = false;
     }
+    
+    i++;
+  }
+  
+  // Se ainda tiver uma tarefa em processamento no final, adicione-a
+  if (isTaskStart && currentTitle) {
+    tasks.push({
+      title: currentTitle,
+      description: description || undefined,
+      importance: Math.min(Math.max(importance, 1), 10),
+      urgency: Math.min(Math.max(urgency, 1), 10),
+      tags: tags.length > 0 ? tags : undefined
+    });
   }
   
   return tasks;
@@ -112,4 +248,14 @@ export const sampleMarkdown = `# Projeto X
 - [ ] Agendar consulta médica #health importance:8 urgency:6
 - [ ] Pagar contas #finance importance:7 urgency:8
 - [ ] Estudar para certificação #learning importance:9 urgency:5
+
+# Exemplo Formato Alternativo
+
+1° Lote IXC Experience - Clientes IXC Soft
+R$ 500,00 (+ R$ 50,00 taxa)
+
+Urgente: No
+Importante: No
+Status: ❹ Eliminar
 `;
+
