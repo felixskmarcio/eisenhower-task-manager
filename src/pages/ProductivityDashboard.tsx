@@ -164,28 +164,50 @@ const ProductivityDashboard = () => {
     { name: 'Eliminar', dias: calculateAverageCompletionTime(3) }
   ];
 
-  // Cores para os quadrantes
-  const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#8884d8'];
-
+  // Cores para os quadrantes otimizadas para tema escuro
+  const COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#A06CD5'];
+  
+  // Configurações comuns para os gráficos
+  const chartConfig = {
+    style: {
+      background: 'transparent',
+    },
+    theme: {
+      axis: {
+        domain: { line: { stroke: '#525252' } },
+        ticks: { line: { stroke: '#525252' } },
+        text: { fill: '#A1A1AA' }
+      },
+      grid: {
+        line: {
+          stroke: '#2D2D2D',
+          strokeWidth: 1
+        }
+      },
+      legends: {
+        text: { fill: '#A1A1AA' }
+      },
+      tooltip: {
+        container: {
+          background: '#1F1F1F',
+          color: '#FFFFFF',
+          fontSize: '12px'
+        }
+      }
+    }
+  };
   return (
-    <div className="p-6">
-      <div className="flex items-center mb-6">
-        <Link 
-          to="/" 
-          className="flex items-center mr-4 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Link>
-        <h1 className="text-3xl font-bold">Análise de Produtividade</h1>
+    <div className="p-6 bg-background/95 min-h-screen">
+      <div className="mb-8 text-center backdrop-blur-sm">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Análise de Produtividade</h1>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Gráfico de Tarefas Concluídas por Quadrante */}
-        <Card className="p-4">
+        <Card className="p-4 bg-card/30 backdrop-blur-md border-border/50 shadow-xl hover:shadow-primary/5 transition-all duration-300">
           <h2 className="text-xl font-semibold mb-4">Tarefas Concluídas por Quadrante</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={completedTasksByQuadrant}>
+            <BarChart data={completedTasksByQuadrant} {...chartConfig}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -201,10 +223,10 @@ const ProductivityDashboard = () => {
         </Card>
 
         {/* Gráfico de Tempo Médio para Conclusão */}
-        <Card className="p-4">
+        <Card className="p-4 bg-card/30 backdrop-blur-md border-border/50 shadow-xl hover:shadow-primary/5 transition-all duration-300">
           <h2 className="text-xl font-semibold mb-4">Tempo Médio para Conclusão (Dias)</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={averageCompletionTimeData}>
+            <BarChart data={averageCompletionTimeData} {...chartConfig}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -222,10 +244,10 @@ const ProductivityDashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Gráfico de Distribuição de Tarefas (Tendências) */}
-        <Card className="p-4">
+        <Card className="p-4 bg-card/30 backdrop-blur-md border-border/50 shadow-xl hover:shadow-primary/5 transition-all duration-300">
           <h2 className="text-xl font-semibold mb-4">Distribuição de Tarefas por Quadrante</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
+            <PieChart {...chartConfig}>
               <Pie
                 data={taskDistributionByQuadrant}
                 cx="50%"
@@ -248,24 +270,24 @@ const ProductivityDashboard = () => {
         </Card>
 
         {/* Estatísticas Gerais */}
-        <Card className="p-4">
+        <Card className="p-4 bg-card/30 backdrop-blur-md border-border/50 shadow-xl hover:shadow-primary/5 transition-all duration-300">
           <h2 className="text-xl font-semibold mb-4">Estatísticas Gerais</h2>
-          <div className="space-y-4">
-            <div className="bg-secondary p-4 rounded-lg">
+          <div className="space-y-4 backdrop-blur-sm">
+            <div className="bg-secondary/40 hover:bg-secondary/50 p-4 rounded-lg backdrop-blur-sm transition-colors duration-300 border border-border/50">
               <h3 className="font-medium text-secondary-foreground">Total de Tarefas</h3>
               <p className="text-2xl font-bold text-secondary-foreground">{tasks.length}</p>
             </div>
-            <div className="bg-secondary p-4 rounded-lg">
+            <div className="bg-secondary/40 hover:bg-secondary/50 p-4 rounded-lg backdrop-blur-sm transition-colors duration-300 border border-border/50">
               <h3 className="font-medium text-secondary-foreground">Tarefas Concluídas</h3>
               <p className="text-2xl font-bold text-secondary-foreground">{tasks.filter(t => t.completed).length}</p>
             </div>
-            <div className="bg-secondary p-4 rounded-lg">
+            <div className="bg-secondary/40 hover:bg-secondary/50 p-4 rounded-lg backdrop-blur-sm transition-colors duration-300 border border-border/50">
               <h3 className="font-medium text-secondary-foreground">Taxa de Conclusão</h3>
               <p className="text-2xl font-bold text-secondary-foreground">
                 {((tasks.filter(t => t.completed).length / tasks.length) * 100).toFixed(0)}%
               </p>
             </div>
-            <div className="bg-secondary p-4 rounded-lg">
+            <div className="bg-secondary/40 hover:bg-secondary/50 p-4 rounded-lg backdrop-blur-sm transition-colors duration-300 border border-border/50">
               <h3 className="font-medium text-secondary-foreground">Quadrante com Mais Tarefas</h3>
               <p className="text-2xl font-bold text-secondary-foreground">
                 {taskDistributionByQuadrant.reduce((prev, current) => 

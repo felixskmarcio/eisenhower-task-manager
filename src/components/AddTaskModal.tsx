@@ -1,21 +1,23 @@
-
 import React from 'react';
 import { X } from 'lucide-react';
+import TagSelector from './TagSelector';
 
 interface AddTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   newTask: {
     title: string;
-    description: string;
+    description?: string;
     urgency: number;
     importance: number;
+    tags?: string[];
   };
   setNewTask: React.Dispatch<React.SetStateAction<{
     title: string;
-    description: string;
+    description?: string;
     urgency: number;
     importance: number;
+    tags?: string[];
   }>>;
   onAddTask: () => void;
   isDarkMode: boolean;
@@ -39,11 +41,8 @@ const AddTaskModal = ({
       }}
     >
       <div 
-        className={`p-8 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300
-        border backdrop-filter backdrop-blur-md
-        ${isDarkMode 
-          ? 'bg-gray-900 bg-opacity-95 text-white border-gray-700' 
-          : 'bg-white bg-opacity-95 text-black border-gray-200'}`}
+        className="p-8 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300
+        border backdrop-filter backdrop-blur-md bg-gray-900 bg-opacity-95 text-white border-gray-700"
       >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">
@@ -51,7 +50,7 @@ const AddTaskModal = ({
           </h2>
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-700"
           >
             <X size={24} />
           </button>
@@ -65,10 +64,8 @@ const AddTaskModal = ({
               placeholder="Digite o título da tarefa"
               value={newTask.title}
               onChange={(e) => setNewTask({...newTask, title: e.target.value})}
-              className={`w-full p-3 rounded-lg border focus:ring-2 focus:outline-none transition-all
-              ${isDarkMode 
-                ? 'bg-gray-800 border-gray-700 focus:ring-blue-500 focus:border-blue-500 text-white' 
-                : 'bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-black'}`}
+              className="w-full p-3 rounded-lg border focus:ring-2 focus:outline-none transition-all
+              bg-gray-800 border-gray-700 focus:ring-blue-500 focus:border-blue-500 text-white"
             />
           </div>
           
@@ -76,12 +73,19 @@ const AddTaskModal = ({
             <label className="block text-sm font-medium mb-2">Descrição (Opcional)</label>
             <textarea 
               placeholder="Detalhes da tarefa..."
-              value={newTask.description}
+              value={newTask.description || ''}
               onChange={(e) => setNewTask({...newTask, description: e.target.value})}
-              className={`w-full p-3 rounded-lg border focus:ring-2 focus:outline-none transition-all h-24 resize-none
-              ${isDarkMode 
-                ? 'bg-gray-800 border-gray-700 focus:ring-blue-500 focus:border-blue-500 text-white' 
-                : 'bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-black'}`}
+              className="w-full p-3 rounded-lg border focus:ring-2 focus:outline-none transition-all h-24 resize-none
+              bg-gray-800 border-gray-700 focus:ring-blue-500 focus:border-blue-500 text-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Tags</label>
+            <TagSelector
+              selectedTags={newTask.tags || []}
+              onTagsChange={(tags) => setNewTask({...newTask, tags})}
+              isDarkMode={true}
             />
           </div>
           
@@ -103,9 +107,9 @@ const AddTaskModal = ({
               max="10"
               value={newTask.urgency}
               onChange={(e) => setNewTask({...newTask, urgency: Number(e.target.value)})}
-              className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
-            <div className="flex justify-between text-xs mt-1 text-gray-500">
+            <div className="flex justify-between text-xs mt-1 text-gray-400">
               <span>Baixa</span>
               <span>Média</span>
               <span>Alta</span>
@@ -130,35 +134,30 @@ const AddTaskModal = ({
               max="10"
               value={newTask.importance}
               onChange={(e) => setNewTask({...newTask, importance: Number(e.target.value)})}
-              className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
-            <div className="flex justify-between text-xs mt-1 text-gray-500">
+            <div className="flex justify-between text-xs mt-1 text-gray-400">
               <span>Baixa</span>
               <span>Média</span>
               <span>Alta</span>
             </div>
           </div>
           
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="pt-4 border-t border-gray-700">
             <div className="flex gap-3 justify-end">
               <button 
                 onClick={onClose}
-                className={`px-5 py-2.5 rounded-lg font-medium transition-colors
-                ${isDarkMode 
-                  ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}`}
+                className="px-5 py-2.5 rounded-lg font-medium transition-colors
+                bg-gray-700 hover:bg-gray-600 text-gray-200"
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 onClick={onAddTask}
                 disabled={!newTask.title.trim()}
-                className={`px-5 py-2.5 rounded-lg font-medium transition-colors
-                ${newTask.title.trim() 
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white' 
-                  : 'bg-blue-300 text-white cursor-not-allowed'}`}
+                className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Adicionar Tarefa
+                Adicionar
               </button>
             </div>
           </div>

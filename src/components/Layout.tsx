@@ -1,17 +1,12 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { TubelightNavbar } from "@/components/ui/tubelight-navbar";
-import { Clock, Star, CheckCircle, Share, Settings, Home, BarChart2 } from "lucide-react";
+import { Clock, Star, CheckCircle, Share, Settings, Home, BarChart2, Tag } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  useEffect(() => {
-    // Aplica o tema Dracula
-    document.documentElement.setAttribute("data-theme", "dracula");
-  }, []);
-
   const navItems = [
     {
       name: "Início",
@@ -38,12 +33,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       url: "/config",
       icon: Settings,
     },
+    {
+      name: "Tags",
+      url: "/tags",
+      icon: Tag,
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-base-100">
-      {children}
-      <TubelightNavbar items={navItems} />
+    <div className="theme-bg">
+      <div className="min-h-screen">
+        {children}
+        <TubelightNavbar items={navItems} />
+      </div>
     </div>
   );
 };
