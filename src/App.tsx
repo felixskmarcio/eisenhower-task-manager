@@ -1,3 +1,4 @@
+
 import React, { lazy, Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,6 +12,7 @@ import ProductivityDashboard from "./pages/ProductivityDashboard";
 import { TagProvider } from "./contexts/TagContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import TagsPage from "./pages/TagsPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/dashboard" element={<ProductivityDashboard />} />
                 <Route path="/tags" element={<TagsPage />} />
+                <Route path="/config" element={<SettingsPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

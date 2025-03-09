@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TubelightNavbar } from "@/components/ui/tubelight-navbar";
 import { Clock, Star, CheckCircle, Share, Settings, Home, BarChart2, Tag } from "lucide-react";
@@ -29,14 +30,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       icon: CheckCircle,
     },
     {
-      name: "Configurações",
-      url: "/config",
-      icon: Settings,
-    },
-    {
       name: "Tags",
       url: "/tags",
       icon: Tag,
+    },
+    {
+      name: "Configurações",
+      url: "/config",
+      icon: Settings,
     },
   ];
 

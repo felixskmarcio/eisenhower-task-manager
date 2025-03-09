@@ -1,0 +1,76 @@
+
+import React from 'react';
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Settings, Moon, Sun, Palette } from "lucide-react";
+import { useTheme } from '../contexts/ThemeContext';
+import ThemeSelector from '@/components/ThemeSelector';
+
+const SettingsPage = () => {
+  const { currentTheme, setTheme } = useTheme();
+
+  return (
+    <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 md:px-8 relative">
+      {/* Plano de fundo com gradiente e efeito */}
+      <div className="absolute inset-0 overflow-hidden -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-base-100 to-secondary/5"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMDIiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8L3N2Zz4=')] opacity-10"></div>
+      </div>
+      
+      <div className="container mx-auto max-w-2xl pt-10 z-10 relative animate-fade-in">
+        <div className="flex items-center gap-3 mb-6">
+          <Settings className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-primary">Configurações</h1>
+        </div>
+        
+        <Card className="p-6 mb-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Palette className="h-5 w-5 text-primary" />
+            Aparência
+          </h2>
+          <Separator className="my-4" />
+          
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h3 className="font-medium">Tema</h3>
+              <ThemeSelector className="w-full" />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="font-medium">Modo</h3>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setTheme('light')} 
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${currentTheme === 'light' ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
+                >
+                  <Sun size={18} />
+                  <span>Claro</span>
+                </button>
+                <button 
+                  onClick={() => setTheme('dracula')} 
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${currentTheme === 'dracula' ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
+                >
+                  <Moon size={18} />
+                  <span>Escuro</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="p-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
+          <h2 className="text-xl font-semibold mb-2">Sobre</h2>
+          <Separator className="my-4" />
+          <p className="text-sm text-muted-foreground mb-3">
+            Gerenciador de Tarefas - Versão 1.0.0
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Um aplicativo de gerenciamento de tarefas que utiliza a Matriz de Eisenhower para ajudar você a priorizar suas atividades.
+          </p>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default SettingsPage;
