@@ -1,13 +1,7 @@
 
-interface MarkdownTask {
-  title: string;
-  description?: string;
-  urgency: number;
-  importance: number;
-  tags?: string[];
-  deadlines?: string;
-  finalizado?: string;
-}
+import { MarkdownTask } from './markdownTypes';
+import * as regex from './markdownRegex';
+import { processTraditionalTask, processAlternativeTaskBlock } from './markdownTaskExtractor';
 
 /**
  * Extrai tarefas de um arquivo Markdown.
@@ -30,28 +24,13 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
   let finalizado = "";
   let isTaskStart = false;
   
-  // Expressões regulares para identificar padrões no Markdown
-  const headingRegex = /^#{1,6}\s+(.+)$/;
-  const taskRegex = /^\s*[-*]\s+\[([ x])\]\s+(.+)$/i;
-  const importanceRegex = /importance[:=]\s*(\d+)/i;
-  const urgencyRegex = /urgency[:=]\s*(\d+)/i;
-  const tagsRegex = /#([a-zA-Z0-9_]+)/g;
-  
-  // Novos padrões para suportar o formato adicional
-  const titleLineRegex = /^.+$/;
-  const importantLineRegex = /^Importante:\s*(Sim|Não|No|Yes)$/i;
-  const urgenteLineRegex = /^Urgente:\s*(Sim|Não|No|Yes)$/i;
-  const statusLineRegex = /^Status:\s*(.+)$/i;
-  const deadlinesLineRegex = /^Deadlines:\s*(.+)$/i;
-  const finalizadoLineRegex = /^Finalizado:\s*(Sim|Não|No|Yes)$/i;
-  
   let i = 0;
   while (i < lines.length) {
     const line = lines[i].trim();
     
     // Verifica se é um cabeçalho no formato tradicional
-    const headingMatch = line.match(headingRegex);
-    const taskMatch = line.match(taskRegex);
+    const headingMatch = line.match(regex.headingRegex);
+    const taskMatch = line.match(regex.taskRegex);
     
     if (headingMatch) {
       // Encontrou um cabeçalho, define a seção atual
@@ -80,135 +59,25 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
         isTaskStart = false;
       }
     } else if (taskMatch) {
-      // Formato tradicional: "- [ ] Descrição da tarefa"
-      const isCompleted = taskMatch[1].toLowerCase() === 'x';
-      const taskText = taskMatch[2].trim();
-      
-      // Se a tarefa estiver concluída, ignoramos (não queremos importar tarefas já concluídas)
-      if (!isCompleted) {
-        // Extrair tags da descrição da tarefa
-        tags = [];
-        let tagMatch;
-        const tagRegexClone = new RegExp(tagsRegex);
-        while ((tagMatch = tagRegexClone.exec(taskText)) !== null) {
-          tags.push(tagMatch[1]);
+      // Processo para formato tradicional de tarefas Markdown
+      const task = processTraditionalTask(taskMatch);
+      if (task) {
+        // Adicione o contexto da seção atual como descrição se relevante
+        if (currentSection && currentSection !== task.title) {
+          task.description = currentSection;
         }
-        
-        // Limpar a descrição removendo as tags
-        const cleanDescription = taskText.replace(tagsRegex, '').trim();
-        
-        // Tentar extrair importância e urgência da descrição
-        const importanceMatch = cleanDescription.match(importanceRegex);
-        const urgencyMatch = cleanDescription.match(urgencyRegex);
-        
-        // Valores padrão ou extraídos
-        importance = importanceMatch ? parseInt(importanceMatch[1], 10) : 5;
-        urgency = urgencyMatch ? parseInt(urgencyMatch[1], 10) : 5;
-        
-        // Título é a descrição limpa, sem os metadados
-        currentTitle = cleanDescription
-          .replace(importanceRegex, '')
-          .replace(urgencyRegex, '')
-          .trim();
-        
-        tasks.push({
-          title: currentTitle,
-          description: currentSection !== currentTitle ? currentSection : undefined,
-          importance: Math.min(Math.max(importance, 1), 10),
-          urgency: Math.min(Math.max(urgency, 1), 10),
-          tags: tags.length > 0 ? tags : undefined
-        });
-        
-        // Reseta os valores
-        currentTitle = "";
-        description = "";
-        urgency = 5;
-        importance = 5;
-        tags = [];
-        deadlines = "";
-        finalizado = "";
+        tasks.push(task);
       }
-    } else if (titleLineRegex.test(line) && !isTaskStart && line !== "") {
-      // Possível início de uma tarefa no novo formato
+    } else if (regex.titleLineRegex.test(line) && !isTaskStart && line !== "") {
+      // Possível início de uma tarefa no formato alternativo
       currentTitle = line;
       isTaskStart = true;
       
-      // Vamos tentar reunir informações sobre essa tarefa
-      let j = i + 1;
-      let foundTaskInfo = false;
-      
-      while (j < lines.length) {
-        const nextLine = lines[j].trim();
-        
-        const importantMatch = nextLine.match(importantLineRegex);
-        const urgenteMatch = nextLine.match(urgenteLineRegex);
-        const statusMatch = nextLine.match(statusLineRegex);
-        const deadlinesMatch = nextLine.match(deadlinesLineRegex);
-        const finalizadoMatch = nextLine.match(finalizadoLineRegex);
-        
-        if (importantMatch) {
-          const isImportant = importantMatch[1].toLowerCase() === 'sim' || importantMatch[1].toLowerCase() === 'yes';
-          importance = isImportant ? 9 : 3;
-          foundTaskInfo = true;
-        } else if (urgenteMatch) {
-          const isUrgent = urgenteMatch[1].toLowerCase() === 'sim' || urgenteMatch[1].toLowerCase() === 'yes';
-          urgency = isUrgent ? 9 : 3;
-          foundTaskInfo = true;
-        } else if (statusMatch) {
-          // Utilizamos o status para determinar os quadrantes
-          const status = statusMatch[1].trim();
-          
-          // Verifica se o status contém numerais como "❶", "❷", "❸", "❹"
-          if (status.includes("❶")) {
-            urgency = 9;
-            importance = 9;
-          } else if (status.includes("❷")) {
-            urgency = 3;
-            importance = 9;
-          } else if (status.includes("❸")) {
-            urgency = 9;
-            importance = 3;
-          } else if (status.includes("❹")) {
-            urgency = 3;
-            importance = 3;
-          }
-          
-          foundTaskInfo = true;
-        } else if (deadlinesMatch) {
-          deadlines = deadlinesMatch[1].trim();
-          foundTaskInfo = true;
-        } else if (finalizadoMatch) {
-          finalizado = finalizadoMatch[1].trim();
-          foundTaskInfo = true;
-        } else if (nextLine === "" || j === lines.length - 1 || nextLine.match(titleLineRegex)) {
-          // Uma linha em branco ou final do arquivo ou nova tarefa = fim da tarefa atual
-          break;
-        } else {
-          // Adicione à descrição
-          if (description) {
-            description += "\n" + nextLine;
-          } else {
-            description = nextLine;
-          }
-        }
-        
-        j++;
-      }
-      
-      // Se encontramos informações da tarefa, adicionamos à lista
-      if (foundTaskInfo) {
-        tasks.push({
-          title: currentTitle,
-          description: description || undefined,
-          importance: Math.min(Math.max(importance, 1), 10),
-          urgency: Math.min(Math.max(urgency, 1), 10),
-          tags: tags.length > 0 ? tags : undefined,
-          deadlines: deadlines || undefined,
-          finalizado: finalizado || undefined
-        });
-        
-        // Avançamos o índice para após esta tarefa
-        i = j - 1;
+      // Processa o bloco de tarefa alternativo
+      const result = processAlternativeTaskBlock(lines, i, lines.length - 1);
+      if (result.task) {
+        tasks.push(result.task);
+        i = result.nextIndex;
       }
       
       // Reseta os valores

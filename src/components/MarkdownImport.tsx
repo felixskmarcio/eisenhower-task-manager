@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { FileText, Upload, Check, AlertTriangle, Info } from "lucide-react";
@@ -41,10 +40,19 @@ const MarkdownImport: React.FC = () => {
       // Simular um atraso para feedback visual
       setTimeout(() => {
         if (tasks.length > 0) {
+          // Adicionar propriedades necessárias para compatibilidade com o formato Task usado em Matrix.tsx
+          const processedTasks = tasks.map(task => ({
+            ...task,
+            id: `md-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            completed: false,
+            description: task.description || "", // Garantir que description nunca seja undefined
+            quadrant: determineQuadrant(task.importance, task.urgency),
+            createdAt: new Date().toISOString(),
+            completedAt: null
+          }));
+
           // Simulação de armazenamento das tarefas
-          // Num caso real, você enviaria estas tarefas para o estado global
-          // ou para a API do seu aplicativo
-          localStorage.setItem('importedMarkdownTasks', JSON.stringify(tasks));
+          localStorage.setItem('importedMarkdownTasks', JSON.stringify(processedTasks));
           
           toast({
             title: "Importação concluída",
@@ -81,6 +89,14 @@ const MarkdownImport: React.FC = () => {
       setImportStatus('error');
       setIsLoading(false);
     }
+  };
+
+  // Helper function to determine quadrant from importance and urgency
+  const determineQuadrant = (importance: number, urgency: number): number => {
+    if (importance > 6 && urgency > 6) return 0; // Quadrante 1: Importante e Urgente
+    if (importance > 6) return 1; // Quadrante 2: Importante, mas não Urgente
+    if (urgency > 6) return 2; // Quadrante 3: Não Importante, mas Urgente
+    return 3; // Quadrante 4: Não Importante e Não Urgente
   };
 
   const readFileAsText = (file: File): Promise<string> => {
