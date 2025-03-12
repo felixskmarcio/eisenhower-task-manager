@@ -173,6 +173,8 @@ const MarkdownImport: React.FC = () => {
                   <code>Título da tarefa<br />
                   Urgente: Sim/No<br />
                   Importante: Sim/No<br />
+                  Deadlines: Data<br />
+                  Finalizado: Sim/No<br />
                   Status: ❶/❷/❸/❹</code>
                 </li>
               </ul>

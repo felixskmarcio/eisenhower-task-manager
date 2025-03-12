@@ -5,6 +5,8 @@ interface MarkdownTask {
   urgency: number;
   importance: number;
   tags?: string[];
+  deadlines?: string;
+  finalizado?: string;
 }
 
 /**
@@ -24,6 +26,8 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
   let urgency = 5;
   let importance = 5;
   let tags: string[] = [];
+  let deadlines = "";
+  let finalizado = "";
   let isTaskStart = false;
   
   // Expressões regulares para identificar padrões no Markdown
@@ -38,6 +42,8 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
   const importantLineRegex = /^Importante:\s*(Sim|Não|No|Yes)$/i;
   const urgenteLineRegex = /^Urgente:\s*(Sim|Não|No|Yes)$/i;
   const statusLineRegex = /^Status:\s*(.+)$/i;
+  const deadlinesLineRegex = /^Deadlines:\s*(.+)$/i;
+  const finalizadoLineRegex = /^Finalizado:\s*(Sim|Não|No|Yes)$/i;
   
   let i = 0;
   while (i < lines.length) {
@@ -58,7 +64,9 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
           description: description || undefined,
           importance: Math.min(Math.max(importance, 1), 10),
           urgency: Math.min(Math.max(urgency, 1), 10),
-          tags: tags.length > 0 ? tags : undefined
+          tags: tags.length > 0 ? tags : undefined,
+          deadlines: deadlines || undefined,
+          finalizado: finalizado || undefined
         });
         
         // Reseta os valores
@@ -67,6 +75,8 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
         urgency = 5;
         importance = 5;
         tags = [];
+        deadlines = "";
+        finalizado = "";
         isTaskStart = false;
       }
     } else if (taskMatch) {
@@ -115,6 +125,8 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
         urgency = 5;
         importance = 5;
         tags = [];
+        deadlines = "";
+        finalizado = "";
       }
     } else if (titleLineRegex.test(line) && !isTaskStart && line !== "") {
       // Possível início de uma tarefa no novo formato
@@ -131,6 +143,8 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
         const importantMatch = nextLine.match(importantLineRegex);
         const urgenteMatch = nextLine.match(urgenteLineRegex);
         const statusMatch = nextLine.match(statusLineRegex);
+        const deadlinesMatch = nextLine.match(deadlinesLineRegex);
+        const finalizadoMatch = nextLine.match(finalizadoLineRegex);
         
         if (importantMatch) {
           const isImportant = importantMatch[1].toLowerCase() === 'sim' || importantMatch[1].toLowerCase() === 'yes';
@@ -160,6 +174,12 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
           }
           
           foundTaskInfo = true;
+        } else if (deadlinesMatch) {
+          deadlines = deadlinesMatch[1].trim();
+          foundTaskInfo = true;
+        } else if (finalizadoMatch) {
+          finalizado = finalizadoMatch[1].trim();
+          foundTaskInfo = true;
         } else if (nextLine === "" || j === lines.length - 1 || nextLine.match(titleLineRegex)) {
           // Uma linha em branco ou final do arquivo ou nova tarefa = fim da tarefa atual
           break;
@@ -182,7 +202,9 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
           description: description || undefined,
           importance: Math.min(Math.max(importance, 1), 10),
           urgency: Math.min(Math.max(urgency, 1), 10),
-          tags: tags.length > 0 ? tags : undefined
+          tags: tags.length > 0 ? tags : undefined,
+          deadlines: deadlines || undefined,
+          finalizado: finalizado || undefined
         });
         
         // Avançamos o índice para após esta tarefa
@@ -195,6 +217,8 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
       urgency = 5;
       importance = 5;
       tags = [];
+      deadlines = "";
+      finalizado = "";
       isTaskStart = false;
     }
     
@@ -208,7 +232,9 @@ export const extractTasksFromMarkdown = (markdownContent: string): MarkdownTask[
       description: description || undefined,
       importance: Math.min(Math.max(importance, 1), 10),
       urgency: Math.min(Math.max(urgency, 1), 10),
-      tags: tags.length > 0 ? tags : undefined
+      tags: tags.length > 0 ? tags : undefined,
+      deadlines: deadlines || undefined,
+      finalizado: finalizado || undefined
     });
   }
   
@@ -251,11 +277,12 @@ export const sampleMarkdown = `# Projeto X
 
 # Exemplo Formato Alternativo
 
-1° Lote IXC Experience - Clientes IXC Soft
+IXC Experience - Clientes IXC Soft
 R$ 500,00 (+ R$ 50,00 taxa)
 
 Urgente: No
 Importante: No
+Deadlines: 1 de fevereiro de 2025
+Finalizado: No
 Status: ❹ Eliminar
 `;
-
