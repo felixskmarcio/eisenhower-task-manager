@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTags } from '@/contexts/TagContext';
 import { Badge } from '@/components/ui/badge';
@@ -97,6 +96,15 @@ const TagManager: React.FC<TagManagerProps> = () => {
     }
   };
 
+  // Pode ser que exista uma função que renderiza o título com contador
+  const renderCategoryTitle = (name, count) => {
+    return (
+      <h2 className="text-lg font-semibold text-emerald-600 border-emerald-300">
+        {name}
+      </h2>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Tag Type Sections */}
@@ -108,7 +116,7 @@ const TagManager: React.FC<TagManagerProps> = () => {
             onClick={() => toggleTypeExpansion(type)}
           >
             <h2 className={`text-lg font-semibold ${getTypeAccentColor(type)}`}>
-              {getTypeLabel(type)} ({tagsByType[type].length})
+              {getTypeLabel(type)}
             </h2>
             <ChevronDown 
               className={`transition-transform duration-300 ${expandedType === type ? 'rotate-180' : ''}`} 
