@@ -1,0 +1,9 @@
+@media (max-width: 768px) {
+  .matrix-container {
+    flex-direction: column;
+  }
+  
+  .quadrant {
+    margin: 8px 0;
+  }
+} 

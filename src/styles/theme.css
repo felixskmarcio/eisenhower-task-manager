@@ -1,0 +1,23 @@
+/* Ajustes para melhorar o modo escuro */
+:root {
+  /* Cores principais da paleta minimalista escura */
+  --color-primary: #1D1F2A;           /* Azul muito escuro (fundo principal) */
+  --color-secondary: #313947;         /* Azul acinzentado escuro (elementos secundários) */
+  --color-blue-mid: #404660;          /* Azul médio-escuro (variação) */
+  --color-accent: #FFB400;            /* Amarelo âmbar (destaque) */
+  --color-accent-soft: #FFD68A;       /* Amarelo suave (destaque secundário) */
+  --color-light: #F1F1F1;             /* Branco/cinza claro (texto principal) */
+  --color-dark: #2A2A2A;              /* Cinza muito escuro (cartões, formulários) */
+  --color-gray: #505050;              /* Cinza médio (bordas, separadores) */
+  --color-text-secondary: #A9A9A9;    /* Cinza médio (texto secundário) */
+  
+  /* Cores específicas para as seções de configuração */
+  --color-config-card: #2A2E3B;       /* Fundo dos cards de configuração (mais escuro) */
+  --color-input-bg: #252836;          /* Fundo dos inputs */
+  --color-input-border: #3D4257;      /* Borda dos inputs */
+  --color-input-text: #F1F1F1;        /* Texto dos inputs */
+  
+  /* Sombras ajustadas para o modo escuro */
+  --shadow-soft: 0 4px 6px rgba(0, 0, 0, 0.25);
+  --shadow-medium: 0 6px 12px rgba(0, 0, 0, 0.3);
+} 

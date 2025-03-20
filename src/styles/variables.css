@@ -1,0 +1,22 @@
+:root {
+  /* Paleta minimalista escura */
+  --color-primary: #1D1F2A;           /* Azul muito escuro (fundo principal) */
+  --color-secondary: #313947;         /* Azul acinzentado escuro (elementos secundários) */
+  --color-blue-mid: #404660;          /* Azul médio-escuro (variação) */
+  --color-accent: #FFB400;            /* Amarelo âmbar (destaque) */
+  --color-accent-soft: #FFD68A;       /* Amarelo suave (destaque secundário) */
+  --color-light: #F1F1F1;             /* Branco/cinza claro (texto principal) */
+  --color-dark: #2A2A2A;              /* Cinza muito escuro (cartões, formulários) */
+  --color-gray: #505050;              /* Cinza médio (bordas, separadores) */
+  --color-text-secondary: #A9A9A9;    /* Cinza médio (texto secundário) */
+  
+  /* Sombras */
+  --shadow-soft: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.3);
+  
+  /* Cores específicas para os quadrantes da matriz */
+  --color-fazer: #362F47;             /* Roxo escuro para "Fazer" */
+  --color-agendar: #2D3E54;           /* Azul escuro para "Agendar" */
+  --color-delegar: #3F3A2D;           /* Marrom escuro para "Delegar" */
+  --color-eliminar: #252934;          /* Quase preto para "Eliminar" */
+} 

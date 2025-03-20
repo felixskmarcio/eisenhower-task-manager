@@ -1,0 +1,63 @@
+/* Estilo base do corpo do site */
+body {
+  background-color: var(--color-primary);
+  color: var(--text-primary);
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+/* Cabeçalho */
+header {
+  background-color: var(--color-secondary);
+  padding: 1rem;
+}
+
+/* Botões principais */
+.button-primary {
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.button-primary:hover {
+  background-color: var(--color-yellow-soft);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Cartões/Cards */
+.card {
+  background-color: var(--color-secondary);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-soft);
+}
+
+/* Links */
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-yellow-soft);
+}
+
+/* Elementos de formulário */
+input, textarea, select {
+  background-color: var(--color-dark);
+  border: 1px solid var(--color-gray);
+  color: var(--text-primary);
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+/* Texto secundário */
+.text-secondary {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+} 

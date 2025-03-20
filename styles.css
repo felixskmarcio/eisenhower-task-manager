@@ -1,0 +1,21 @@
+:root {
+  /* Cores principais */
+  --color-primary: #1D1F2A;
+  --color-secondary: #313947;
+  --color-accent: #FFB400;
+  --color-light: #F1F1F1;
+  --color-dark: #2A2A2A;
+  
+  /* Cores complementares */
+  --color-gray: #505050;
+  --color-blue-mid: #404660;
+  --color-yellow-soft: #FFD68A;
+  
+  /* Cores para texto */
+  --text-primary: #F1F1F1;
+  --text-secondary: #A9A9A9;
+  
+  /* Sombras com cores da paleta */
+  --shadow-soft: 0 4px 6px rgba(29, 31, 42, 0.1);
+  --shadow-medium: 0 6px 12px rgba(29, 31, 42, 0.15);
+} 

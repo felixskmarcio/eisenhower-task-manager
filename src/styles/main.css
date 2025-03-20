@@ -1,0 +1,180 @@
+/* Importe as variáveis, se estiverem em arquivo separado */
+@import './variables.css';
+
+/* Estilo base */
+body {
+  background-color: var(--color-primary);
+  color: var(--color-light);
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+/* Container principal */
+.container, main {
+  background-color: var(--color-primary);
+}
+
+/* Barra de navegação/menu superior */
+nav, .nav-menu, header {
+  background-color: var(--color-secondary);
+  box-shadow: var(--shadow-soft);
+}
+
+nav a, .nav-item {
+  color: var(--color-light);
+}
+
+nav a.active, .nav-item.active {
+  color: var(--color-accent);
+}
+
+/* Título da página */
+h1, h2, h3, h4, h5 {
+  color: var(--color-light);
+}
+
+/* Botão de Nova Tarefa */
+.button-primary, .btn-primary, button[type="submit"] {
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  box-shadow: var(--shadow-soft);
+  transition: all 0.3s ease;
+}
+
+.button-primary:hover, .btn-primary:hover, button[type="submit"]:hover {
+  background-color: var(--color-accent-soft);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Abas (Matriz, Concluídas, Todas) */
+.tabs, .tab-container {
+  border-bottom: 1px solid var(--color-gray);
+}
+
+.tab, .tab-item {
+  color: var(--color-text-secondary);
+  padding: 8px 16px;
+  border-radius: 4px 4px 0 0;
+}
+
+.tab.active, .tab-item.active {
+  background-color: var(--color-secondary);
+  color: var(--color-light);
+}
+
+/* Quadrantes da Matriz */
+.quadrant, .matrix-quadrant {
+  border-radius: 8px;
+  padding: 16px;
+  margin: 8px;
+  box-shadow: var(--shadow-soft);
+}
+
+/* Estilos específicos para cada quadrante */
+.quadrant.fazer, .quadrant-fazer, .quadrant-important-urgent {
+  background-color: var(--color-fazer);
+  border-left: 4px solid var(--color-accent);
+}
+
+.quadrant.agendar, .quadrant-agendar, .quadrant-important-not-urgent {
+  background-color: var(--color-agendar);
+  border-left: 4px solid var(--color-blue-mid);
+}
+
+.quadrant.delegar, .quadrant-delegar, .quadrant-not-important-urgent {
+  background-color: var(--color-delegar);
+  border-left: 4px solid var(--color-gray);
+}
+
+.quadrant.eliminar, .quadrant-eliminar, .quadrant-not-important-not-urgent {
+  background-color: var(--color-eliminar);
+  border-left: 4px solid var(--color-text-secondary);
+}
+
+/* Título dos quadrantes */
+.quadrant-title, .quadrant h3 {
+  color: var(--color-light);
+  font-size: 1.25rem;
+  margin-bottom: 8px;
+}
+
+.quadrant-subtitle, .quadrant p {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Cartões de tarefas */
+.task-card, .card {
+  background-color: var(--color-dark);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.task-title, .card-title {
+  color: var(--color-light);
+  font-weight: bold;
+}
+
+.task-description, .card-description {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.task-meta, .card-meta {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+/* Botões de ação das tarefas */
+.task-action-btn, .action-button {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.task-action-btn:hover, .action-button:hover {
+  background-color: var(--color-gray);
+  color: var(--color-light);
+}
+
+/* Botão de marcar como concluído */
+.complete-btn, .check-button {
+  color: var(--color-accent);
+}
+
+/* Botão de excluir */
+.delete-btn, .trash-button {
+  color: #ff6b6b; /* Mantido vermelho para ações destrutivas */
+}
+
+/* Formulários */
+input, textarea, select {
+  background-color: var(--color-dark);
+  border: 1px solid var(--color-gray);
+  color: var(--color-light);
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+/* Placeholder */
+::placeholder {
+  color: var(--color-text-secondary);
+} 

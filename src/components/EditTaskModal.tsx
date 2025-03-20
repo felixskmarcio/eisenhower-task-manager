@@ -52,7 +52,7 @@ const EditTaskModal = ({
           : 'bg-white bg-opacity-95 text-black border-gray-200'}`}
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold text-blue-600">
             Editar Tarefa
           </h2>
           <button 

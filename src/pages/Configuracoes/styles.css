@@ -1,0 +1,178 @@
+/* Estilo para a página de configurações */
+.configuracoes-page {
+  background-color: var(--color-primary);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.configuracoes-title {
+  color: var(--color-accent);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.configuracoes-title svg {
+  color: var(--color-accent);
+}
+
+.configuracoes-card {
+  background-color: var(--color-config-card);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-soft);
+  border-left: 3px solid var(--color-accent);
+}
+
+.configuracoes-section-title {
+  color: var(--color-accent-soft);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 1.1rem;
+}
+
+.configuracoes-section-title svg {
+  color: var(--color-accent-soft);
+}
+
+.configuracoes-divider {
+  height: 1px;
+  background-color: var(--color-gray);
+  margin: 16px 0;
+  opacity: 0.5;
+}
+
+/* Ajustes para temas e modos */
+.theme-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.theme-label, .mode-label {
+  color: var(--color-light);
+  margin-bottom: 8px;
+}
+
+.theme-options {
+  display: flex;
+  gap: 8px;
+  background-color: var(--color-dark);
+  padding: 6px;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.theme-option {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.theme-option:hover {
+  transform: scale(1.1);
+}
+
+.theme-option.selected {
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+/* Ajustes para os botões de modo */
+.mode-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.mode-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.mode-button.claro {
+  background-color: #F1F1F1;
+  color: #2A2A2A;
+}
+
+.mode-button.escuro {
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+}
+
+.mode-button.escuro.active {
+  box-shadow: 0 0 0 2px var(--color-accent-soft);
+}
+
+.mode-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Ajustes para os inputs de integração */
+.integracao-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.integracao-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.integracao-label {
+  color: var(--color-light);
+  font-size: 0.9rem;
+}
+
+.integracao-description {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.integracao-input {
+  background-color: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  color: var(--color-input-text);
+  padding: 10px 12px;
+  border-radius: 4px;
+  width: 100%;
+  transition: border-color 0.2s ease;
+}
+
+.integracao-input:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.connect-button {
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+  width: fit-content;
+}
+
+.connect-button:hover {
+  background-color: var(--color-accent-soft);
+  box-shadow: var(--shadow-medium);
+} 

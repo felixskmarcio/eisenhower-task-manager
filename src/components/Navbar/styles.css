@@ -1,0 +1,25 @@
+.nav-calendar-sync {
+  margin-left: auto;
+}
+
+.nav-cal-btn {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-cal-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-cal-btn.signed-in {
+  color: var(--color-accent);
+} 

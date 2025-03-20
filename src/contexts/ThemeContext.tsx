@@ -22,7 +22,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       'abyss', 'silk'
     ].includes(savedTheme)
       ? savedTheme
-      : 'light'; // Changed from 'dracula' to 'light' as default theme
+      : 'light'; // Usando 'light' como tema padrão para melhor visibilidade
   });
 
   // Apply theme when it changes
