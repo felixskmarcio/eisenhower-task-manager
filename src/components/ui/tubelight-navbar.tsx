@@ -21,27 +21,11 @@ interface TubelightNavbarProps {
 export function TubelightNavbar({ items, className }: TubelightNavbarProps) {
   const location = useLocation()
   const [activeTab, setActiveTab] = useState("")
-  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    // Set active tab based on current path
     const currentItem = items.find(item => location.pathname === item.url || location.pathname.startsWith(`${item.url}/`))
-    if (currentItem) {
-      setActiveTab(currentItem.name)
-    } else {
-      setActiveTab(items[0].name)
-    }
+    setActiveTab(currentItem ? currentItem.name : items[0].name)
   }, [location.pathname, items])
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    handleResize()
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
 
   return (
     <motion.div
@@ -66,7 +50,7 @@ export function TubelightNavbar({ items, className }: TubelightNavbarProps) {
                 to={item.url}
                 onClick={() => setActiveTab(item.name)}
                 className={cn(
-                  "relative cursor-pointer text-sm font-medium px-4 sm:px-6 py-2.5 rounded-full transition-all duration-300",
+                  "relative cursor-pointer text-xs sm:text-sm font-medium px-2 sm:px-4 py-2 sm:py-2.5 rounded-full transition-all duration-300",
                   "text-foreground/70 hover:text-primary",
                   isActive ? "text-primary" : "hover:bg-muted/50",
                 )}
@@ -74,10 +58,10 @@ export function TubelightNavbar({ items, className }: TubelightNavbarProps) {
                 <motion.div
                   initial={{ scale: 0.9 }}
                   animate={{ scale: isActive ? 1 : 0.9 }}
-                  className="flex items-center gap-2"
+                  className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2"
                 >
                   <Icon 
-                    size={isMobile ? 20 : 18} 
+                    size={18} 
                     strokeWidth={isActive ? 2.5 : 2} 
                     className={cn(
                       "transition-all duration-300",
@@ -85,7 +69,7 @@ export function TubelightNavbar({ items, className }: TubelightNavbarProps) {
                     )}
                   />
                   <span className={cn(
-                    "hidden md:inline transition-all",
+                    "text-[10px] sm:text-xs transition-all",
                     isActive ? "font-semibold" : "font-medium"
                   )}>
                     {item.name}

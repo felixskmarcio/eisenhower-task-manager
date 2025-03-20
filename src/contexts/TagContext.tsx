@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import NotificationService from '../services/NotificationService';
 
 // Define the Tag interface
 export interface Tag {
@@ -46,6 +47,7 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
   // Save tags to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('tags', JSON.stringify(tags));
+    NotificationService.sendNotification({ type: 'tags_updated', message: 'Tags have been updated', data: tags });
   }, [tags]);
 
   // Add a new tag
@@ -55,16 +57,19 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
       id: Date.now().toString(), // Simple ID generation
     };
     setTags([...tags, newTag]);
+    NotificationService.sendNotification({ type: 'tag_added', message: 'New tag added', data: newTag });
   };
 
   // Update an existing tag
   const updateTag = (updatedTag: Tag) => {
     setTags(tags.map(tag => tag.id === updatedTag.id ? updatedTag : tag));
+    NotificationService.sendNotification({ type: 'tag_updated', message: 'Tag updated', data: updatedTag });
   };
 
   // Delete a tag
   const deleteTag = (id: string) => {
     setTags(tags.filter(tag => tag.id !== id));
+    NotificationService.sendNotification({ type: 'tag_deleted', message: 'Tag deleted', data: { id } });
   };
 
   // Get a tag by ID

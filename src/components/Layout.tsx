@@ -42,9 +42,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="theme-bg">
-      <div className="min-h-screen">
+    <div className="theme-bg flex flex-col min-h-screen">
+      <div className="flex-grow overflow-auto p-4 sm:p-6 md:p-8">
         {children}
+      </div>
+      <div className="sm:fixed sm:bottom-4 sm:left-4 sm:right-4 sm:z-10">
         <TubelightNavbar items={navItems} />
       </div>
     </div>

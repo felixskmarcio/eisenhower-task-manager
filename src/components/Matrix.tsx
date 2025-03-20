@@ -6,6 +6,8 @@ import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import { formatDate } from '@/utils/dateUtils';
 import TagFilterSelect from './TagFilterSelect';
+import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Task {
   id: string;
@@ -66,6 +68,10 @@ export const Matrix = () => {
         task.id === taskId ? { ...task, isTimerActive: true } : task
       )
     );
+    toast({
+      title: 'Timer iniciado',
+      description: `Timer iniciado para a tarefa: ${tasks.find(t => t.id === taskId)?.title}`,
+    });
   };
 
   const stopTimer = () => {
@@ -79,6 +85,10 @@ export const Matrix = () => {
         task.isTimerActive ? { ...task, isTimerActive: false } : task
       )
     );
+    toast({
+      title: 'Timer parado',
+      description: 'Tempo registrado com sucesso!',
+    });
   };
 
   const formatTime = (seconds: number): string => {
@@ -167,6 +177,10 @@ export const Matrix = () => {
 
   const handleSaveTask = (editedTask: Task) => {
     setTasks(tasks.map(task => task.id === editedTask.id ? editedTask : task));
+    toast({
+      title: 'Tarefa atualizada',
+      description: 'As alterações foram salvas com sucesso!',
+    });
   };
 
   const [selectedDate, setSelectedDate] = useState<number>(14); // Default to day 14
@@ -236,35 +250,37 @@ export const Matrix = () => {
   };
 
   const handleAddTask = () => {
-    const quadrant = 
-      newTask.importance > 6 && newTask.urgency > 6 ? 0 :
-      newTask.importance > 6 ? 1 :
-      newTask.urgency > 6 ? 2 : 3;
-
-    const newTaskItem: Task = {
-      id: `task-${Date.now()}`,
-      title: newTask.title,
-      description: newTask.description,
-      urgency: newTask.urgency,
-      importance: newTask.importance,
-      quadrant,
+    const newTaskQuadrant = calculateQuadrant(newTask.urgency, newTask.importance);
+    const createdTask: Task = {
+      ...newTask,
+      id: Date.now().toString(),
+      quadrant: newTaskQuadrant,
       completed: false,
       createdAt: new Date(),
-      completedAt: null,
-      tags: newTask.tags
+      completedAt: null
     };
-
-    setTasks([...tasks, newTaskItem]);
+    setTasks([...tasks, createdTask]);
     setIsAddModalOpen(false);
     setNewTask({
       title: '',
       description: undefined,
       urgency: 5,
       importance: 5,
-      tags: [],
+      tags: []
+    });
+    toast({
+      title: 'Tarefa adicionada',
+      description: 'Nova tarefa criada com sucesso!'
     });
   };
-  
+
+  const calculateQuadrant = (urgency: number, importance: number): number => {
+    if (urgency > 5 && importance > 5) return 0;
+    if (urgency <= 5 && importance > 5) return 1;
+    if (urgency > 5 && importance <= 5) return 2;
+    return 3;
+  };
+
   const toggleTaskCompletion = (taskId: string) => {
     setTasks(tasks.map(task => {
       if (task.id === taskId) {
@@ -498,3 +514,18 @@ export const Matrix = () => {
     </div>
   );
 };
+
+<TooltipProvider>
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <button onClick={() => startTimer(task.id)}>
+        <Clock className="h-4 w-4" />
+      </button>
+    </TooltipTrigger>
+    <TooltipContent>
+      <p>Iniciar timer para esta tarefa</p>
+    </TooltipContent>
+  </Tooltip>
+</TooltipProvider>
+
+// Aplicar tooltips similares para outros botões de ação

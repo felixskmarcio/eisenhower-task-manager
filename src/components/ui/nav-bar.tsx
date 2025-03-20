@@ -47,13 +47,19 @@ export function NavBar({ items, className }: NavBarProps) {
     <motion.div
       initial={{ y: 20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ type: "spring", stiffness: 300, damping: 25 }}
       className={cn(
         "fixed bottom-0 sm:bottom-auto sm:top-0 left-1/2 -translate-x-1/2 z-50 mb-6 sm:mt-6 sm:mb-0",
         className,
       )}
     >
-      <div className="flex items-center gap-2 sm:gap-3 bg-background/80 border border-border/50 backdrop-blur-xl py-1.5 px-2 rounded-full shadow-lg">
+      <motion.div
+        className="flex items-center gap-2 sm:gap-3 bg-background/80 border border-border/50 backdrop-blur-xl py-1.5 px-2 rounded-full shadow-lg"
+        initial={false}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.02 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      >
         {items.map((item) => {
           const Icon = item.icon
           const isActive = activeTab === item.name
@@ -65,9 +71,11 @@ export function NavBar({ items, className }: NavBarProps) {
               onClick={() => setActiveTab(item.name)}
               className={cn(
                 "relative cursor-pointer text-sm font-medium px-4 sm:px-6 py-2.5 rounded-full transition-all duration-300",
-                "text-foreground/70 hover:text-primary",
-                isActive ? "text-primary" : "hover:bg-muted/50",
+                "text-foreground/70 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2",
+                isActive ? "text-primary font-semibold" : "hover:bg-muted/50",
               )}
+              role="button"
+              aria-current={isActive ? "page" : undefined}
             >
               <motion.div
                 initial={{ scale: 0.9 }}
@@ -111,7 +119,7 @@ export function NavBar({ items, className }: NavBarProps) {
             </Link>
           )
         })}
-      </div>
+      </motion.div>
     </motion.div>
   )
 }
