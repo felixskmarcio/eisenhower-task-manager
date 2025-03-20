@@ -5,7 +5,9 @@ const CategoryCard = ({ title, count, color, onClick }) => {
       style={{ backgroundColor: color }} 
       onClick={onClick}
     >
-      <span className="category-title">{title}</span>
+      <h3 className="text-lg font-semibold">
+        {title}
+      </h3>
     </div>
   );
 };

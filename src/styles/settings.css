@@ -1,0 +1,87 @@
+/* Arquivo para estilos da tela de configurações */
+
+.settings-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.settings-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.settings-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--color-primary);
+  text-align: left;
+}
+
+.settings-divider {
+  height: 1px;
+  background-color: var(--color-border);
+  margin: 16px 0;
+}
+
+/* Estilos para campos de entrada na integração com Supabase */
+.input-field {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  margin-bottom: 16px;
+}
+
+.connect-button {
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 8px;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.connect-button:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.field-hint {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  text-align: left;
+}
+
+/* Adicionar alinhamento explícito para outros elementos importantes */
+.settings-container h2, 
+.settings-container h3, 
+.settings-container p {
+  text-align: left;
+}
+
+/* Garantir que a navegação superior (botões de menu) permaneça centralizada */
+.top-navigation {
+  text-align: center;
+} 
+
+/* Remova quaisquer estilos relacionados a seleção de tema como:
+.theme-toggle-container, .theme-toggle-button, etc. */

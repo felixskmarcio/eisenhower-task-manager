@@ -1,4 +1,3 @@
-
 import React, { lazy, Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,6 +12,8 @@ import { TagProvider } from "./contexts/TagContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import TagsPage from "./pages/TagsPage";
 import SettingsPage from "./pages/SettingsPage";
+import './App.css';
+import './styles/settings.css';
 
 const queryClient = new QueryClient();
 

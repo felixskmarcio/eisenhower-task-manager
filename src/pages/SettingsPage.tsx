@@ -1,18 +1,13 @@
-
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Settings, Moon, Sun, Palette, Calendar, Database, Save, FileText } from "lucide-react";
-import { useTheme } from '../contexts/ThemeContext';
-import ThemeSelector from '@/components/ThemeSelector';
 import MarkdownImport from '@/components/MarkdownImport';
 import SupabaseIntegration from '@/components/SupabaseIntegration';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 
 const SettingsPage = () => {
-  const { currentTheme, setTheme } = useTheme();
-
   const handleGoogleCalendarConnect = () => {
     // Esta é uma simulação. Em um ambiente real, redirecionaria para a autenticação OAuth do Google
     toast({
@@ -34,41 +29,6 @@ const SettingsPage = () => {
           <Settings className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary">Configurações</h1>
         </div>
-        
-        <Card className="p-6 mb-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Palette className="h-5 w-5 text-primary" />
-            Aparência
-          </h2>
-          <Separator className="my-4" />
-          
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h3 className="font-medium">Tema</h3>
-              <ThemeSelector className="w-full" />
-            </div>
-            
-            <div className="space-y-2">
-              <h3 className="font-medium">Modo</h3>
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => setTheme('light')} 
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${currentTheme === 'light' ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
-                >
-                  <Sun size={18} />
-                  <span>Claro</span>
-                </button>
-                <button 
-                  onClick={() => setTheme('dracula')} 
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${currentTheme === 'dracula' ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
-                >
-                  <Moon size={18} />
-                  <span>Escuro</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </Card>
         
         <Card className="p-6 mb-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">

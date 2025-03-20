@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TubelightNavbar } from "@/components/ui/tubelight-navbar";
 import { Clock, Star, CheckCircle, Share, Settings, Home, BarChart2, Tag } from "lucide-react";
@@ -42,10 +41,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="theme-bg flex flex-col min-h-screen">
-      <div className="flex-grow overflow-auto p-4 sm:p-6 md:p-8">
+    <div className="app-container">
+      <header>
+        {/* seu conteúdo de cabeçalho */}
+      </header>
+      
+      <main className="content-container">
         {children}
-      </div>
+      </main>
+      
+      <footer className="text-center">
+        {/* seu conteúdo de rodapé */}
+      </footer>
+      
       <div className="sm:fixed sm:bottom-4 sm:left-4 sm:right-4 sm:z-10">
         <TubelightNavbar items={navItems} />
       </div>
