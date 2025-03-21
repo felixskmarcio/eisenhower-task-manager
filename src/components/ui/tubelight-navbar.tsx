@@ -4,8 +4,9 @@ import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Link, useLocation } from "react-router-dom"
 import { LucideIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils/classNames"
 import { usePathname } from "next/navigation"
+import { Button } from "@/components/ui/button"
 
 interface NavItem {
   name: string

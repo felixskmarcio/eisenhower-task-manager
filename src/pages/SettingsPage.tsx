@@ -7,7 +7,7 @@ import SupabaseIntegration from '@/components/SupabaseIntegration';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { signInWithGoogle, signOut, getCurrentUser, subscribeToAuthChanges } from '@/services/auth';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/utils/firebase';
 import { User } from 'firebase/auth';
 
 const SettingsPage = () => {
@@ -74,41 +74,41 @@ const SettingsPage = () => {
       </div>
       
       <div className="container mx-auto max-w-2xl pt-10 z-10 relative animate-fade-in">
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-8 border-b pb-4 border-primary/10">
           <Settings className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-primary">Configurações</h1>
+          <h1 className="text-3xl font-bold text-primary tracking-tight">Configurações</h1>
         </div>
         
-        <Card className="p-6 mb-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+        <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
+          <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
             <Database className="h-5 w-5 text-primary" />
             Integração com Supabase
           </h2>
           <Separator className="my-4" />
           
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
             Conecte-se ao Supabase para sincronizar dados, utilizar autenticação e armazenamento.
           </p>
           
           <SupabaseIntegration />
         </Card>
         
-        <Card className="p-6 mb-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+        <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
+          <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
             <FileText className="h-5 w-5 text-primary" />
             Importar Arquivos Markdown
           </h2>
           <Separator className="my-4" />
           
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
             Importe arquivos Markdown (.md ou .markdown) diretamente para a Matriz de Eisenhower.
           </p>
           
           <MarkdownImport />
         </Card>
         
-        <Card className="p-6 mb-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+        <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
+          <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
             <Calendar className="h-5 w-5 text-primary" />
             Conta Google
           </h2>
@@ -116,13 +116,13 @@ const SettingsPage = () => {
           
           <div>
             {user ? (
-              <div className="bg-green-500/10 border border-green-500/30 rounded-md p-4">
-                <div className="flex items-center gap-2 text-green-600 mb-2">
+              <div className="bg-green-500/10 border border-green-500/30 rounded-md p-5">
+                <div className="flex items-center gap-2 text-green-600 mb-3 font-medium">
                   <Calendar size={18} />
-                  <span className="font-medium">Conectado como {user.email}</span>
+                  <span>Conectado como <span className="font-semibold">{user.email}</span></span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Sua conta Google está conectada.
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                  Sua conta Google está conectada. Você pode usar os recursos de sincronização do calendário.
                 </p>
                 <Button
                   variant="outline"
@@ -134,26 +134,31 @@ const SettingsPage = () => {
                 </Button>
               </div>
             ) : (
-              <Button 
-                onClick={handleGoogleLogin}
-                className="w-full"
-                disabled={isLoading}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                {isLoading ? 'Conectando...' : 'Entrar com Google'}
-              </Button>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                  Conecte-se com sua conta Google para sincronizar suas tarefas com o Google Calendar.
+                </p>
+                <Button 
+                  onClick={handleGoogleLogin}
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {isLoading ? 'Conectando...' : 'Entrar com Google'}
+                </Button>
+              </div>
             )}
           </div>
         </Card>
         
         <Card className="p-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
-          <h2 className="text-xl font-semibold mb-2">Sobre</h2>
+          <h2 className="text-xl font-semibold mb-2 text-primary/90">Sobre</h2>
           <Separator className="my-4" />
-          <p className="text-sm text-muted-foreground mb-3">
+          <p className="text-sm font-medium mb-3 text-primary/80">
             Gerenciador de Tarefas - Versão 1.0.0
           </p>
-          <p className="text-sm text-muted-foreground">
-            Um aplicativo de gerenciamento de tarefas que utiliza a Matriz de Eisenhower para ajudar você a priorizar suas atividades.
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Um aplicativo de gerenciamento de tarefas que utiliza a Matriz de Eisenhower para ajudar você a priorizar suas atividades de forma eficiente.
           </p>
         </Card>
       </div>

@@ -12,7 +12,7 @@ import { TagProvider } from "./contexts/TagContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import TagsPage from "./pages/TagsPage";
 import SettingsPage from "./pages/SettingsPage";
-import './App.css';
+import './styles/index.css';
 import './styles/settings.css';
 
 const queryClient = new QueryClient();

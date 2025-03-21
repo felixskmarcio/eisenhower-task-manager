@@ -1,0 +1,19 @@
+@layer utilities {
+  .glass {
+    @apply backdrop-blur-lg bg-white/80 border border-white/20;
+  }
+  
+  .text-gradient {
+    @apply bg-gradient-to-br from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+} 

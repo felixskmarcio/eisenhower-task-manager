@@ -1,8 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
-import './index.css'
-import './styles/themes.css'
+import './styles/index.css'
 
 // Tratamento de erro global
 window.onerror = function(msg, url, lineNo, columnNo, error) {

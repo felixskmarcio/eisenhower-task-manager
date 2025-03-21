@@ -7,7 +7,7 @@ import {
   Auth,
   AuthError
 } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase';
+import { auth, googleProvider } from '@/utils/firebase';
 
 export const signInWithGoogle = async (): Promise<User | null> => {
   try {
