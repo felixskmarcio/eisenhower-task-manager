@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Settings, Moon, Sun, Palette, Calendar, Database, Save, FileText } from "lucide-react";
@@ -6,14 +6,63 @@ import MarkdownImport from '@/components/MarkdownImport';
 import SupabaseIntegration from '@/components/SupabaseIntegration';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
+import { signInWithGoogle, signOut, getCurrentUser, subscribeToAuthChanges } from '@/services/auth';
+import { auth } from '@/lib/firebase';
+import { User } from 'firebase/auth';
 
 const SettingsPage = () => {
-  const handleGoogleCalendarConnect = () => {
-    // Esta é uma simulação. Em um ambiente real, redirecionaria para a autenticação OAuth do Google
-    toast({
-      title: "Funcionalidade em Desenvolvimento",
-      description: "A integração com o Google Calendar será implementada em breve.",
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(getCurrentUser());
+
+  useEffect(() => {
+    // Monitorar mudanças no estado de autenticação
+    const unsubscribe = subscribeToAuthChanges((currentUser) => {
+      setUser(currentUser);
+      setIsLoading(false);
     });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+      const user = await signInWithGoogle();
+      if (user?.email) {
+        toast({
+          title: "Login Realizado",
+          description: `Conectado como ${user.email}`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro no login:', error);
+      toast({
+        title: "Erro na Conexão",
+        description: "Não foi possível fazer login com o Google.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      setIsLoading(true);
+      await signOut();
+      toast({
+        title: "Logout Realizado",
+        description: "Você foi desconectado com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao Desconectar",
+        description: "Ocorreu um erro ao tentar desconectar.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -61,31 +110,24 @@ const SettingsPage = () => {
         <Card className="p-6 mb-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-primary" />
-            Integração com Google Calendar
+            Conta Google
           </h2>
           <Separator className="my-4" />
           
-          <p className="text-sm text-muted-foreground mb-4">
-            Sincronize suas tarefas com o Google Calendar para manter tudo organizado em um só lugar.
-          </p>
-          
           <div>
-            {localStorage.getItem('googleCalendarConnected') ? (
+            {user ? (
               <div className="bg-green-500/10 border border-green-500/30 rounded-md p-4">
                 <div className="flex items-center gap-2 text-green-600 mb-2">
                   <Calendar size={18} />
-                  <span className="font-medium">Conectado ao Google Calendar</span>
+                  <span className="font-medium">Conectado como {user.email}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Sua conta Google está conectada. Suas tarefas serão sincronizadas automaticamente.
+                  Sua conta Google está conectada.
                 </p>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    localStorage.removeItem('googleCalendarConnected');
-                    window.location.reload();
-                  }}
+                  onClick={handleLogout}
                   className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                 >
                   Desconectar
@@ -93,16 +135,12 @@ const SettingsPage = () => {
               </div>
             ) : (
               <Button 
-                onClick={() => {
-                  handleGoogleCalendarConnect();
-                  // Simulação de conexão bem-sucedida
-                  localStorage.setItem('googleCalendarConnected', 'true');
-                  setTimeout(() => window.location.reload(), 1000);
-                }}
+                onClick={handleGoogleLogin}
                 className="w-full"
+                disabled={isLoading}
               >
                 <Calendar className="mr-2 h-4 w-4" />
-                Conectar ao Google Calendar
+                {isLoading ? 'Conectando...' : 'Entrar com Google'}
               </Button>
             )}
           </div>

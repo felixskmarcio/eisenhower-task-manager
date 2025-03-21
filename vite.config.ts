@@ -6,8 +6,8 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
-    port: 8080,
+    port: 5173,
+    host: 'localhost',
   },
   plugins: [
     react(),
@@ -17,6 +17,8 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-    },
+    }
   },
+  // Não é necessário definir as variáveis de ambiente aqui
+  // O Vite automaticamente expõe variáveis que começam com VITE_
 }));
