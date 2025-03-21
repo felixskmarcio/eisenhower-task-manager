@@ -1,5 +1,7 @@
 import React from 'react';
 import { Matrix } from '@/components/Matrix';
+import { Clock, CheckCircle2, ArrowDownToLine, LayoutGrid } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Index = () => {
   return (
@@ -11,6 +13,44 @@ const Index = () => {
       </div>
       
       <div className="container mx-auto px-4 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="mb-10 text-center"
+        >
+          <div className="inline-flex items-center justify-center -space-x-4 mb-4">
+            <div className="w-16 h-16 flex items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20 z-20">
+              <Clock className="w-8 h-8 text-white" />
+            </div>
+            <div className="w-16 h-16 flex items-center justify-center rounded-xl bg-primary/90 shadow-lg shadow-primary/10 z-10 transform -rotate-6">
+              <LayoutGrid className="w-8 h-8 text-white" />
+            </div>
+            <div className="w-16 h-16 flex items-center justify-center rounded-xl bg-primary/80 shadow-lg shadow-primary/10 z-0 transform rotate-6">
+              <CheckCircle2 className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          
+          <motion.h1 
+            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary/80 to-primary tracking-tight"
+            initial={{ letterSpacing: "-0.05em" }}
+            animate={{ letterSpacing: "0" }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+          >
+            Eisenhower Task Manager
+          </motion.h1>
+          
+          <motion.p 
+            className="text-muted-foreground max-w-md mx-auto mt-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+          >
+            Organize suas tarefas com a eficiente metodologia da Matriz de Eisenhower.
+            Priorize o que é importante, não apenas o que é urgente.
+          </motion.p>
+        </motion.div>
+        
         <Matrix />
       </div>
     </div>
