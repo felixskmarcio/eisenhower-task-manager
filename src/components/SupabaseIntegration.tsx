@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import ErrorDisplay from './ErrorDisplay';
+import ApiErrorDisplay from './ApiErrorDisplay';
 
 // Interface para simular a resposta do Supabase
 interface SupabaseResponse {
@@ -466,11 +467,20 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
         </form>
       )}
       {syncError && (
-        <ErrorDisplay
-          title={syncError.title}
-          message={syncError.message}
-          details={syncError.details}
-          onClose={() => setSyncError(null)}
+        <ApiErrorDisplay
+          error={{
+            message: syncError.message,
+            details: { details: syncError.details },
+            status: 500, // Assumindo erro interno do servidor
+            method: "SYNC",
+            path: "/tasks",
+            timestamp: new Date().toISOString()
+          }}
+          onRetry={() => {
+            setSyncError(null);
+            handleSyncData();
+          }}
+          className="mb-4"
         />
       )}
     </div>

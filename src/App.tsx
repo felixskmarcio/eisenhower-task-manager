@@ -15,33 +15,38 @@ import SettingsPage from "./pages/SettingsPage";
 import './styles/index.css';
 import './styles/settings.css';
 import DebugTools from '@/components/DebugTools'
+import ErrorBoundary from './components/ErrorBoundary';
+import GlobalErrorHandler from './components/GlobalErrorHandler';
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TagProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={<ProductivityDashboard />} />
-                <Route path="/tags" element={<TagsPage />} />
-                <Route path="/config" element={<SettingsPage />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
-          </BrowserRouter>
-          {process.env.NODE_ENV === 'development' && <DebugTools />}
-        </TooltipProvider>
-      </TagProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TagProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/dashboard" element={<ProductivityDashboard />} />
+                  <Route path="/tags" element={<TagsPage />} />
+                  <Route path="/config" element={<SettingsPage />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Layout>
+            </BrowserRouter>
+            {process.env.NODE_ENV === 'development' && <DebugTools />}
+            <GlobalErrorHandler />
+          </TooltipProvider>
+        </TagProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
