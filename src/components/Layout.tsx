@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Star, CheckCircle, Share, Settings, Home, BarChart2, Tag, CheckSquare } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { AnimatedNavigationTabs } from "@/components/ui/animated-navigation-tabs";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -8,41 +9,34 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
-  const [activeItem, setActiveItem] = useState("");
   
+  // Define items para o menu AnimatedNavigationTabs
   const navItems = [
     {
-      name: "Início",
+      id: 1,
+      tile: "Início",
       url: "/",
-      icon: Home,
-      priority: 100
+      icon: Home
     },
     {
-      name: "Dashboard",
+      id: 2,
+      tile: "Dashboard",
       url: "/dashboard",
-      icon: BarChart2,
-      priority: 90
+      icon: BarChart2
     },
     {
-      name: "Tags",
+      id: 3,
+      tile: "Tags",
       url: "/tags",
-      icon: Tag,
-      priority: 60
+      icon: Tag
     },
     {
-      name: "Configurações",
+      id: 4,
+      tile: "Configurações",
       url: "/config",
-      icon: Settings,
-      priority: 50
+      icon: Settings
     },
   ];
-  
-  useEffect(() => {
-    const currentItem = navItems.find(
-      item => location.pathname === item.url || location.pathname.startsWith(`${item.url}/`)
-    );
-    setActiveItem(currentItem ? currentItem.name : "Início");
-  }, [location.pathname, navItems]);
 
   return (
     <>
@@ -63,23 +57,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
               </Link>
               
-              <div className="top-nav">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.url}
-                    className={`top-nav-link ${activeItem === item.name ? 'active' : ''}`}
-                    onClick={() => setActiveItem(item.name)}
-                  >
-                    <div className="top-nav-link-content">
-                      <item.icon className="top-nav-icon" />
-                      <span className="top-nav-text">
-                        {item.name}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+              <AnimatedNavigationTabs items={navItems} />
             </div>
           </div>
         </header>
