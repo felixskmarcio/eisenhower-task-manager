@@ -306,13 +306,13 @@ export const Matrix = () => {
       
       // Verificar se o quadrante mudou
       if (droppedTask.quadrant !== quadrantIndex) {
-        const updatedTasks = tasks.map(task => 
-          task.id === droppedTask.id 
-            ? { ...task, quadrant: quadrantIndex } 
-            : task
-        );
-        
-        setTasks(updatedTasks);
+      const updatedTasks = tasks.map(task => 
+        task.id === droppedTask.id 
+          ? { ...task, quadrant: quadrantIndex } 
+          : task
+      );
+      
+      setTasks(updatedTasks);
         
         // Adicionar efeito visual de destaque temporário ao quadrante de destino
         element.style.transition = 'box-shadow 0.3s ease';
@@ -727,7 +727,7 @@ export const Matrix = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center md:text-left">
-            Matriz de Eisenhower
+          Matriz de Eisenhower
           </h2>
           <p className="text-muted-foreground text-sm md:text-base text-center md:text-left max-w-xl mb-2">
             Organize suas tarefas baseado em importância e urgência para maximizar sua produtividade
@@ -748,14 +748,14 @@ export const Matrix = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button
-                    onClick={() => setIsAddModalOpen(true)}
+        <button
+          onClick={() => setIsAddModalOpen(true)}
                     className="p-2.5 bg-primary text-white rounded-lg transition-all duration-300 hover:bg-primary/90 hover:shadow-md shadow-sm flex items-center gap-1.5 w-full sm:w-auto justify-center"
                     title="Adicionar nova tarefa"
-                  >
+        >
                     <Plus className="h-4 w-4" />
                     <span className="text-sm font-medium">Nova Tarefa</span>
-                  </button>
+        </button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
                   <p>Nova Tarefa</p>
@@ -834,7 +834,7 @@ export const Matrix = () => {
             >
               {renderTasks(4)}
             </QuadrantContainer>
-          </div>
+                  </div>
           
           {/* Desktop layout - 2x2 grid */}
           <div className="hidden md:grid md:grid-cols-2 gap-6">
@@ -913,16 +913,16 @@ export const Matrix = () => {
       </Tabs>
 
       {isAddModalOpen && (
-        <AddTaskModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
+      <AddTaskModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
           onAddTask={handleAddTask}
-          newTask={newTask}
-          setNewTask={setNewTask}
+        newTask={newTask}
+        setNewTask={setNewTask}
           isDarkMode={isDarkMode}
-        />
+      />
       )}
-      
+
       {selectedTask && (
         <EditTaskModal
           isOpen={!!selectedTask}
@@ -949,9 +949,9 @@ export const Matrix = () => {
         <div 
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center" 
           onClick={(e) => {
-            // Evitar que cliques no backdrop fechem o modal
+            // Fechar o modal quando clicar no backdrop (fora do modal)
             if (e.target === e.currentTarget) {
-              e.stopPropagation();
+              handleCancelDelete();
             }
           }}
         >
