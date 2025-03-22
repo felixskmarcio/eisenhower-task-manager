@@ -247,25 +247,81 @@ export const Matrix = () => {
 
   const handleDragStart = (e: React.DragEvent, task: Task) => {
     e.dataTransfer.setData('text/plain', JSON.stringify(task));
+    // Adicionar classe para efeito visual
+    const element = e.currentTarget as HTMLElement;
+    element.classList.add('dragging');
+    
+    // Adicionar imagem transparente para melhorar a experiência de arrastar
+    const dragImage = document.createElement('div');
+    dragImage.style.width = '1px';
+    dragImage.style.height = '1px';
+    document.body.appendChild(dragImage);
+    e.dataTransfer.setDragImage(dragImage, 0, 0);
+    
+    // Limpar após o próximo ciclo de renderização
+    setTimeout(() => document.body.removeChild(dragImage), 0);
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    // Remover classe quando o arrastar terminar
+    const element = e.currentTarget as HTMLElement;
+    element.classList.remove('dragging');
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    // Adicionar efeito visual na zona de soltar
+    const element = e.currentTarget as HTMLElement;
+    element.classList.add('dropzone-hover');
+    
+    // Indicar que o drop é permitido
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Remover efeito visual quando o cursor sair da zona
+    const element = e.currentTarget as HTMLElement;
+    element.classList.remove('dropzone-hover');
   };
 
   const handleDrop = (e: React.DragEvent, quadrantIndex: number) => {
     e.preventDefault();
+    // Remover efeito visual da zona de soltar
+    const element = e.currentTarget as HTMLElement;
+    element.classList.remove('dropzone-hover');
+    
     const taskData = e.dataTransfer.getData('text/plain');
     if (taskData) {
       const droppedTask = JSON.parse(taskData);
       
-      const updatedTasks = tasks.map(task => 
-        task.id === droppedTask.id 
-          ? { ...task, quadrant: quadrantIndex } 
-          : task
-      );
-      
-      setTasks(updatedTasks);
+      // Verificar se o quadrante mudou
+      if (droppedTask.quadrant !== quadrantIndex) {
+        const updatedTasks = tasks.map(task => 
+          task.id === droppedTask.id 
+            ? { ...task, quadrant: quadrantIndex } 
+            : task
+        );
+        
+        setTasks(updatedTasks);
+        
+        // Adicionar efeito visual de destaque temporário ao quadrante de destino
+        element.style.transition = 'box-shadow 0.3s ease';
+        element.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.5)';
+        setTimeout(() => {
+          element.style.boxShadow = '';
+        }, 500);
+        
+        // Mostrar notificação
+        toast({
+          title: 'Tarefa movida',
+          description: `Tarefa "${droppedTask.title}" movida para ${
+            quadrantIndex === 0 ? 'Urgente e Importante' :
+            quadrantIndex === 1 ? 'Importante, Não Urgente' :
+            quadrantIndex === 2 ? 'Urgente, Não Importante' :
+            'Não Urgente, Não Importante'
+          }`,
+        });
+      }
     }
   };
 
@@ -321,56 +377,79 @@ export const Matrix = () => {
 
   const TaskCard = ({ task }: { task: Task }) => (
     <div 
-      draggable 
+      draggable={!task.completed}
       onDragStart={(e) => handleDragStart(e, task)}
+      onDragEnd={handleDragEnd}
       onDoubleClick={() => handleEditTask(task)}
-      className={`p-4 rounded-xl border matrix-card transition-all duration-300 shadow-md hover:shadow-lg 
-        ${task.quadrant === 0 ? 'border-[#ff79c6]/50 bg-[#282a36]/90 hover:border-[#ff79c6]' : 
-              task.quadrant === 1 ? 'border-[#8be9fd]/50 bg-[#282a36]/90 hover:border-[#8be9fd]' : 
-              task.quadrant === 2 ? 'border-[#f1fa8c]/50 bg-[#282a36]/90 hover:border-[#f1fa8c]' : 
-              'border-[#bd93f9]/50 bg-[#282a36]/90 hover:border-[#bd93f9]'}
-        ${task.completed ? 'opacity-75' : 'hover:scale-[1.02]'} backdrop-blur-sm`}
+      className={`p-3 md:p-4 rounded-xl border transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer
+        ${task.quadrant === 0 ? 'border-red-400/40 bg-gradient-to-br from-red-50/20 to-red-100/20 hover:border-red-400/70' : 
+              task.quadrant === 1 ? 'border-blue-400/40 bg-gradient-to-br from-blue-50/20 to-blue-100/20 hover:border-blue-400/70' : 
+              task.quadrant === 2 ? 'border-amber-400/40 bg-gradient-to-br from-amber-50/20 to-amber-100/20 hover:border-amber-400/70' : 
+              'border-green-400/40 bg-gradient-to-br from-green-50/20 to-green-100/20 hover:border-green-400/70'}
+        ${task.completed ? 'opacity-60' : 'hover:scale-[1.02]'} backdrop-blur-sm group`}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <h3 className={`font-bold text-lg ${task.completed ? 'line-through opacity-75' : task.quadrant === 0 ? 'text-[#ff79c6]' : 
-              task.quadrant === 1 ? 'text-[#8be9fd]' : 
-              task.quadrant === 2 ? 'text-[#f1fa8c]' : 
-              'text-[#bd93f9]'}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <h3 className={`font-semibold text-base line-clamp-1 ${task.completed ? 'line-through opacity-75' : ''}`}>
             {task.title}
           </h3>
           {task.description && (
-            <p className={`text-sm text-white/85 mt-1 ${task.completed ? 'line-through' : ''}`}>
+            <p className={`text-sm text-muted-foreground mt-1 line-clamp-2 ${task.completed ? 'line-through opacity-75' : ''}`}>
               {task.description}
             </p>
           )}
-          <p className={`text-xs mt-2 text-white/70`}>
-            Criada em: {formatDate(task.createdAt)}
-          </p>
-          {task.completed && task.completedAt && (
-            <p className={`text-xs text-white/70`}>
-              Concluída em: {formatDate(task.completedAt)}
-            </p>
+          
+          {/* Tags da tarefa */}
+          {task.tags && task.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {task.tags.map(tagId => {
+                const tag = availableTags.find(t => t.id === tagId);
+                if (!tag) return null;
+                return (
+                  <span key={tagId} 
+                    className="text-[10px] px-1.5 py-0.5 rounded-full" 
+                    style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
+                  >
+                    {tag.name}
+                  </span>
+                );
+              })}
+            </div>
           )}
+          
+          <p className={`text-[10px] mt-2 text-muted-foreground/80 italic`}>
+            {formatDate(task.createdAt)}
+          </p>
         </div>
-        <div className="flex space-x-2">
+        
+        <div className="flex flex-col space-y-1.5 opacity-70 group-hover:opacity-100 transition-opacity">
           <button 
-            onClick={() => toggleTaskCompletion(task.id)}
-            className={`flex-shrink-0 p-2 rounded-full transition-all duration-300 shadow-sm hover:shadow-md
+            onClick={(e) => { e.stopPropagation(); toggleTaskCompletion(task.id); }}
+            className={`flex-shrink-0 p-1.5 rounded-full transition-all duration-300 
             ${task.completed 
-              ? 'bg-[#50fa7b] text-[#282a36]' 
-              : 'bg-[#44475a]/90 text-white hover:bg-[#6272a4] hover:text-white'}`}
+              ? 'bg-green-100 text-green-600 hover:bg-green-200' 
+              : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-green-600'}`}
             title={task.completed ? "Desmarcar tarefa" : "Concluir tarefa"}
           >
-            <CheckCircle size={16} className={task.completed ? 'opacity-100' : 'opacity-85'} />
+            <CheckCircle size={14} className="transition-transform group-hover:scale-110" />
           </button>
           <button 
-            onClick={() => deleteTask(task.id)}
-            className={`flex-shrink-0 p-2 rounded-full transition-all duration-300 shadow-sm hover:shadow-md
-            bg-[#44475a]/90 text-[#ff5555] hover:bg-[#ff5555] hover:text-white`}
+            onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }}
+            className={`flex-shrink-0 p-1.5 rounded-full transition-all duration-300
+            bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-600`}
             title="Excluir tarefa"
           >
-            <Trash2 size={16} />
+            <Trash2 size={14} className="transition-transform group-hover:scale-110" />
+          </button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); startTimer(task.id); }}
+            className={`flex-shrink-0 p-1.5 rounded-full transition-all duration-300
+            ${activeTimer === task.id 
+              ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' 
+              : 'bg-gray-100 text-gray-400 hover:bg-blue-100 hover:text-blue-600'}`}
+            title="Iniciar timer"
+          >
+            <Clock size={14} className="transition-transform group-hover:scale-110" />
           </button>
         </div>
       </div>
@@ -437,31 +516,35 @@ export const Matrix = () => {
   };
 
   // Componente de quadrante responsivo
-  const QuadrantContainer = ({ title, description, children, urgentLabel, importantLabel, colorClass }: {
+  const QuadrantContainer = ({ title, description, children, urgentLabel, importantLabel, colorClass, quadrantIndex }: {
     title: string;
     description: string;
     children: React.ReactNode;
     urgentLabel: string;
     importantLabel: string;
     colorClass: string;
+    quadrantIndex: number;
   }) => (
     <div 
-      className={`p-2 border rounded-lg transition-all ${colorClass}`}
+      className={`p-3 border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${colorClass}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={(e) => handleDrop(e, quadrantIndex)}
     >
       <div className="p-2">
         <h3 className="text-base md:text-lg font-semibold mb-1">{title}</h3>
-        <p className="text-xs md:text-sm text-muted-foreground mb-2 hidden md:block">{description}</p>
-        <div className="flex flex-wrap gap-1 mb-2">
-          <span className={`text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary inline-flex items-center gap-1`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        <p className="text-xs md:text-sm text-muted-foreground mb-3 hidden md:block line-clamp-2">{description}</p>
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          <span className={`text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium inline-flex items-center gap-1.5`}>
+            <span className="w-2 h-2 rounded-full bg-primary"></span>
             {importantLabel}
           </span>
-          <span className={`text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 inline-flex items-center gap-1`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+          <span className={`text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-medium inline-flex items-center gap-1.5`}>
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
             {urgentLabel}
           </span>
         </div>
-        <div className="min-h-[80px] md:min-h-[200px]">
+        <div className="min-h-[100px] md:min-h-[220px] max-h-[300px] md:max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
           {children}
         </div>
       </div>
@@ -557,11 +640,13 @@ export const Matrix = () => {
 
   return (
     <div className="w-full mx-auto relative">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-1 text-center md:text-left">Matriz de Eisenhower</h2>
-          <p className="text-muted-foreground text-sm md:text-base text-center md:text-left">
-            Gerencie suas tarefas usando o método de priorização eficiente
+          <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center md:text-left">
+            Matriz de Eisenhower
+          </h2>
+          <p className="text-muted-foreground text-sm md:text-base text-center md:text-left max-w-xl">
+            Organize suas tarefas baseado em importância e urgência para maximizar sua produtividade
           </p>
         </div>
         
@@ -580,13 +665,13 @@ export const Matrix = () => {
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="p-2 bg-primary text-white rounded-lg transition-colors hover:bg-primary-dark"
+                    className="p-2.5 bg-primary text-white rounded-lg transition-all duration-300 hover:bg-primary/90 hover:shadow-md shadow-sm"
                     title="Adicionar nova tarefa"
                   >
                     <Plus className="h-5 w-5" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="bottom">
                   <p>Nova Tarefa</p>
                 </TooltipContent>
               </Tooltip>
@@ -596,21 +681,21 @@ export const Matrix = () => {
       </div>
 
       <Tabs defaultValue="matriz" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-6">
-          <TabsTrigger value="matriz" className="text-sm">
-            <div className="flex items-center gap-1">
+        <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-8 border rounded-lg p-1 bg-muted/20 backdrop-blur-sm shadow-sm">
+          <TabsTrigger value="matriz" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
+            <div className="flex items-center gap-1.5">
               <LayoutGrid className="h-4 w-4" />
               <span className="hidden sm:inline">Matriz</span>
             </div>
           </TabsTrigger>
-          <TabsTrigger value="concluidas" className="text-sm">
-            <div className="flex items-center gap-1">
+          <TabsTrigger value="concluidas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
+            <div className="flex items-center gap-1.5">
               <CheckCircle className="h-4 w-4" />
               <span className="hidden sm:inline">Concluídas</span>
             </div>
           </TabsTrigger>
-          <TabsTrigger value="todas" className="text-sm">
-            <div className="flex items-center gap-1">
+          <TabsTrigger value="todas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
+            <div className="flex items-center gap-1.5">
               <BarChart2 className="h-4 w-4" />
               <span className="hidden sm:inline">Todas</span>
             </div>
@@ -619,13 +704,14 @@ export const Matrix = () => {
 
         <TabsContent value="matriz" className="space-y-4">
           {/* Mobile layout - Vertical stacking */}
-          <div className="grid grid-cols-1 gap-4 md:hidden">
+          <div className="grid grid-cols-1 gap-5 md:hidden">
             <QuadrantContainer
               title="Urgente e Importante"
               description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
               urgentLabel="Urgente"
               importantLabel="Importante"
               colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
+              quadrantIndex={0}
             >
               {renderTasks(1)}
             </QuadrantContainer>
@@ -636,6 +722,7 @@ export const Matrix = () => {
               urgentLabel="Não urgente"
               importantLabel="Importante"
               colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
+              quadrantIndex={1}
             >
               {renderTasks(2)}
             </QuadrantContainer>
@@ -646,6 +733,7 @@ export const Matrix = () => {
               urgentLabel="Urgente"
               importantLabel="Não importante"
               colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
+              quadrantIndex={2}
             >
               {renderTasks(3)}
             </QuadrantContainer>
@@ -656,19 +744,21 @@ export const Matrix = () => {
               urgentLabel="Não urgente"
               importantLabel="Não importante"
               colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
+              quadrantIndex={3}
             >
               {renderTasks(4)}
             </QuadrantContainer>
           </div>
           
           {/* Desktop layout - 2x2 grid */}
-          <div className="hidden md:grid md:grid-cols-2 gap-4">
+          <div className="hidden md:grid md:grid-cols-2 gap-6">
             <QuadrantContainer
               title="Urgente e Importante"
               description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
               urgentLabel="Urgente"
               importantLabel="Importante"
               colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
+              quadrantIndex={0}
             >
               {renderTasks(1)}
             </QuadrantContainer>
@@ -679,6 +769,7 @@ export const Matrix = () => {
               urgentLabel="Não urgente"
               importantLabel="Importante"
               colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
+              quadrantIndex={1}
             >
               {renderTasks(2)}
             </QuadrantContainer>
@@ -689,6 +780,7 @@ export const Matrix = () => {
               urgentLabel="Urgente"
               importantLabel="Não importante"
               colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
+              quadrantIndex={2}
             >
               {renderTasks(3)}
             </QuadrantContainer>
@@ -699,6 +791,7 @@ export const Matrix = () => {
               urgentLabel="Não urgente"
               importantLabel="Não importante"
               colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
+              quadrantIndex={3}
             >
               {renderTasks(4)}
             </QuadrantContainer>
