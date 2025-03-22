@@ -724,214 +724,217 @@ export const Matrix = () => {
 
   return (
     <div className="w-full mx-auto relative">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center md:text-left">
-          Matriz de Eisenhower
-          </h2>
-          <p className="text-muted-foreground text-sm md:text-base text-center md:text-left max-w-xl mb-2">
-            Organize suas tarefas baseado em importância e urgência para maximizar sua produtividade
-          </p>
-          
-          {/* Quick Tag Selector */}
-          <div className="md:flex items-center gap-2 hidden">
-            <QuickTagSelector />
-          </div>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2 md:gap-3 justify-center sm:justify-end">
-          <div className="md:hidden w-full">
-            <QuickTagSelector />
+      {/* Wrapper para aplicar o efeito de blur quando o modal estiver aberto */}
+      <div className={isDeleteDialogOpen ? 'blur-sm pointer-events-none transition-all duration-300' : ''}>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center md:text-left">
+              Matriz de Eisenhower
+            </h2>
+            <p className="text-muted-foreground text-sm md:text-base text-center md:text-left max-w-xl mb-2">
+              Organize suas tarefas baseado em importância e urgência para maximizar sua produtividade
+            </p>
+            
+            {/* Quick Tag Selector */}
+            <div className="md:flex items-center gap-2 hidden">
+              <QuickTagSelector />
+            </div>
           </div>
           
-          <div className="flex justify-center gap-2 w-full sm:w-auto">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-                    className="p-2.5 bg-primary text-white rounded-lg transition-all duration-300 hover:bg-primary/90 hover:shadow-md shadow-sm flex items-center gap-1.5 w-full sm:w-auto justify-center"
-                    title="Adicionar nova tarefa"
-        >
-                    <Plus className="h-4 w-4" />
-                    <span className="text-sm font-medium">Nova Tarefa</span>
-        </button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p>Nova Tarefa</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2 md:gap-3 justify-center sm:justify-end">
+            <div className="md:hidden w-full">
+              <QuickTagSelector />
+            </div>
+            
+            <div className="flex justify-center gap-2 w-full sm:w-auto">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setIsAddModalOpen(true)}
+                      className="p-2.5 bg-primary text-white rounded-lg transition-all duration-300 hover:bg-primary/90 hover:shadow-md shadow-sm flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                      title="Adicionar nova tarefa"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span className="text-sm font-medium">Nova Tarefa</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p>Nova Tarefa</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
         </div>
+
+        <Tabs defaultValue="matriz" className="w-full">
+          <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-8 border rounded-lg p-1 bg-muted/20 backdrop-blur-sm shadow-sm">
+            <TabsTrigger value="matriz" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
+              <div className="flex items-center gap-1.5">
+                <LayoutGrid className="h-4 w-4" />
+                <span className="hidden sm:inline">Matriz</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="concluidas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Concluídas</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="todas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
+              <div className="flex items-center gap-1.5">
+                <BarChart2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Todas</span>
+              </div>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="matriz" className="space-y-4">
+            {/* Mobile layout - Vertical stacking */}
+            <div className="grid grid-cols-1 gap-5 md:hidden">
+              <QuadrantContainer
+                title="Urgente e Importante"
+                description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
+                urgentLabel="Urgente"
+                importantLabel="Importante"
+                colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
+                quadrantIndex={0}
+              >
+                {renderTasks(1)}
+              </QuadrantContainer>
+              
+              <QuadrantContainer
+                title="Importante, Não Urgente"
+                description="Planeje: Preparação, prevenção, planejamento e relacionamentos"
+                urgentLabel="Não urgente"
+                importantLabel="Importante"
+                colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
+                quadrantIndex={1}
+              >
+                {renderTasks(2)}
+              </QuadrantContainer>
+              
+              <QuadrantContainer
+                title="Urgente, Não Importante"
+                description="Delegue: Interrupções, reuniões, e-mails, chamadas"
+                urgentLabel="Urgente"
+                importantLabel="Não importante"
+                colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
+                quadrantIndex={2}
+              >
+                {renderTasks(3)}
+              </QuadrantContainer>
+              
+              <QuadrantContainer
+                title="Não Urgente, Não Importante"
+                description="Elimine: Distrações, tarefas triviais, tempo perdido"
+                urgentLabel="Não urgente"
+                importantLabel="Não importante"
+                colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
+                quadrantIndex={3}
+              >
+                {renderTasks(4)}
+              </QuadrantContainer>
+            </div>
+            
+            {/* Desktop layout - 2x2 grid */}
+            <div className="hidden md:grid md:grid-cols-2 gap-6">
+              <QuadrantContainer
+                title="Urgente e Importante"
+                description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
+                urgentLabel="Urgente"
+                importantLabel="Importante"
+                colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
+                quadrantIndex={0}
+              >
+                {renderTasks(1)}
+              </QuadrantContainer>
+              
+              <QuadrantContainer
+                title="Importante, Não Urgente"
+                description="Planeje: Preparação, prevenção, planejamento e relacionamentos"
+                urgentLabel="Não urgente"
+                importantLabel="Importante"
+                colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
+                quadrantIndex={1}
+              >
+                {renderTasks(2)}
+              </QuadrantContainer>
+              
+              <QuadrantContainer
+                title="Urgente, Não Importante"
+                description="Delegue: Interrupções, reuniões, e-mails, chamadas"
+                urgentLabel="Urgente"
+                importantLabel="Não importante"
+                colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
+                quadrantIndex={2}
+              >
+                {renderTasks(3)}
+              </QuadrantContainer>
+              
+              <QuadrantContainer
+                title="Não Urgente, Não Importante"
+                description="Elimine: Distrações, tarefas triviais, tempo perdido"
+                urgentLabel="Não urgente"
+                importantLabel="Não importante"
+                colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
+                quadrantIndex={3}
+              >
+                {renderTasks(4)}
+              </QuadrantContainer>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="concluidas">
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Tarefas Concluídas</h2>
+              <div className="grid gap-3">
+                {tasks
+                  .filter(task => task.completed)
+                  .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
+                  .map(task => (
+                    <TaskCard key={task.id} task={task} />
+                  ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="todas">
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Todas as Tarefas</h2>
+              <div className="grid gap-3">
+                {tasks
+                  .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
+                  .map(task => (
+                    <TaskCard key={task.id} task={task} />
+                  ))}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs defaultValue="matriz" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-8 border rounded-lg p-1 bg-muted/20 backdrop-blur-sm shadow-sm">
-          <TabsTrigger value="matriz" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
-            <div className="flex items-center gap-1.5">
-              <LayoutGrid className="h-4 w-4" />
-              <span className="hidden sm:inline">Matriz</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger value="concluidas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Concluídas</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger value="todas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
-            <div className="flex items-center gap-1.5">
-              <BarChart2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Todas</span>
-            </div>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="matriz" className="space-y-4">
-          {/* Mobile layout - Vertical stacking */}
-          <div className="grid grid-cols-1 gap-5 md:hidden">
-            <QuadrantContainer
-              title="Urgente e Importante"
-              description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
-              urgentLabel="Urgente"
-              importantLabel="Importante"
-              colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
-              quadrantIndex={0}
-            >
-              {renderTasks(1)}
-            </QuadrantContainer>
-            
-            <QuadrantContainer
-              title="Importante, Não Urgente"
-              description="Planeje: Preparação, prevenção, planejamento e relacionamentos"
-              urgentLabel="Não urgente"
-              importantLabel="Importante"
-              colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
-              quadrantIndex={1}
-            >
-              {renderTasks(2)}
-            </QuadrantContainer>
-            
-            <QuadrantContainer
-              title="Urgente, Não Importante"
-              description="Delegue: Interrupções, reuniões, e-mails, chamadas"
-              urgentLabel="Urgente"
-              importantLabel="Não importante"
-              colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
-              quadrantIndex={2}
-            >
-              {renderTasks(3)}
-            </QuadrantContainer>
-            
-            <QuadrantContainer
-              title="Não Urgente, Não Importante"
-              description="Elimine: Distrações, tarefas triviais, tempo perdido"
-              urgentLabel="Não urgente"
-              importantLabel="Não importante"
-              colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
-              quadrantIndex={3}
-            >
-              {renderTasks(4)}
-            </QuadrantContainer>
-                  </div>
-          
-          {/* Desktop layout - 2x2 grid */}
-          <div className="hidden md:grid md:grid-cols-2 gap-6">
-            <QuadrantContainer
-              title="Urgente e Importante"
-              description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
-              urgentLabel="Urgente"
-              importantLabel="Importante"
-              colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
-              quadrantIndex={0}
-            >
-              {renderTasks(1)}
-            </QuadrantContainer>
-            
-            <QuadrantContainer
-              title="Importante, Não Urgente"
-              description="Planeje: Preparação, prevenção, planejamento e relacionamentos"
-              urgentLabel="Não urgente"
-              importantLabel="Importante"
-              colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
-              quadrantIndex={1}
-            >
-              {renderTasks(2)}
-            </QuadrantContainer>
-            
-            <QuadrantContainer
-              title="Urgente, Não Importante"
-              description="Delegue: Interrupções, reuniões, e-mails, chamadas"
-              urgentLabel="Urgente"
-              importantLabel="Não importante"
-              colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
-              quadrantIndex={2}
-            >
-              {renderTasks(3)}
-            </QuadrantContainer>
-            
-            <QuadrantContainer
-              title="Não Urgente, Não Importante"
-              description="Elimine: Distrações, tarefas triviais, tempo perdido"
-              urgentLabel="Não urgente"
-              importantLabel="Não importante"
-              colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
-              quadrantIndex={3}
-            >
-              {renderTasks(4)}
-            </QuadrantContainer>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="concluidas">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Tarefas Concluídas</h2>
-            <div className="grid gap-3">
-              {tasks
-                .filter(task => task.completed)
-                .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
-                .map(task => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="todas">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Todas as Tarefas</h2>
-            <div className="grid gap-3">
-              {tasks
-                .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
-                .map(task => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-
+     
       {isAddModalOpen && (
-      <AddTaskModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        <AddTaskModal 
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
           onAddTask={handleAddTask}
-        newTask={newTask}
-        setNewTask={setNewTask}
+          newTask={newTask}
+          setNewTask={setNewTask}
           isDarkMode={isDarkMode}
-      />
+        />
       )}
-
-      {selectedTask && (
-        <EditTaskModal
-          isOpen={!!selectedTask}
-          onClose={() => setSelectedTask(null)}
+      
+      {isEditModalOpen && selectedTask && (
+        <EditTaskModal 
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
           onSave={handleSaveTask}
           task={{
             id: selectedTask.id,
             title: selectedTask.title,
-            description: selectedTask.description || '',  // Garantir que description seja uma string
+            description: selectedTask.description || '',
             urgency: selectedTask.urgency,
             importance: selectedTask.importance,
             completed: selectedTask.completed,
@@ -945,7 +948,7 @@ export const Matrix = () => {
       <FloatingActionButton onClick={() => setIsAddModalOpen(true)} />
       
       {/* Modal de confirmação de exclusão personalizado */}
-      {isDeleteDialogOpen && (
+      {isDeleteDialogOpen && taskToDelete && (
         <div 
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center" 
           onClick={(e) => {
@@ -976,6 +979,19 @@ export const Matrix = () => {
                 <AlertTriangle size={18} />
                 Confirmar exclusão
               </h2>
+              
+              {/* Informações da tarefa que será excluída */}
+              <div className="mt-4 mb-3 p-3 border border-gray-700/60 rounded-md bg-gray-800/20">
+                <p className="font-medium mb-1 text-base">
+                  {tasks.find(t => t.id === taskToDelete)?.title || "Tarefa"}
+                </p>
+                {tasks.find(t => t.id === taskToDelete)?.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {tasks.find(t => t.id === taskToDelete)?.description}
+                  </p>
+                )}
+              </div>
+              
               <p className="text-sm text-muted-foreground mt-2">
                 Tem certeza que deseja excluir esta tarefa? Esta ação não poderá ser desfeita.
               </p>

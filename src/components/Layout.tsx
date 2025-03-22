@@ -73,9 +73,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Clock className="h-3.5 w-3.5 text-primary/60" />
                 <span className="font-medium text-primary/70">Eisenhower Task Manager</span>
                 <span className="text-primary/40">•</span>
-                <span>Versão 1.0.0</span>
+                <span>Versão 1.1.0</span>
               </div>
-              <p>© 2024 Todos os direitos reservados</p>
+              <p>© 2025 Todos os direitos reservados</p>
             </div>
           </div>
         </footer>
