@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -9,10 +10,38 @@ import { toast } from '@/components/ui/use-toast';
 import { signInWithGoogle, signOut, getCurrentUser, subscribeToAuthChanges } from '@/services/auth';
 import { auth } from '@/utils/firebase';
 import { User } from 'firebase/auth';
+import GoogleCalendarSync from '@/components/GoogleCalendarSync/GoogleCalendarSync';
+
+// Mock data - this would normally come from your state management
+const mockTasks = [
+  {
+    id: '1',
+    title: 'Finalizar relatório',
+    description: 'Concluir relatório mensal para a reunião',
+    urgency: 8,
+    importance: 9,
+    quadrant: 1,
+    completed: false,
+    createdAt: new Date(),
+    tags: ['trabalho', 'relatório']
+  },
+  {
+    id: '2',
+    title: 'Preparar apresentação',
+    description: 'Preparar slides para apresentação',
+    urgency: 7,
+    importance: 8,
+    quadrant: 1,
+    completed: false,
+    createdAt: new Date(),
+    tags: ['trabalho', 'apresentação']
+  }
+];
 
 const SettingsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<User | null>(getCurrentUser());
+  const [tasks, setTasks] = useState(mockTasks); // In a real app, this would come from your state
 
   useEffect(() => {
     // Monitorar mudanças no estado de autenticação
@@ -65,6 +94,11 @@ const SettingsPage = () => {
     }
   };
 
+  const handleSyncComplete = (success: boolean) => {
+    console.log('Sync completed:', success);
+    // In a real app, you might want to update your state or trigger other actions
+  };
+
   return (
     <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 md:px-8 relative">
       {/* Plano de fundo com gradiente e efeito */}
@@ -78,6 +112,16 @@ const SettingsPage = () => {
           <Settings className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary tracking-tight">Configurações</h1>
         </div>
+        
+        <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
+          <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
+            <Calendar className="h-5 w-5 text-primary" />
+            Google Calendar
+          </h2>
+          <Separator className="my-4" />
+          
+          <GoogleCalendarSync tasks={tasks} onSync={handleSyncComplete} />
+        </Card>
         
         <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
           <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
@@ -105,50 +149,6 @@ const SettingsPage = () => {
           </p>
           
           <MarkdownImport />
-        </Card>
-        
-        <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
-          <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
-            <Calendar className="h-5 w-5 text-primary" />
-            Conta Google
-          </h2>
-          <Separator className="my-4" />
-          
-          <div>
-            {user ? (
-              <div className="bg-green-500/10 border border-green-500/30 rounded-md p-5">
-                <div className="flex items-center gap-2 text-green-600 mb-3 font-medium">
-                  <Calendar size={18} />
-                  <span>Conectado como <span className="font-semibold">{user.email}</span></span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                  Sua conta Google está conectada. Você pode usar os recursos de sincronização do calendário.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                >
-                  Desconectar
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                  Conecte-se com sua conta Google para sincronizar suas tarefas com o Google Calendar.
-                </p>
-                <Button 
-                  onClick={handleGoogleLogin}
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {isLoading ? 'Conectando...' : 'Entrar com Google'}
-                </Button>
-              </div>
-            )}
-          </div>
         </Card>
         
         <Card className="p-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
