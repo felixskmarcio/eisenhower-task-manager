@@ -1,4 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import { toast } from '@/components/ui/use-toast';
+
+// Você pode armazenar isso em variáveis de ambiente
+const SUPABASE_URL = 'https://pghqmzgkbcpxfsnwnvbt.supabase.co';
+// Atenção: essa é uma chave pública e segura para ser usada no frontend
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBnaHFtemdraGNweGZzbndudmJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTk5NDc4MzgsImV4cCI6MjAzNTUyMzgzOH0.8JhWl3B0Yrjul4hd7wLzAx9Qqcw-PRPGEAZsYv7GJ-g';
+
+// Criar cliente Supabase
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Tipos para as tabelas do Supabase
 export interface Task {
@@ -112,6 +121,11 @@ export const addTask = async (task: Omit<Task, 'id' | 'created_at'>) => {
     return { data, error: null };
   } catch (error) {
     console.error('Erro ao adicionar tarefa:', error);
+    toast({
+      title: 'Erro ao salvar',
+      description: 'Não foi possível salvar a tarefa no banco de dados',
+      variant: 'destructive'
+    });
     return { data: null, error };
   }
 };
@@ -328,4 +342,115 @@ function formatTasksForSupabase(localTasks: LocalTask[]): Task[] {
     
     return formattedTask;
   });
-} 
+}
+
+// Autenticação com Google
+export const signInWithGoogle = async () => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/settings',
+        scopes: 'email profile'
+      }
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Erro ao fazer login com Google:', error);
+    toast({
+      title: 'Erro na autenticação',
+      description: error instanceof Error ? error.message : 'Erro desconhecido durante o login',
+      variant: 'destructive'
+    });
+    return { success: false, error };
+  }
+};
+
+// Verifica o estado da autenticação atual
+export const getCurrentUser = async () => {
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    return data.user;
+  } catch (error) {
+    console.error('Erro ao obter usuário atual:', error);
+    return null;
+  }
+};
+
+// Logout
+export const signOut = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Erro ao fazer logout:', error);
+    return false;
+  }
+};
+
+// Sincronização de tarefas do localStorage para o Supabase
+export const syncLocalTasksToSupabase = async () => {
+  try {
+    // Obter tarefas do localStorage
+    const localTasksStr = localStorage.getItem('tasks');
+    if (!localTasksStr) return { added: 0, failed: 0 };
+
+    const localTasks = JSON.parse(localTasksStr);
+    if (!Array.isArray(localTasks) || localTasks.length === 0) {
+      return { added: 0, failed: 0 };
+    }
+
+    // Obter usuário atual
+    const user = await getCurrentUser();
+    
+    // Contar operações bem e mal sucedidas
+    let added = 0;
+    let failed = 0;
+
+    // Para cada tarefa local, tentar adicionar ao Supabase
+    for (const task of localTasks) {
+      try {
+        // Verificar se a tarefa já existe no Supabase
+        const { data: existingTasks } = await supabase
+          .from('tasks')
+          .select('id')
+          .eq('id', task.id);
+
+        // Se não existir, adicionar
+        if (!existingTasks || existingTasks.length === 0) {
+          const supabaseTask = {
+            ...task,
+            user_id: user ? user.id : null,
+            created_at: task.created_at || new Date().toISOString()
+          };
+          
+          const { error } = await supabase
+            .from('tasks')
+            .insert(supabaseTask);
+
+          if (error) {
+            console.error('Erro ao sincronizar tarefa:', error);
+            failed++;
+          } else {
+            added++;
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao processar tarefa:', err);
+        failed++;
+      }
+    }
+
+    return { added, failed };
+  } catch (error) {
+    console.error('Erro na sincronização:', error);
+    return { added: 0, failed: 0, error };
+  }
+}; 

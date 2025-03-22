@@ -6,41 +6,102 @@ import MarkdownImport from '@/components/MarkdownImport';
 import SupabaseIntegration from '@/components/SupabaseIntegration';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { signInWithGoogle, signOut, getCurrentUser, subscribeToAuthChanges } from '@/services/auth';
-import { auth } from '@/utils/firebase';
-import { User } from 'firebase/auth';
+import { supabase, signInWithGoogle, signOut, getCurrentUser } from '@/lib/supabase';
+import { User } from '@supabase/supabase-js';
+import GoogleCalendarErrorDisplay from '@/components/GoogleCalendarErrorDisplay';
+import GoogleCalendarSyncButton from '@/components/GoogleCalendarSyncButton';
+
+// Definir interface para Task
+interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  quadrant: number;
+  completed: boolean;
+  dueDate?: string;
+  tags?: string[];
+}
 
 const SettingsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(getCurrentUser());
+  const [user, setUser] = useState<User | null>(null);
+  const [googleError, setGoogleError] = useState<{code?: string; message: string; details?: Record<string, unknown>} | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
-    // Monitorar mudanças no estado de autenticação
-    const unsubscribe = subscribeToAuthChanges((currentUser) => {
+    // Verificar usuário atual ao montar o componente
+    const checkUser = async () => {
+      const currentUser = await getCurrentUser();
       setUser(currentUser);
       setIsLoading(false);
-    });
+    };
+    
+    checkUser();
+    
+    // Ativar listener para mudanças de autenticação (opcional)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+        setIsLoading(false);
+      }
+    );
+    
+    // Limpeza ao desmontar
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
-    return () => unsubscribe();
+  useEffect(() => {
+    const loadTasks = () => {
+      try {
+        const storedTasks = localStorage.getItem('tasks');
+        if (storedTasks) {
+          const parsedTasks = JSON.parse(storedTasks);
+          setTasks(parsedTasks);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar tarefas do localStorage:', error);
+      }
+    };
+
+    loadTasks();
   }, []);
 
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
-      const user = await signInWithGoogle();
-      if (user?.email) {
-        toast({
-          title: "Login Realizado",
-          description: `Conectado como ${user.email}`,
-        });
+      // Limpar erros anteriores quando tenta novamente
+      setGoogleError(null);
+      
+      const result = await signInWithGoogle();
+      
+      if (!result.success) {
+        throw new Error(result.error instanceof Error ? result.error.message : 'Falha ao conectar com o Google');
       }
+      
+      toast({
+        title: "Login Iniciado",
+        description: "Você será redirecionado para a página de login do Google.",
+      });
     } catch (error) {
       console.error('Erro no login:', error);
-      toast({
-        title: "Erro na Conexão",
-        description: "Não foi possível fazer login com o Google.",
-        variant: "destructive"
-      });
+      
+      // Capturar detalhes do erro para exibição
+      if (error instanceof Error) {
+        setGoogleError({
+          code: error.name,
+          message: error.message || 'Não foi possível fazer login com o Google.',
+          details: {
+            name: error.name,
+            stack: error.stack
+          }
+        });
+      } else {
+        setGoogleError({
+          message: 'Erro desconhecido durante a autenticação com o Google.'
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -115,11 +176,20 @@ const SettingsPage = () => {
           <Separator className="my-4" />
           
           <div>
+            {googleError && (
+              <div className="mb-4">
+                <GoogleCalendarErrorDisplay 
+                  error={googleError}
+                  onRetry={() => handleGoogleLogin()}
+                />
+              </div>
+            )}
+            
             {user ? (
               <div className="bg-green-500/10 border border-green-500/30 rounded-md p-5">
                 <div className="flex items-center gap-2 text-green-600 mb-3 font-medium">
                   <Calendar size={18} />
-                  <span>Conectado como <span className="font-semibold">{user.email}</span></span>
+                  <span>Conectado como <span className="font-semibold">{user.email || (user.user_metadata?.email || '')}</span></span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                   Sua conta Google está conectada. Você pode usar os recursos de sincronização do calendário.
@@ -132,6 +202,19 @@ const SettingsPage = () => {
                 >
                   Desconectar
                 </Button>
+                {user && (
+                  <div className="mt-4 pt-4 border-t border-green-500/20">
+                    <h4 className="text-sm font-medium mb-3 text-primary/80">Sincronização com Google Calendar</h4>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Sincronize suas tarefas com seu calendário Google para visualizá-las e gerenciá-las em qualquer dispositivo.
+                    </p>
+
+                    <GoogleCalendarSyncButton 
+                      tasks={tasks}
+                      className="w-full mt-2"
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-4">

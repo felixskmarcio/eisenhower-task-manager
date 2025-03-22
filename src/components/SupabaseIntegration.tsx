@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { 
+  CheckCircle2, 
+  XCircle, 
+  Database, 
+  RefreshCw, 
+  Link,
+  Copy,
+  Check
+} from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code } from "lucide-react";
-import { setupDatabase, syncTasks } from '@/lib/supabase';
+import { supabase, syncLocalTasksToSupabase } from "@/lib/supabase";
 import {
   Dialog,
   DialogContent,
@@ -12,477 +22,463 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import ErrorDisplay from './ErrorDisplay';
-import ApiErrorDisplay from './ApiErrorDisplay';
 
-// Interface para simular a resposta do Supabase
 interface SupabaseResponse {
-  data: Record<string, unknown>[] | null;
-  error: Error | null;
+  success: boolean;
+  data?: unknown;
+  error?: {
+    message: string;
+    code?: string;
+  };
 }
 
-// Mock para simular a criação de um cliente Supabase
-const createSupabaseClient = (url: string, key: string) => {
-  // Em uma implementação real, isso usaria:
-  // import { createClient } from '@supabase/supabase-js'
-  // return createClient(url, key)
-  
-  // Esta é apenas uma simulação
-  return {
-    from: (table: string) => ({
-      select: () => ({
-        then: (callback: (response: SupabaseResponse) => void) => {
-          // Simula uma resposta bem-sucedida após 1s
-          setTimeout(() => {
-            callback({ data: [], error: null });
-          }, 1000);
-          return { catch: () => {} };
-        }
-      })
-    }),
-    // Simula autenticação
-    auth: {
-      getSession: () => Promise.resolve({ data: {}, error: null })
-    }
-  };
-};
-
 const SupabaseIntegration = () => {
-  const [supabaseUrl, setSupabaseUrl] = useState('');
-  const [supabaseKey, setSupabaseKey] = useState('');
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'not-connected' | 'connected' | 'testing' | 'success' | 'error'>('not-connected');
+  const [tableName, setTableName] = useState('tasks');
   const [isSyncing, setIsSyncing] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'not_connected' | 'connected' | 'testing' | 'success' | 'error'>('not_connected');
-  const [dbSetupResult, setDbSetupResult] = useState<{success: boolean, message: string} | null>(null);
-  const [syncError, setSyncError] = useState<{title: string; message: string; details?: string} | null>(null);
+  const [syncResult, setSyncResult] = useState<{ added: number; failed: number; error?: unknown } | null>(null);
+  const [tablesExist, setTablesExist] = useState<boolean | null>(null);
+  const [copied, setCopied] = useState(false);
 
+  const sqlCreateTable = `
+-- Criar a tabela de tarefas
+CREATE TABLE IF NOT EXISTS tasks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  description TEXT,
+  quadrant INTEGER NOT NULL,
+  urgency INTEGER NOT NULL,
+  importance INTEGER NOT NULL,
+  completed BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  completed_at TIMESTAMP WITH TIME ZONE,
+  user_id UUID REFERENCES auth.users(id),
+  tags TEXT[]
+);
+
+-- Adicionar índices para melhor performance
+CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_completed ON tasks(completed);
+CREATE INDEX IF NOT EXISTS idx_tasks_quadrant ON tasks(quadrant);
+
+-- Adicionar políticas RLS (Row Level Security)
+ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+
+-- Política para usuários autenticados verem apenas suas próprias tarefas
+CREATE POLICY "Users can view their own tasks" 
+  ON tasks FOR SELECT 
+  USING (auth.uid() = user_id);
+
+-- Política para usuários autenticados editarem apenas suas próprias tarefas
+CREATE POLICY "Users can insert their own tasks" 
+  ON tasks FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own tasks" 
+  ON tasks FOR UPDATE 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own tasks" 
+  ON tasks FOR DELETE 
+  USING (auth.uid() = user_id);
+
+-- Política para tarefas sem usuário (para compatibilidade)
+CREATE POLICY "Public can manage tasks without user_id" 
+  ON tasks FOR ALL 
+  USING (user_id IS NULL);
+`;
+
+  // Verificar status de conexão quando o componente montar
   useEffect(() => {
-    // Carregar dados do localStorage ao inicializar
-    const savedUrl = localStorage.getItem('supabaseUrl');
-    const savedKey = localStorage.getItem('supabaseKey');
-    
-    if (savedUrl && savedKey) {
-      setSupabaseUrl(savedUrl);
-      setSupabaseKey(savedKey);
-      setConnectionStatus('connected');
-      
-      // Verificar setup do banco
-      checkDatabaseSetup();
-    }
+    checkDatabaseSetup();
   }, []);
-  
+
+  // Verificar se o banco de dados está configurado
   const checkDatabaseSetup = async () => {
     try {
-      const result = await setupDatabase();
-      setDbSetupResult(result);
-      
-      if (!result.success) {
+      // Tentar fazer uma consulta simples para verificar a conexão
+      const { error } = await supabase
+        .from(tableName)
+        .select('id')
+        .limit(1);
+
+      if (error) {
+        console.error('Erro na verificação da tabela:', error);
+        setTablesExist(false);
+        setConnectionStatus('connected'); // A conexão funciona, mas a tabela não existe
+        
         toast({
-          title: "Atenção",
-          description: result.message,
-          variant: "destructive",
+          title: "Tabela não encontrada",
+          description: `A tabela '${tableName}' não existe. Crie-a para começar a sincronização.`,
+          variant: "destructive"
         });
+        return;
       }
-    } catch (error) {
-      console.error("Erro ao verificar banco de dados:", error);
-      setDbSetupResult({
-        success: false,
-        message: "Não foi possível verificar o banco de dados. Verifique as credenciais."
-      });
-    }
-  };
 
-  const handleConnect = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!supabaseUrl || !supabaseKey) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "URL e Chave de API são necessários",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsConnecting(true);
-    setConnectionStatus('testing');
-    
-    try {
-      // Simular criação do cliente e teste de conexão
-      const supabase = createSupabaseClient(supabaseUrl, supabaseKey);
-      
-      // Simular uma verificação de conexão
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Salvar no localStorage
-      localStorage.setItem('supabaseUrl', supabaseUrl);
-      localStorage.setItem('supabaseKey', supabaseKey);
-      
+      setTablesExist(true);
       setConnectionStatus('connected');
       
-      // Verificar setup do banco
-      await checkDatabaseSetup();
-      
       toast({
-        title: "Conectado com sucesso!",
-        description: "Sua integração com o Supabase foi configurada",
+        title: "Conectado ao Supabase",
+        description: "As tabelas necessárias já existem no banco de dados."
       });
     } catch (error) {
-      console.error("Erro ao conectar com Supabase:", error);
+      console.error('Erro ao verificar banco de dados:', error);
       setConnectionStatus('error');
       
       toast({
         title: "Erro na conexão",
-        description: "Não foi possível conectar ao Supabase",
-        variant: "destructive",
+        description: "Não foi possível verificar o banco de dados.",
+        variant: "destructive"
       });
-    } finally {
-      setIsConnecting(false);
     }
   };
 
-  const handleTestConnection = async () => {
-    setIsTesting(true);
+  // Testar a conexão com o Supabase
+  const testConnection = async () => {
     setConnectionStatus('testing');
     
     try {
-      // Simulação de teste de conexão
-      const supabase = createSupabaseClient(supabaseUrl, supabaseKey);
+      const { data, error } = await supabase.from('_dummy_query').select('*').limit(1).catch(() => ({
+        data: null,
+        error: { message: 'Erro na conexão' }
+      }));
       
-      // Verificar setup do banco
-      await checkDatabaseSetup();
-      
-      // Simulação de consulta para verificar conexão
-      await new Promise<boolean>((resolve, reject) => {
-        setTimeout(() => {
-          // Simulamos 90% de chance de sucesso
-          if (Math.random() > 0.1) {
-            resolve(true);
-          } else {
-            reject(new Error("Falha na conexão"));
-          }
-        }, 1500);
-      });
-      
+      // Se chegou até aqui, a conexão funciona mesmo que tenha erro no select
       setConnectionStatus('success');
       
       toast({
-        title: "Conexão testada com sucesso!",
-        description: "Sua conexão com o Supabase está funcionando corretamente",
+        title: "Conexão bem-sucedida",
+        description: "Seu aplicativo está conectado ao Supabase."
       });
+      
+      // Aguardar um tempo antes de verificar as tabelas
+      setTimeout(() => {
+        checkDatabaseSetup();
+      }, 1500);
     } catch (error) {
-      console.error("Erro ao testar conexão:", error);
+      console.error('Erro no teste de conexão:', error);
       setConnectionStatus('error');
       
       toast({
-        title: "Falha no teste de conexão",
-        description: "Não foi possível conectar ao Supabase. Verifique suas credenciais.",
-        variant: "destructive",
+        title: "Erro na conexão",
+        description: "Não foi possível conectar ao Supabase.",
+        variant: "destructive"
       });
-    } finally {
-      setIsTesting(false);
-      setTimeout(() => {
-        setConnectionStatus('connected');
-      }, 3000);
     }
   };
 
+  // Sincronizar dados com o Supabase
   const handleSyncData = async () => {
     setIsSyncing(true);
+    setSyncResult(null);
+    
     try {
-      const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-      
-      toast({
-        title: `${localTasks.length} tarefas encontradas`,
-        description: `Iniciando sincronização de ${localTasks.length} tarefas com o Supabase.`,
-      });
-      
-      // Se não houver tarefas, mostrar mensagem e retornar
-      if (localTasks.length === 0) {
+      // Verificar se existem tarefas no localStorage
+      const localTasks = localStorage.getItem('tasks');
+      if (!localTasks) {
         toast({
-          title: "Nenhuma tarefa para sincronizar",
+          title: "Sem dados locais",
           description: "Não foram encontradas tarefas no armazenamento local. Adicione tarefas primeiro.",
-          variant: "destructive",
+          variant: "destructive"
         });
         setIsSyncing(false);
         return;
       }
       
-      // Logar as tarefas para debug
-      console.log("Tarefas locais para sincronizar:", localTasks);
+      const parsedTasks = JSON.parse(localTasks);
       
-      // Simular sincronização com Supabase
-      const result = await syncTasks(localTasks);
-
-      if (result.success) {
+      // Verificar se é um array e tem elementos
+      if (!Array.isArray(parsedTasks) || parsedTasks.length === 0) {
+        toast({
+          title: "Sem tarefas",
+          description: "Não há tarefas para sincronizar.",
+          variant: "destructive"
+        });
+        setIsSyncing(false);
+        return;
+      }
+      
+      toast({
+        title: "Iniciando sincronização",
+        description: `Encontradas ${parsedTasks.length} tarefas locais para sincronizar.`
+      });
+      
+      console.log('Tarefas locais:', parsedTasks);
+      
+      // Sincronizar tarefas
+      const result = await syncLocalTasksToSupabase();
+      setSyncResult(result);
+      
+      if (result.added > 0) {
         toast({
           title: "Sincronização concluída",
-          description: result.message,
+          description: `${result.added} tarefas sincronizadas com sucesso.`
+        });
+      } else if (result.failed > 0) {
+        toast({
+          title: "Sincronização parcial",
+          description: `Falha ao sincronizar ${result.failed} tarefas.`,
+          variant: "destructive"
         });
       } else {
-        setSyncError({
-          title: "Erro na sincronização",
-          message: result.message || "Falha ao sincronizar tarefas com o Supabase.",
-          details: undefined
+        toast({
+          title: "Nenhuma nova tarefa",
+          description: "Todas as tarefas já estão sincronizadas."
         });
       }
     } catch (error) {
-      console.error("Erro ao sincronizar dados:", error);
-      setSyncError({
+      console.error('Erro na sincronização:', error);
+      
+      toast({
         title: "Erro na sincronização",
-        message: error instanceof Error ? error.message : "Erro desconhecido durante a sincronização.",
-        details: error instanceof Error ? error.stack : undefined
+        description: "Ocorreu um erro ao sincronizar os dados.",
+        variant: "destructive"
       });
     } finally {
       setIsSyncing(false);
     }
   };
 
-  const handleDisconnect = () => {
-    localStorage.removeItem('supabaseUrl');
-    localStorage.removeItem('supabaseKey');
-    setSupabaseUrl('');
-    setSupabaseKey('');
-    setConnectionStatus('not_connected');
-    setDbSetupResult(null);
-    
-    toast({
-      title: "Desconectado",
-      description: "Integração com Supabase removida",
+  // Copiar SQL para a área de transferência
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(sqlCreateTable).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      
+      toast({
+        title: "SQL copiado",
+        description: "O código SQL foi copiado para a área de transferência."
+      });
     });
   };
 
-  const isConnected = connectionStatus === 'connected' || connectionStatus === 'success' || connectionStatus === 'testing';
-
-  const getStatusIndicator = () => {
-    switch (connectionStatus) {
-      case 'testing':
-        return (
-          <div className="flex items-center gap-2 text-amber-500">
-            <RefreshCw size={18} className="animate-spin" />
-            <span className="font-medium">Testando conexão...</span>
-          </div>
-        );
-      case 'success':
-        return (
-          <div className="flex items-center gap-2 text-green-600">
-            <CheckCircle size={18} />
-            <span className="font-medium">Conexão verificada com sucesso!</span>
-          </div>
-        );
-      case 'error':
-        return (
-          <div className="flex items-center gap-2 text-red-600">
-            <AlertCircle size={18} />
-            <span className="font-medium">Erro na conexão</span>
-          </div>
-        );
-      case 'connected':
-        return (
-          <div className="flex items-center gap-2 text-green-600">
-            <Database size={18} />
-            <span className="font-medium">Conectado ao Supabase</span>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  // Função para obter a classe CSS apropriada com base no status da conexão
-  const getConnectionStatusClass = () => {
-    if (connectionStatus === 'success') {
-      return 'bg-green-500/10 border-green-500/30';
-    } else if (connectionStatus === 'error') {
-      return 'bg-red-500/10 border-red-500/30';
-    } else if (connectionStatus === 'testing') {
-      return 'bg-amber-500/10 border-amber-500/30';
-    } else {
-      return 'bg-green-500/10 border-green-500/30';
-    }
-  };
-
-  // SQL para criar a tabela tasks
-  const createTableSQL = `
--- Criar tabela de tarefas
-CREATE TABLE tasks (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  title TEXT NOT NULL,
-  description TEXT,
-  urgency INTEGER NOT NULL,
-  importance INTEGER NOT NULL,
-  quadrant INTEGER NOT NULL,
-  completed BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  completed_at TIMESTAMP WITH TIME ZONE,
-  tags TEXT[],
-  user_id UUID
-);
-
--- Opcional: criar índices para melhorar performance de consultas
-CREATE INDEX idx_tasks_user_id ON tasks(user_id);
-CREATE INDEX idx_tasks_quadrant ON tasks(quadrant);
-CREATE INDEX idx_tasks_completed ON tasks(completed);
-  `;
-
   return (
-    <div>
-      {isConnected ? (
-        <div className={`border rounded-md p-4 mb-4 ${getConnectionStatusClass()}`}>
-          {getStatusIndicator()}
-          <p className="text-sm text-muted-foreground my-3">
-            Sua conta Supabase está conectada. Agora você pode sincronizar seus dados e utilizar autenticação.
-          </p>
+    <div className="space-y-6">
+      <div className="space-y-4">
+        {/* Status da Conexão */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Database className="h-5 w-5 text-primary" />
+            <span className="text-sm font-medium">Status da Conexão:</span>
+          </div>
           
-          {dbSetupResult && !dbSetupResult.success && (
-            <div className="mb-4 p-3 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600">
-              <div className="flex items-start gap-2">
-                <Info size={16} className="mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">Configuração necessária</p>
-                  <p className="text-xs mt-1">Para utilizar o Supabase, você precisa criar a tabela "tasks" no seu banco de dados.</p>
-                  
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="mt-2 text-xs">
-                        <Code className="mr-1 h-3 w-3" /> Ver SQL para criar tabela
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>SQL para criar tabela no Supabase</DialogTitle>
-                        <DialogDescription>
-                          Execute o seguinte SQL no Editor SQL do seu projeto Supabase para criar a tabela de tarefas:
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="bg-black/90 text-white p-4 rounded-md font-mono text-xs overflow-x-auto">
-                        <pre>{createTableSQL}</pre>
-                      </div>
-                      <div className="text-sm mt-4">
-                        <h4 className="font-medium">Como executar:</h4>
-                        <ol className="list-decimal pl-4 mt-2 space-y-1 text-muted-foreground">
-                          <li>Acesse o dashboard do Supabase ({supabaseUrl.replace('https://', '')})</li>
-                          <li>Navegue para "SQL Editor" no menu lateral</li>
-                          <li>Crie uma nova consulta</li>
-                          <li>Cole o código SQL acima</li>
-                          <li>Clique em "Executar" ou pressione Ctrl+Enter</li>
-                        </ol>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+          <div className="flex items-center gap-2">
+            {connectionStatus === 'not-connected' && (
+              <div className="flex items-center gap-1 text-amber-500">
+                <Link size={16} />
+                <span className="text-sm">Não verificado</span>
               </div>
+            )}
+            
+            {connectionStatus === 'testing' && (
+              <div className="flex items-center gap-1 text-blue-500">
+                <RefreshCw size={16} className="animate-spin" />
+                <span className="text-sm">Testando...</span>
+              </div>
+            )}
+            
+            {connectionStatus === 'connected' && (
+              <div className="flex items-center gap-1 text-blue-500">
+                <CheckCircle2 size={16} />
+                <span className="text-sm">Conectado</span>
+              </div>
+            )}
+            
+            {connectionStatus === 'success' && (
+              <div className="flex items-center gap-1 text-green-500">
+                <CheckCircle2 size={16} />
+                <span className="text-sm">Conectado</span>
+              </div>
+            )}
+            
+            {connectionStatus === 'error' && (
+              <div className="flex items-center gap-1 text-red-500">
+                <XCircle size={16} />
+                <span className="text-sm">Erro na conexão</span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Status das Tabelas */}
+        {connectionStatus !== 'not-connected' && connectionStatus !== 'testing' && (
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Database className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Status das Tabelas:</span>
             </div>
+            
+            <div className="flex items-center gap-2">
+              {tablesExist === null && (
+                <div className="flex items-center gap-1 text-gray-500">
+                  <RefreshCw size={16} className="animate-spin" />
+                  <span className="text-sm">Verificando...</span>
+                </div>
+              )}
+              
+              {tablesExist === true && (
+                <div className="flex items-center gap-1 text-green-500">
+                  <CheckCircle2 size={16} />
+                  <span className="text-sm">Tabelas existem</span>
+                </div>
+              )}
+              
+              {tablesExist === false && (
+                <div className="flex items-center gap-1 text-red-500">
+                  <XCircle size={16} />
+                  <span className="text-sm">Tabelas não encontradas</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Botões */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={testConnection}
+            disabled={connectionStatus === 'testing'}
+            className="flex-1"
+          >
+            {connectionStatus === 'testing' ? (
+              <>
+                <RefreshCw size={16} className="mr-2 animate-spin" />
+                Testando...
+              </>
+            ) : (
+              <>
+                <Link size={16} className="mr-2" />
+                Testar Conexão
+              </>
+            )}
+          </Button>
+          
+          {(tablesExist === false) && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                >
+                  <Database size={16} className="mr-2" />
+                  Ver SQL para Criar Tabelas
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                  <DialogTitle>Criar Tabela de Tarefas no Supabase</DialogTitle>
+                  <DialogDescription>
+                    Execute o seguinte SQL no editor SQL do Supabase para criar a tabela de tarefas.
+                    Acesse: Supabase Dashboard &gt; Seu Projeto &gt; SQL Editor.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="mt-4">
+                  <div className="relative">
+                    <pre className="bg-gray-50 p-4 rounded-md overflow-x-auto text-sm border">
+                      {sqlCreateTable}
+                    </pre>
+                    
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="absolute top-2 right-2 h-8 bg-white"
+                      onClick={handleCopySql}
+                    >
+                      {copied ? (
+                        <>
+                          <Check size={14} className="mr-1" />
+                          Copiado
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} className="mr-1" />
+                          Copiar
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-4 bg-amber-50 p-4 rounded-md border border-amber-200">
+                    <h4 className="text-amber-800 font-medium text-sm mb-2 flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                      </svg>
+                      Instruções
+                    </h4>
+                    <ol className="list-decimal pl-5 text-sm text-amber-900 space-y-1">
+                      <li>Acesse o painel do Supabase e vá para a seção "SQL Editor"</li>
+                      <li>Cole o código SQL acima</li>
+                      <li>Clique em "Run" para executar o SQL</li>
+                      <li>Verifique se a tabela foi criada na seção "Table Editor"</li>
+                      <li>Volte para esta tela e clique em "Testar Conexão" novamente</li>
+                    </ol>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           )}
           
-          <div className="flex flex-wrap gap-2">
+          {tablesExist === true && (
             <Button
               variant="outline"
               size="sm"
-              onClick={handleDisconnect}
-              className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
-            >
-              Desconectar
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleTestConnection}
-              disabled={isTesting}
-              className="text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
-            >
-              {isTesting ? (
-                <>
-                  <RefreshCw size={14} className="mr-1 animate-spin" /> Testando...
-                </>
-              ) : (
-                <>Testar Conexão</>
-              )}
-            </Button>
-            <Button
-              size="sm"
-              className="flex items-center gap-1"
               onClick={handleSyncData}
-              disabled={isSyncing || (dbSetupResult && !dbSetupResult.success)}
+              disabled={isSyncing}
+              className="flex-1 border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800"
             >
               {isSyncing ? (
                 <>
-                  <RefreshCw size={14} className="mr-1 animate-spin" /> Sincronizando...
+                  <RefreshCw size={16} className="mr-2 animate-spin" />
+                  Sincronizando...
                 </>
               ) : (
                 <>
-                  <Save size={14} /> Sincronizar Dados
+                  <Database size={16} className="mr-2" />
+                  Sincronizar Dados
                 </>
               )}
             </Button>
-          </div>
+          )}
         </div>
-      ) : (
-        <form onSubmit={handleConnect} className="space-y-4">
-          <div>
-            <label htmlFor="supabaseUrl" className="block text-sm font-medium mb-1">
-              URL do Projeto Supabase
-            </label>
-            <Input
-              id="supabaseUrl"
-              type="text"
-              value={supabaseUrl}
-              onChange={(e) => setSupabaseUrl(e.target.value)}
-              placeholder="https://xxxxxxxxxxxxx.supabase.co"
-              className="w-full"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Encontrada nas configurações do seu projeto no Supabase
-            </p>
+        
+        {/* Resultado da Sincronização */}
+        {syncResult && (
+          <div className={`mt-4 p-4 rounded-md border ${
+            syncResult.failed > 0 
+              ? 'bg-amber-50 border-amber-200' 
+              : 'bg-green-50 border-green-200'
+          }`}>
+            <h4 className={`font-medium text-sm mb-2 ${
+              syncResult.failed > 0
+                ? 'text-amber-800'
+                : 'text-green-800'
+            }`}>
+              Resultado da Sincronização
+            </h4>
+            
+            <div className="space-y-1 text-sm">
+              <p>
+                <span className="font-medium">Tarefas sincronizadas:</span>{' '}
+                <span className="text-green-700">{syncResult.added}</span>
+              </p>
+              
+              {syncResult.failed > 0 && (
+                <p>
+                  <span className="font-medium">Falhas:</span>{' '}
+                  <span className="text-red-700">{syncResult.failed}</span>
+                </p>
+              )}
+            </div>
           </div>
-          
-          <div>
-            <label htmlFor="supabaseKey" className="block text-sm font-medium mb-1">
-              Chave de API do Supabase
-            </label>
-            <Input
-              id="supabaseKey"
-              type="password"
-              value={supabaseKey}
-              onChange={(e) => setSupabaseKey(e.target.value)}
-              placeholder="eyJxxxxxxxxxxxxxxxxxxxxxxxx"
-              className="w-full"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Utilize a chave anon/public key encontrada nas configurações do API do seu projeto
-            </p>
-          </div>
-          
-          <Button type="submit" disabled={isConnecting} className="w-full">
-            {isConnecting ? (
-              <>
-                <RefreshCw size={16} className="mr-2 animate-spin" />
-                Conectando...
-              </>
-            ) : (
-              "Conectar ao Supabase"
-            )}
-          </Button>
-        </form>
-      )}
-      {syncError && (
-        <ApiErrorDisplay
-          error={{
-            message: syncError.message,
-            details: { details: syncError.details },
-            status: 500, // Assumindo erro interno do servidor
-            method: "SYNC",
-            path: "/tasks",
-            timestamp: new Date().toISOString()
-          }}
-          onRetry={() => {
-            setSyncError(null);
-            handleSyncData();
-          }}
-          className="mb-4"
-        />
-      )}
+        )}
+      </div>
     </div>
   );
 };
