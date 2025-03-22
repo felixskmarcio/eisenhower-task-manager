@@ -14,6 +14,7 @@ import TagsPage from "./pages/TagsPage";
 import SettingsPage from "./pages/SettingsPage";
 import './styles/index.css';
 import './styles/settings.css';
+import DebugTools from '@/components/DebugTools'
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
               </Routes>
             </Layout>
           </BrowserRouter>
+          {process.env.NODE_ENV === 'development' && <DebugTools />}
         </TooltipProvider>
       </TagProvider>
     </ThemeProvider>

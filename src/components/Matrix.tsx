@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Clock, CheckCircle, Plus, Trash2, BarChart2, Activity, ChevronLeft, ChevronRight, Volume2, Headphones, X, LayoutGrid, AlertTriangle } from 'lucide-react';
@@ -6,7 +6,7 @@ import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import { formatDate } from '@/utils/dateUtils';
 import TagFilterSelect from './TagFilterSelect';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog,
@@ -32,6 +32,21 @@ interface Task {
   timeSpent?: number;
   isTimerActive?: boolean;
   tags?: string[]; // Array of tag IDs for categorization
+}
+
+// Definir a interface para o resultado de drag-and-drop
+interface DragResult {
+  draggableId: string;
+  type: string;
+  source: {
+    droppableId: string;
+    index: number;
+  };
+  destination: {
+    droppableId: string;
+    index: number;
+  } | null;
+  reason: 'DROP' | 'CANCEL';
 }
 
 export const Matrix = () => {
@@ -206,7 +221,9 @@ export const Matrix = () => {
       completedAt: editedTask.completed ? (tasks.find(t => t.id === editedTask.id)?.completedAt || new Date()) : null
     };
     
-    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+    const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
+    updateTasks(updatedTasks);
+    
     toast({
       title: 'Tarefa atualizada',
       description: 'As alterações foram salvas com sucesso!',
@@ -272,10 +289,36 @@ export const Matrix = () => {
     setTimeout(() => document.body.removeChild(dragImage), 0);
   };
 
-  const handleDragEnd = (e: React.DragEvent) => {
-    // Remover classe quando o arrastar terminar
-    const element = e.currentTarget as HTMLElement;
-    element.classList.remove('dragging');
+  const handleDragEnd = (result: DragResult) => {
+    if (!result.destination) return;
+    
+    const sourceDroppableId = result.source.droppableId;
+    const destinationDroppableId = result.destination.droppableId;
+    
+    if (sourceDroppableId === destinationDroppableId) return;
+    
+    const taskId = result.draggableId;
+    const updatedTasks = tasks.map(task => {
+      if (task.id === taskId) {
+        const newQuadrant = parseInt(destinationDroppableId.split('-')[1]);
+        return { ...task, quadrant: newQuadrant };
+      }
+      return task;
+    });
+    
+    updateTasks(updatedTasks);
+    
+    // Mostrar toast com a mudança de quadrante
+    const newQuadrant = parseInt(destinationDroppableId.split('-')[1]);
+    toast({
+      title: 'Tarefa movida para novo quadrante',
+      description: `Agora esta tarefa está classificada como "${
+        newQuadrant === 0 ? 'Urgente, Importante' :
+        newQuadrant === 1 ? 'Não Urgente, Importante' :
+        newQuadrant === 2 ? 'Urgente, Não Importante' :
+        'Não Urgente, Não Importante'
+      }"`,
+    });
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -335,17 +378,29 @@ export const Matrix = () => {
     }
   };
 
+  // Função para gerar UUIDs válidos
+  const generateUUID = (): string => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+
+  // Modificar a função handleAddTask para usar UUIDs
   const handleAddTask = () => {
     const newTaskQuadrant = calculateQuadrant(newTask.urgency, newTask.importance);
     const createdTask: Task = {
       ...newTask,
-      id: Date.now().toString(),
+      id: generateUUID(),
       quadrant: newTaskQuadrant,
       completed: false,
       createdAt: new Date(),
       completedAt: null
     };
-    setTasks([...tasks, createdTask]);
+    const updatedTasks = [...tasks, createdTask];
+    setTasks(updatedTasks);
+    saveTasksToLocalStorage(updatedTasks);
     setIsAddModalOpen(false);
     setNewTask({
       title: '',
@@ -368,7 +423,7 @@ export const Matrix = () => {
   };
 
   const toggleTaskCompletion = (taskId: string) => {
-    setTasks(tasks.map(task => {
+    const updatedTasks = tasks.map(task => {
       if (task.id === taskId) {
         const completedAt = !task.completed ? new Date() : null;
         const newTask = { ...task, completed: !task.completed, completedAt };
@@ -378,11 +433,15 @@ export const Matrix = () => {
         return newTask;
       }
       return task;
-    }));
+    });
+    setTasks(updatedTasks);
+    saveTasksToLocalStorage(updatedTasks);
   };
   
   const deleteTask = (taskId: string) => {
-    setTasks(tasks.filter(task => task.id !== taskId));
+    const updatedTasks = tasks.filter(task => task.id !== taskId);
+    setTasks(updatedTasks);
+    saveTasksToLocalStorage(updatedTasks);
     toast({
       title: 'Tarefa excluída',
       description: 'A tarefa foi removida permanentemente.'
@@ -423,7 +482,11 @@ export const Matrix = () => {
     <div 
       draggable={!task.completed}
       onDragStart={(e) => handleDragStart(e, task)}
-      onDragEnd={handleDragEnd}
+      onDragEnd={(e) => {
+        // Remover classe quando o arrastar terminar
+        const element = e.currentTarget as HTMLElement;
+        element.classList.remove('dragging');
+      }}
       onDoubleClick={() => handleEditTask(task)}
       className={`matrix-card p-3 md:p-4 rounded-xl border transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer
         ${task.quadrant === 0 ? 'border-red-400/40 bg-gradient-to-br from-red-50/20 to-red-100/20 hover:border-red-400/70' : 
@@ -630,11 +693,11 @@ export const Matrix = () => {
   
   // Seletor de tags rápidas como chips
   const QuickTagSelector = () => {
-    return (
+  return (
       <div className="flex flex-wrap gap-1.5 items-center mt-1 tag-selector">
         <span className="text-xs text-muted-foreground mr-1 whitespace-nowrap">Projeto:</span>
         {availableTags.map(tag => (
-          <button
+        <button
             key={tag.id}
             onClick={() => handleTagFilter('project', tagFilters.project === tag.id ? null : tag.id)}
             className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all
@@ -652,7 +715,7 @@ export const Matrix = () => {
               style={{ backgroundColor: tag.color }} 
             />
             {tag.name}
-          </button>
+        </button>
         ))}
       </div>
     );
@@ -722,6 +785,42 @@ export const Matrix = () => {
     );
   };
 
+  // Função auxiliar para salvar tarefas no localStorage
+  const saveTasksToLocalStorage = (tasks) => {
+    try {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      console.log(`${tasks.length} tarefas salvas no localStorage`);
+    } catch (error) {
+      console.error('Erro ao salvar tarefas no localStorage:', error);
+    }
+  };
+
+  // Função para atualizar o estado de tarefas e salvá-las no localStorage
+  const updateTasks = (newTasks) => {
+    setTasks(newTasks);
+    saveTasksToLocalStorage(newTasks);
+  };
+
+  // Carregar tarefas do localStorage ao inicializar
+  useEffect(() => {
+    try {
+      const savedTasks = localStorage.getItem('tasks');
+      if (savedTasks) {
+        const parsedTasks = JSON.parse(savedTasks);
+        // Converter strings de data para objetos Date
+        const formattedTasks = parsedTasks.map(task => ({
+          ...task,
+          createdAt: task.createdAt ? new Date(task.createdAt) : new Date(),
+          completedAt: task.completedAt ? new Date(task.completedAt) : null
+        }));
+        setTasks(formattedTasks);
+        console.log(`${formattedTasks.length} tarefas carregadas do localStorage`);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar tarefas do localStorage:', error);
+    }
+  }, []);
+
   return (
     <div className="w-full mx-auto relative">
       {/* Wrapper para aplicar o efeito de blur quando o modal estiver aberto */}
@@ -739,8 +838,8 @@ export const Matrix = () => {
             <div className="md:flex items-center gap-2 hidden">
               <QuickTagSelector />
             </div>
-          </div>
-          
+      </div>
+
           <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2 md:gap-3 justify-center sm:justify-end">
             <div className="md:hidden w-full">
               <QuickTagSelector />
@@ -765,8 +864,8 @@ export const Matrix = () => {
                 </Tooltip>
               </TooltipProvider>
             </div>
-          </div>
-        </div>
+                  </div>
+                </div>
 
         <Tabs defaultValue="matriz" className="w-full">
           <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-8 border rounded-lg p-1 bg-muted/20 backdrop-blur-sm shadow-sm">
@@ -780,7 +879,7 @@ export const Matrix = () => {
               <div className="flex items-center gap-1.5">
                 <CheckCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Concluídas</span>
-              </div>
+                </div>
             </TabsTrigger>
             <TabsTrigger value="todas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
               <div className="flex items-center gap-1.5">
@@ -883,51 +982,51 @@ export const Matrix = () => {
               >
                 {renderTasks(4)}
               </QuadrantContainer>
-            </div>
-          </TabsContent>
+          </div>
+        </TabsContent>
 
           <TabsContent value="concluidas">
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Tarefas Concluídas</h2>
-              <div className="grid gap-3">
-                {tasks
-                  .filter(task => task.completed)
-                  .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
-                  .map(task => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-              </div>
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Tarefas Concluídas</h2>
+            <div className="grid gap-3">
+              {tasks
+                .filter(task => task.completed)
+                .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
+                .map(task => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
             </div>
-          </TabsContent>
+          </div>
+        </TabsContent>
 
           <TabsContent value="todas">
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Todas as Tarefas</h2>
-              <div className="grid gap-3">
-                {tasks
-                  .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
-                  .map(task => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-              </div>
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Todas as Tarefas</h2>
+            <div className="grid gap-3">
+              {tasks
+                .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
+                .map(task => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </TabsContent>
+      </Tabs>
       </div>
-     
+
       {isAddModalOpen && (
-        <AddTaskModal 
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
+      <AddTaskModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
           onAddTask={handleAddTask}
-          newTask={newTask}
-          setNewTask={setNewTask}
+        newTask={newTask}
+        setNewTask={setNewTask}
           isDarkMode={isDarkMode}
-        />
+      />
       )}
-      
+
       {isEditModalOpen && selectedTask && (
-        <EditTaskModal 
+        <EditTaskModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           onSave={handleSaveTask}

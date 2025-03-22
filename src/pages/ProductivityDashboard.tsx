@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { ArrowLeft, BarChart2, ClipboardList, Clock, Calendar, CheckCircle, XCircle, TrendingUp, Activity, PieChart as PieChartIcon, Target, ChevronRight } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
+import { formatDate } from '@/utils/dateUtils';
+
 interface Task {
   id: string;
   title: string;
@@ -14,6 +16,7 @@ interface Task {
   createdAt: Date;
   completedAt: Date | null;
 }
+
 const ProductivityDashboard = () => {
   // Mock data - in a real app, this would come from your task state or API
   const tasks: Task[] = [{
@@ -163,7 +166,43 @@ const ProductivityDashboard = () => {
   }];
 
   // Cores para os quadrantes otimizadas para tema escuro
-  const COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#A06CD5'];
+  const COLORS = ['#ff79c6', '#8be9fd', '#f1fa8c', '#bd93f9'];
+  const QUADRANT_NAMES = ['Fazer Agora', 'Agendar', 'Delegar', 'Eliminar'];
+
+  // Dados para o gráfico de linha de tempo (últimos 7 dias)
+  const generateTimelineData = () => {
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = formatDate(date);
+      
+      // Contar tarefas criadas e concluídas neste dia
+      const tasksCreated = tasks.filter(t => {
+        const taskDate = new Date(t.createdAt);
+        return taskDate.getDate() === date.getDate() && 
+               taskDate.getMonth() === date.getMonth() && 
+               taskDate.getFullYear() === date.getFullYear();
+      }).length;
+      
+      const tasksCompleted = tasks.filter(t => {
+        if (!t.completedAt) return false;
+        const taskDate = new Date(t.completedAt);
+        return taskDate.getDate() === date.getDate() && 
+               taskDate.getMonth() === date.getMonth() && 
+               taskDate.getFullYear() === date.getFullYear();
+      }).length;
+      
+      data.push({
+        date: dateStr,
+        criadas: tasksCreated,
+        concluídas: tasksCompleted
+      });
+    }
+    return data;
+  };
+  
+  const timelineData = generateTimelineData();
 
   // Configurações comuns para os gráficos
   const chartConfig = {
@@ -206,22 +245,175 @@ const ProductivityDashboard = () => {
       }
     }
   };
-  return <div className="p-6 bg-background/95 min-h-screen">
-      <div className="mb-8 text-center backdrop-blur-sm">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text my-[30px] text-blue-700">Análise de Produtividade</h1>
+  
+  // Período de análise
+  const [period, setPeriod] = useState<'week' | 'month' | 'all'>('week');
+  
+  // Prioridades das tarefas
+  const taskPriorities = [
+    { name: 'Alta', value: tasks.filter(t => t.importance > 7).length },
+    { name: 'Média', value: tasks.filter(t => t.importance > 4 && t.importance <= 7).length },
+    { name: 'Baixa', value: tasks.filter(t => t.importance <= 4).length }
+  ];
+  
+  // Últimas tarefas concluídas
+  const recentlyCompletedTasks = tasks
+    .filter(t => t.completed)
+    .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
+    .slice(0, 5);
+  
+  return (
+    <div className="p-3 sm:p-6 bg-background/95 min-h-screen">
+      {/* Header com navegação */}
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 sm:mb-8">
+        <div className="flex items-center mb-4 sm:mb-0">
+          <Link to="/" className="mr-4 p-2 rounded-full bg-background/80 border border-border/30 hover:bg-gray-800/50 transition-colors">
+            <ArrowLeft className="h-5 w-5 text-primary" />
+          </Link>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Dashboard de Produtividade
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Visualize suas métricas de produtividade e padrões de conclusão de tarefas
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex gap-2 bg-background/50 p-1 rounded-lg border border-border/20 self-end">
+          <button 
+            onClick={() => setPeriod('week')} 
+            className={`px-3 py-1.5 text-sm rounded-md transition-all ${period === 'week' ? 'bg-primary text-white' : 'hover:bg-gray-800/70 text-gray-400'}`}
+          >
+            Semana
+          </button>
+          <button 
+            onClick={() => setPeriod('month')} 
+            className={`px-3 py-1.5 text-sm rounded-md transition-all ${period === 'month' ? 'bg-primary text-white' : 'hover:bg-gray-800/70 text-gray-400'}`}
+          >
+            Mês
+          </button>
+          <button 
+            onClick={() => setPeriod('all')} 
+            className={`px-3 py-1.5 text-sm rounded-md transition-all ${period === 'all' ? 'bg-primary text-white' : 'hover:bg-gray-800/70 text-gray-400'}`}
+          >
+            Tudo
+          </button>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      {/* Cards de estatísticas rápidas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <Card className="p-4 border-border/30 bg-background/50 backdrop-blur-sm hover:bg-background/60 transition-all">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total de Tarefas</p>
+              <h3 className="text-2xl font-bold">{tasks.length}</h3>
+            </div>
+            <div className="p-2.5 rounded-full bg-blue-500/10 text-blue-400">
+              <ClipboardList className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-3 text-xs text-muted-foreground flex items-center">
+            <TrendingUp className="h-3.5 w-3.5 mr-1 text-green-400" />
+            <span>Aumento de 12% em relação à semana anterior</span>
+          </div>
+        </Card>
+        
+        <Card className="p-4 border-border/30 bg-background/50 backdrop-blur-sm hover:bg-background/60 transition-all">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Tarefas Concluídas</p>
+              <h3 className="text-2xl font-bold">{tasks.filter(t => t.completed).length}</h3>
+            </div>
+            <div className="p-2.5 rounded-full bg-green-500/10 text-green-400">
+              <CheckCircle className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-3 text-xs text-muted-foreground flex items-center">
+            <div className="w-full bg-gray-700/30 rounded-full h-1.5">
+              <div className="bg-green-500 h-1.5 rounded-full" style={{width: `${(tasks.filter(t => t.completed).length / tasks.length) * 100}%`}}></div>
+            </div>
+            <span className="ml-2">{Math.round((tasks.filter(t => t.completed).length / tasks.length) * 100)}%</span>
+          </div>
+        </Card>
+        
+        <Card className="p-4 border-border/30 bg-background/50 backdrop-blur-sm hover:bg-background/60 transition-all">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Tempo Médio (dias)</p>
+              <h3 className="text-2xl font-bold">{(
+                averageCompletionTimeData.reduce((sum, item) => sum + item.dias, 0) / 
+                averageCompletionTimeData.filter(item => item.dias > 0).length
+              ).toFixed(1)}</h3>
+            </div>
+            <div className="p-2.5 rounded-full bg-amber-500/10 text-amber-400">
+              <Clock className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-3 text-xs text-muted-foreground flex items-center">
+            <Calendar className="h-3.5 w-3.5 mr-1" />
+            <span>Para concluir tarefas</span>
+          </div>
+        </Card>
+        
+        <Card className="p-4 border-border/30 bg-background/50 backdrop-blur-sm hover:bg-background/60 transition-all">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Taxa de Conclusão</p>
+              <h3 className="text-2xl font-bold">{(tasks.filter(t => t.completed).length / tasks.length * 100).toFixed(0)}%</h3>
+            </div>
+            <div className="p-2.5 rounded-full bg-purple-500/10 text-purple-400">
+              <Target className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-3 text-xs text-muted-foreground flex items-center">
+            <Activity className="h-3.5 w-3.5 mr-1 text-purple-400" />
+            <span>Eficiência global</span>
+          </div>
+        </Card>
+      </div>
+      
+      {/* Linha do tempo de produtividade */}
+      <Card className="p-4 border-border/30 bg-background/50 backdrop-blur-sm mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Linha do Tempo de Produtividade</h2>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+              <span className="text-sm text-muted-foreground">Criadas</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-green-400"></div>
+              <span className="text-sm text-muted-foreground">Concluídas</span>
+            </div>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={250}>
+          <AreaChart data={timelineData} {...chartConfig}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Area type="monotone" dataKey="criadas" name="Tarefas Criadas" stroke="#8be9fd" fill="#8be9fd30" />
+            <Area type="monotone" dataKey="concluídas" name="Tarefas Concluídas" stroke="#50fa7b" fill="#50fa7b30" />
+          </AreaChart>
+        </ResponsiveContainer>
+      </Card>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-6">
         {/* Gráfico de Tarefas Concluídas por Quadrante */}
-        <Card className="p-4 bg-card/30 backdrop-blur-md border-border/50 shadow-xl hover:shadow-primary/5 transition-all duration-300">
-          <h2 className="text-xl font-semibold mb-4">Tarefas Concluídas por Quadrante</h2>
-          <ResponsiveContainer width="100%" height={300}>
+        <Card className="p-4 border-border/30 bg-background/50 backdrop-blur-sm">
+          <h2 className="text-lg font-semibold mb-4 flex items-center">
+            <BarChart2 className="mr-2 h-5 w-5 text-primary/70" />
+            Tarefas Concluídas por Quadrante
+          </h2>
+          <ResponsiveContainer width="100%" height={240}>
             <BarChart data={completedTasksByQuadrant} {...chartConfig}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} />
+              <YAxis axisLine={false} tickLine={false} />
               <Tooltip />
-              <Legend />
               <Bar dataKey="value" name="Tarefas Concluídas">
                 {completedTasksByQuadrant.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
               </Bar>
@@ -229,69 +421,138 @@ const ProductivityDashboard = () => {
           </ResponsiveContainer>
         </Card>
 
-        {/* Gráfico de Tempo Médio para Conclusão */}
-        <Card className="p-4 bg-card/30 backdrop-blur-md border-border/50 shadow-xl hover:shadow-primary/5 transition-all duration-300">
-          <h2 className="text-xl font-semibold mb-4">Tempo Médio para Conclusão (Dias)</h2>
-          <ResponsiveContainer width="100%" height={300}>
+        {/* Gráfico de Distribuição de Tarefas */}
+        <Card className="p-4 border-border/30 bg-background/50 backdrop-blur-sm">
+          <h2 className="text-lg font-semibold mb-4 flex items-center">
+            <PieChartIcon className="mr-2 h-5 w-5 text-primary/70" />
+            Distribuição de Tarefas
+          </h2>
+          <ResponsiveContainer width="100%" height={240}>
+            <PieChart {...chartConfig}>
+              <Pie 
+                data={taskDistributionByQuadrant} 
+                cx="50%" 
+                cy="50%" 
+                innerRadius={60}
+                outerRadius={80}
+                fill="#8884d8" 
+                dataKey="value" 
+                paddingAngle={2}
+                label={({name, percent}) => `${(percent * 100).toFixed(0)}%`}
+              >
+                {taskDistributionByQuadrant.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value, name) => [`${value} tarefas`, name]} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="flex flex-wrap justify-center gap-3 mt-2">
+            {QUADRANT_NAMES.map((name, index) => (
+              <div key={index} className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{backgroundColor: COLORS[index]}}></div>
+                <span className="text-xs text-muted-foreground">{name}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Últimas tarefas concluídas */}
+        <Card className="p-4 border-border/30 bg-background/50 backdrop-blur-sm flex flex-col">
+          <h2 className="text-lg font-semibold mb-4 flex items-center">
+            <CheckCircle className="mr-2 h-5 w-5 text-primary/70" />
+            Últimas Tarefas Concluídas
+          </h2>
+          <div className="space-y-3 flex-1">
+            {recentlyCompletedTasks.length > 0 ? (
+              recentlyCompletedTasks.map(task => (
+                <div key={task.id} className="flex items-start bg-background/30 p-3 rounded-lg border border-border/20">
+                  <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{backgroundColor: COLORS[task.quadrant]}}></div>
+                  <div className="ml-2 flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{task.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {task.completedAt ? formatDate(task.completedAt) : ''}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center p-4 text-muted-foreground text-sm h-full flex items-center justify-center">
+                Nenhuma tarefa concluída recentemente
+              </div>
+            )}
+          </div>
+          <Link to="/" className="mt-3 flex items-center justify-center gap-1 text-primary text-sm font-medium hover:underline self-end">
+            Ver todas
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </Card>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+        {/* Tempo Médio para Conclusão */}
+        <Card className="p-4 border-border/30 bg-background/50 backdrop-blur-sm">
+          <h2 className="text-lg font-semibold mb-4 flex items-center">
+            <Clock className="mr-2 h-5 w-5 text-primary/70" />
+            Tempo Médio para Conclusão (Dias)
+          </h2>
+          <ResponsiveContainer width="100%" height={250}>
             <BarChart data={averageCompletionTimeData} {...chartConfig}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} />
+              <YAxis axisLine={false} tickLine={false} />
               <Tooltip />
-              <Legend />
-              <Bar dataKey="dias" name="Dias" fill="#8884d8">
-                {averageCompletionTimeData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+              <Bar dataKey="dias" name="Dias">
+                {averageCompletionTimeData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </Card>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Gráfico de Distribuição de Tarefas (Tendências) */}
-        <Card className="p-4 bg-card/30 backdrop-blur-md border-border/50 shadow-xl hover:shadow-primary/5 transition-all duration-300">
-          <h2 className="text-xl font-semibold mb-4">Distribuição de Tarefas por Quadrante</h2>
-          <ResponsiveContainer width="100%" height={300}>
+        {/* Distribuição por Prioridade */}
+        <Card className="p-4 border-border/30 bg-background/50 backdrop-blur-sm">
+          <h2 className="text-lg font-semibold mb-4 flex items-center">
+            <Activity className="mr-2 h-5 w-5 text-primary/70" />
+            Distribuição por Prioridade
+          </h2>
+          <ResponsiveContainer width="100%" height={250}>
             <PieChart {...chartConfig}>
-              <Pie data={taskDistributionByQuadrant} cx="50%" cy="50%" labelLine={true} outerRadius={100} fill="#8884d8" dataKey="value" nameKey="name" label={({
-              name,
-              percent
-            }) => `${name}: ${(percent * 100).toFixed(0)}%`}>
-                {taskDistributionByQuadrant.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+              <Pie 
+                data={taskPriorities} 
+                cx="50%" 
+                cy="50%" 
+                outerRadius={80} 
+                fill="#8884d8" 
+                dataKey="value"
+                label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              >
+                <Cell fill="#ff79c6" />
+                <Cell fill="#f1fa8c" />
+                <Cell fill="#8be9fd" />
               </Pie>
-              <Tooltip />
-              <Legend />
+              <Tooltip formatter={(value, name) => [`${value} tarefas`, name]} />
             </PieChart>
           </ResponsiveContainer>
-        </Card>
-
-        {/* Estatísticas Gerais */}
-        <Card className="p-4 bg-card/30 backdrop-blur-md border-border/50 shadow-xl hover:shadow-primary/5 transition-all duration-300">
-          <h2 className="text-xl font-semibold mb-4">Estatísticas Gerais</h2>
-          <div className="space-y-4 backdrop-blur-sm">
-            <div className="bg-secondary/40 hover:bg-secondary/50 p-4 rounded-lg backdrop-blur-sm transition-colors duration-300 border border-border/50">
-              <h3 className="font-medium text-secondary-foreground">Total de Tarefas</h3>
-              <p className="text-2xl font-bold text-secondary-foreground">{tasks.length}</p>
+          <div className="flex flex-wrap justify-center gap-6 mt-2">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-[#ff79c6]"></div>
+              <span className="text-xs text-muted-foreground">Alta</span>
             </div>
-            <div className="bg-secondary/40 hover:bg-secondary/50 p-4 rounded-lg backdrop-blur-sm transition-colors duration-300 border border-border/50">
-              <h3 className="font-medium text-secondary-foreground">Tarefas Concluídas</h3>
-              <p className="text-2xl font-bold text-secondary-foreground">{tasks.filter(t => t.completed).length}</p>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-[#f1fa8c]"></div>
+              <span className="text-xs text-muted-foreground">Média</span>
             </div>
-            <div className="bg-secondary/40 hover:bg-secondary/50 p-4 rounded-lg backdrop-blur-sm transition-colors duration-300 border border-border/50">
-              <h3 className="font-medium text-secondary-foreground">Taxa de Conclusão</h3>
-              <p className="text-2xl font-bold text-secondary-foreground">
-                {(tasks.filter(t => t.completed).length / tasks.length * 100).toFixed(0)}%
-              </p>
-            </div>
-            <div className="bg-secondary/40 hover:bg-secondary/50 p-4 rounded-lg backdrop-blur-sm transition-colors duration-300 border border-border/50">
-              <h3 className="font-medium text-secondary-foreground">Quadrante com Mais Tarefas</h3>
-              <p className="text-2xl font-bold text-secondary-foreground">
-                {taskDistributionByQuadrant.reduce((prev, current) => prev.value > current.value ? prev : current).name}
-              </p>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-[#8be9fd]"></div>
+              <span className="text-xs text-muted-foreground">Baixa</span>
             </div>
           </div>
         </Card>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ProductivityDashboard;

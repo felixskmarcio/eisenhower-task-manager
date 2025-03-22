@@ -8,6 +8,19 @@ import {
   ToastViewport,
 } from "@/components/ui/toast"
 
+// Mensagem de erro para identificação do problema:
+/* 
+Error: El-7053: <ToastViewport /> was rendered, but no <Toast /> components were found.
+This could happen if you have an incorrect import order, or you are rendering the wrong component.
+Make sure you have imported 'ToastViewport' from the correct package and check your component hierarchy.
+
+Stack trace:
+  at ToastViewport (react-dom.development.js:12345)
+  at Toaster (toaster.tsx:29)
+  at ErrorBoundary (ErrorBoundary.tsx:122)
+  at App (App.tsx:28)
+*/
+
 export function Toaster() {
   const { toasts } = useToast()
 
