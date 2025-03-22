@@ -381,7 +381,7 @@ export const Matrix = () => {
       onDragStart={(e) => handleDragStart(e, task)}
       onDragEnd={handleDragEnd}
       onDoubleClick={() => handleEditTask(task)}
-      className={`p-3 md:p-4 rounded-xl border transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer
+      className={`matrix-card p-3 md:p-4 rounded-xl border transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer
         ${task.quadrant === 0 ? 'border-red-400/40 bg-gradient-to-br from-red-50/20 to-red-100/20 hover:border-red-400/70' : 
               task.quadrant === 1 ? 'border-blue-400/40 bg-gradient-to-br from-blue-50/20 to-blue-100/20 hover:border-blue-400/70' : 
               task.quadrant === 2 ? 'border-amber-400/40 bg-gradient-to-br from-amber-50/20 to-amber-100/20 hover:border-amber-400/70' : 
@@ -422,7 +422,7 @@ export const Matrix = () => {
           </p>
         </div>
         
-        <div className="flex flex-col space-y-1.5 opacity-70 group-hover:opacity-100 transition-opacity">
+        <div className="card-actions flex flex-col space-y-1.5 transition-opacity">
           <button 
             onClick={(e) => { e.stopPropagation(); toggleTaskCompletion(task.id); }}
             className={`flex-shrink-0 p-1.5 rounded-full transition-all duration-300 
@@ -524,32 +524,42 @@ export const Matrix = () => {
     importantLabel: string;
     colorClass: string;
     quadrantIndex: number;
-  }) => (
-    <div 
-      className={`p-3 border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${colorClass}`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={(e) => handleDrop(e, quadrantIndex)}
-    >
-      <div className="p-2">
-        <h3 className="text-base md:text-lg font-semibold mb-1">{title}</h3>
-        <p className="text-xs md:text-sm text-muted-foreground mb-3 hidden md:block line-clamp-2">{description}</p>
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          <span className={`text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium inline-flex items-center gap-1.5`}>
-            <span className="w-2 h-2 rounded-full bg-primary"></span>
-            {importantLabel}
-          </span>
-          <span className={`text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-medium inline-flex items-center gap-1.5`}>
-            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            {urgentLabel}
-          </span>
-        </div>
-        <div className="min-h-[100px] md:min-h-[220px] max-h-[300px] md:max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
-          {children}
+  }) => {
+    // Contagem de tarefas no quadrante (apenas as não concluídas)
+    const taskCount = tasks.filter(task => task.quadrant === quadrantIndex && !task.completed).length;
+    
+    return (
+      <div 
+        className={`p-3 border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${colorClass}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => handleDrop(e, quadrantIndex)}
+      >
+        <div className="p-2">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-base md:text-lg font-semibold">{title}</h3>
+            <div className="flex items-center justify-center min-w-[22px] h-[22px] rounded-full bg-background/30 border border-muted/40 text-xs font-medium">
+              {taskCount}
+            </div>
+          </div>
+          <p className="text-xs md:text-sm text-muted-foreground mb-3 hidden md:block line-clamp-2">{description}</p>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            <span className={`text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium inline-flex items-center gap-1.5`}>
+              <span className="w-2 h-2 rounded-full bg-primary"></span>
+              {importantLabel}
+            </span>
+            <span className={`text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-medium inline-flex items-center gap-1.5`}>
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              {urgentLabel}
+            </span>
+          </div>
+          <div className="min-h-[100px] md:min-h-[220px] max-h-[300px] md:max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
+            {children}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Botão de ação flutuante para criar novas tarefas em dispositivos móveis
   const FloatingActionButton = ({ onClick }: { onClick: () => void }) => (
@@ -573,6 +583,36 @@ export const Matrix = () => {
     { id: '4', name: 'Escritório', color: '#bd93f9' },
     { id: '5', name: 'Casa', color: '#f1fa8c' }
   ];
+  
+  // Seletor de tags rápidas como chips
+  const QuickTagSelector = () => {
+    return (
+      <div className="flex flex-wrap gap-1.5 items-center mt-1 tag-selector">
+        <span className="text-xs text-muted-foreground mr-1 whitespace-nowrap">Projeto:</span>
+        {availableTags.map(tag => (
+          <button
+            key={tag.id}
+            onClick={() => handleTagFilter('project', tagFilters.project === tag.id ? null : tag.id)}
+            className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all
+              ${tagFilters.project === tag.id 
+                ? 'ring-1 ring-offset-1 ring-offset-background shadow-sm selected' 
+                : 'opacity-70 hover:opacity-100'}`}
+            style={{ 
+              backgroundColor: `${tag.color}20`, 
+              color: tag.color,
+              boxShadow: tagFilters.project === tag.id ? `0 0 0 1px ${tag.color}30` : 'none'
+            }}
+          >
+            <span 
+              className="w-2 h-2 rounded-full" 
+              style={{ backgroundColor: tag.color }} 
+            />
+            {tag.name}
+          </button>
+        ))}
+      </div>
+    );
+  };
   
   // Função para filtrar tarefas por tags
   const handleTagFilter = (type: 'project' | 'context' | 'lifearea', value: string | null) => {
@@ -645,30 +685,32 @@ export const Matrix = () => {
           <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center md:text-left">
             Matriz de Eisenhower
           </h2>
-          <p className="text-muted-foreground text-sm md:text-base text-center md:text-left max-w-xl">
+          <p className="text-muted-foreground text-sm md:text-base text-center md:text-left max-w-xl mb-2">
             Organize suas tarefas baseado em importância e urgência para maximizar sua produtividade
           </p>
+          
+          {/* Quick Tag Selector */}
+          <div className="md:flex items-center gap-2 hidden">
+            <QuickTagSelector />
+          </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2 md:gap-4 justify-center sm:justify-end">
-          <div className="w-full sm:w-auto">
-            <TagFilterSelect 
-              type="project" 
-              value={tagFilters.project} 
-              onChange={(value) => handleTagFilter('project', value)} 
-            />
+        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2 md:gap-3 justify-center sm:justify-end">
+          <div className="md:hidden w-full">
+            <QuickTagSelector />
           </div>
           
-          <div className="flex justify-center gap-2">
+          <div className="flex justify-center gap-2 w-full sm:w-auto">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="p-2.5 bg-primary text-white rounded-lg transition-all duration-300 hover:bg-primary/90 hover:shadow-md shadow-sm"
+                    className="p-2.5 bg-primary text-white rounded-lg transition-all duration-300 hover:bg-primary/90 hover:shadow-md shadow-sm flex items-center gap-1.5 w-full sm:w-auto justify-center"
                     title="Adicionar nova tarefa"
                   >
-                    <Plus className="h-5 w-5" />
+                    <Plus className="h-4 w-4" />
+                    <span className="text-sm font-medium">Nova Tarefa</span>
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
