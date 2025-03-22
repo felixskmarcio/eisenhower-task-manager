@@ -1,13 +1,23 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Clock, CheckCircle, Plus, Trash2, BarChart2, Activity, ChevronLeft, ChevronRight, Volume2, Headphones, X, LayoutGrid } from 'lucide-react';
+import { Clock, CheckCircle, Plus, Trash2, BarChart2, Activity, ChevronLeft, ChevronRight, Volume2, Headphones, X, LayoutGrid, AlertTriangle } from 'lucide-react';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import { formatDate } from '@/utils/dateUtils';
 import TagFilterSelect from './TagFilterSelect';
 import { useToast } from '@/components/ui/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Task {
   id: string;
@@ -373,6 +383,40 @@ export const Matrix = () => {
   
   const deleteTask = (taskId: string) => {
     setTasks(tasks.filter(task => task.id !== taskId));
+    toast({
+      title: 'Tarefa excluída',
+      description: 'A tarefa foi removida permanentemente.'
+    });
+  };
+
+  // Estado para o diálogo de confirmação de exclusão
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  
+  // Função para confirmar a exclusão
+  const confirmDeleteTask = (taskId: string) => {
+    setTaskToDelete(taskId);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  // Função para realizar a exclusão após confirmação
+  const handleConfirmDelete = () => {
+    if (taskToDelete) {
+      deleteTask(taskToDelete);
+      setTaskToDelete(null);
+    }
+    setIsDeleteDialogOpen(false);
+  };
+  
+  // Função para cancelar a exclusão
+  const handleCancelDelete = () => {
+    setTaskToDelete(null);
+    setIsDeleteDialogOpen(false);
+  };
+  
+  // Prevenir que o diálogo feche ao clicar fora dele
+  const preventDialogClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
   };
 
   const TaskCard = ({ task }: { task: Task }) => (
@@ -434,7 +478,7 @@ export const Matrix = () => {
             <CheckCircle size={14} className="transition-transform group-hover:scale-110" />
           </button>
           <button 
-            onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }}
+            onClick={(e) => { e.stopPropagation(); confirmDeleteTask(task.id); }}
             className={`flex-shrink-0 p-1.5 rounded-full transition-all duration-300
             bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-600`}
             title="Excluir tarefa"
@@ -899,6 +943,67 @@ export const Matrix = () => {
 
       {/* Botão de ação flutuante para dispositivos móveis */}
       <FloatingActionButton onClick={() => setIsAddModalOpen(true)} />
+      
+      {/* Modal de confirmação de exclusão personalizado */}
+      {isDeleteDialogOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center" 
+          onClick={(e) => {
+            // Evitar que cliques no backdrop fechem o modal
+            if (e.target === e.currentTarget) {
+              e.stopPropagation();
+            }
+          }}
+        >
+          <div 
+            className="bg-background border border-gray-700 rounded-lg shadow-lg p-6 max-w-md mx-auto relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCancelDelete();
+              }}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-100 rounded-full p-1 hover:bg-gray-800/50 transition-colors"
+              title="Fechar"
+              aria-label="Fechar diálogo"
+            >
+              <X size={18} />
+            </button>
+            
+            <div className="mb-4">
+              <h2 className="flex items-center gap-2 text-red-400 text-lg font-semibold">
+                <AlertTriangle size={18} />
+                Confirmar exclusão
+              </h2>
+              <p className="text-sm text-muted-foreground mt-2">
+                Tem certeza que deseja excluir esta tarefa? Esta ação não poderá ser desfeita.
+              </p>
+            </div>
+            
+            <div className="flex sm:justify-end gap-2 mt-6">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCancelDelete();
+                }}
+                className="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-white border-0 focus:ring-1 focus:ring-gray-400 text-sm font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleConfirmDelete();
+                }}
+                className="px-4 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white border-0 text-sm font-medium"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
