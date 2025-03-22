@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Clock, CheckCircle, Plus, Trash2, BarChart2, Activity, ChevronLeft, ChevronRight, Volume2, Headphones, X } from 'lucide-react';
+import { Clock, CheckCircle, Plus, Trash2, BarChart2, Activity, ChevronLeft, ChevronRight, Volume2, Headphones, X, LayoutGrid } from 'lucide-react';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import { formatDate } from '@/utils/dateUtils';
 import TagFilterSelect from './TagFilterSelect';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Task {
@@ -25,6 +25,7 @@ interface Task {
 }
 
 export const Matrix = () => {
+  const { toast } = useToast();
   const [activeTimer, setActiveTimer] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(25 * 60); // 25 minutes in seconds
   const [isBreak, setIsBreak] = useState(false);
@@ -170,13 +171,32 @@ export const Matrix = () => {
     lifearea: null,
   });
 
+  // Determinar modo escuro (para os modais)
+  const [isDarkMode] = useState(true); // Fixado como dark mode
+
   const handleEditTask = (task: Task) => {
     setSelectedTask(task);
     setIsEditModalOpen(true);
   };
 
-  const handleSaveTask = (editedTask: Task) => {
-    setTasks(tasks.map(task => task.id === editedTask.id ? editedTask : task));
+  const handleSaveTask = (editedTask: {
+    id: string;
+    title: string;
+    description: string;
+    urgency: number;
+    importance: number;
+    completed: boolean;
+    tags?: string[];
+  }) => {
+    // Converter para o tipo Task
+    const updatedTask: Task = {
+      ...editedTask,
+      quadrant: calculateQuadrant(editedTask.urgency, editedTask.importance),
+      createdAt: tasks.find(t => t.id === editedTask.id)?.createdAt || new Date(),
+      completedAt: editedTask.completed ? (tasks.find(t => t.id === editedTask.id)?.completedAt || new Date()) : null
+    };
+    
+    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
     toast({
       title: 'Tarefa atualizada',
       description: 'As alterações foram salvas com sucesso!',
@@ -416,56 +436,276 @@ export const Matrix = () => {
     );
   };
 
+  // Componente de quadrante responsivo
+  const QuadrantContainer = ({ title, description, children, urgentLabel, importantLabel, colorClass }: {
+    title: string;
+    description: string;
+    children: React.ReactNode;
+    urgentLabel: string;
+    importantLabel: string;
+    colorClass: string;
+  }) => (
+    <div 
+      className={`p-2 border rounded-lg transition-all ${colorClass}`}
+    >
+      <div className="p-2">
+        <h3 className="text-base md:text-lg font-semibold mb-1">{title}</h3>
+        <p className="text-xs md:text-sm text-muted-foreground mb-2 hidden md:block">{description}</p>
+        <div className="flex flex-wrap gap-1 mb-2">
+          <span className={`text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary inline-flex items-center gap-1`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+            {importantLabel}
+          </span>
+          <span className={`text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 inline-flex items-center gap-1`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+            {urgentLabel}
+          </span>
+        </div>
+        <div className="min-h-[80px] md:min-h-[200px]">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Botão de ação flutuante para criar novas tarefas em dispositivos móveis
+  const FloatingActionButton = ({ onClick }: { onClick: () => void }) => (
+    <button
+      onClick={onClick}
+      className="fixed bottom-20 right-4 z-40 md:hidden flex items-center justify-center w-14 h-14 rounded-full bg-primary shadow-lg text-white"
+      aria-label="Nova tarefa"
+    >
+      <Plus className="h-6 w-6" />
+    </button>
+  );
+
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  
+  // Lista de tags disponíveis
+  const availableTags = [
+    { id: '1', name: 'Trabalho', color: '#ff79c6' },
+    { id: '2', name: 'Pessoal', color: '#8be9fd' },
+    { id: '3', name: 'Saúde', color: '#50fa7b' },
+    { id: '4', name: 'Escritório', color: '#bd93f9' },
+    { id: '5', name: 'Casa', color: '#f1fa8c' }
+  ];
+  
+  // Função para filtrar tarefas por tags
+  const handleTagFilter = (type: 'project' | 'context' | 'lifearea', value: string | null) => {
+    setTagFilters(prev => ({
+      ...prev,
+      [type]: value
+    }));
+  };
+  
+  // Função para adicionar nova tarefa
+  const handleNewTaskAdded = (task: Omit<Task, 'id' | 'quadrant' | 'completed' | 'createdAt' | 'completedAt'>) => {
+    const newTaskQuadrant = calculateQuadrant(task.urgency, task.importance);
+    const createdTask: Task = {
+      ...task,
+      id: Date.now().toString(),
+      quadrant: newTaskQuadrant,
+      completed: false,
+      createdAt: new Date(),
+      completedAt: null
+    };
+    setTasks([...tasks, createdTask]);
+    toast({
+      title: 'Tarefa adicionada',
+      description: 'Nova tarefa criada com sucesso!'
+    });
+  };
+  
+  // Função para renderizar tarefas em cada quadrante
+  const renderTasks = (quadrantNumber: number) => {
+    const filteredTasks = tasks.filter(task => {
+      // Filtrar por quadrante e se não está concluída
+      const matchesQuadrant = task.quadrant === quadrantNumber - 1;
+      const matchesCompletion = !task.completed;
+      
+      // Filtrar por tags se houver tags selecionadas
+      const matchesTags = selectedTags.length === 0 || 
+                           (task.tags && task.tags.some(tag => selectedTags.includes(tag)));
+      
+      // Filtrar por tipo de tag (projeto, contexto, área de vida)
+      const matchesProjectFilter = !tagFilters.project || 
+                                   (task.tags && task.tags.includes(tagFilters.project));
+      const matchesContextFilter = !tagFilters.context || 
+                                   (task.tags && task.tags.includes(tagFilters.context));
+      const matchesLifeareaFilter = !tagFilters.lifearea || 
+                                   (task.tags && task.tags.includes(tagFilters.lifearea));
+      
+      return matchesQuadrant && matchesCompletion && matchesTags && 
+             matchesProjectFilter && matchesContextFilter && matchesLifeareaFilter;
+    });
+    
+    return (
+      <div className="space-y-2">
+        {filteredTasks.length === 0 ? (
+          <div className="text-center p-4 text-muted-foreground text-sm">
+            Nenhuma tarefa neste quadrante
+          </div>
+        ) : (
+          filteredTasks.map(task => (
+            <TaskCard key={task.id} task={task} />
+          ))
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="container mx-auto p-6 mt-20 bg-[#1e1f29]/60 min-h-fit rounded-xl backdrop-blur-sm">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-[#ff79c6] to-[#bd93f9] bg-clip-text text-transparent drop-shadow-sm">
-          Matriz de Eisenhower
-        </h1>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="bg-gradient-to-r from-[#ff79c6] to-[#bd93f9] text-white px-4 py-2 flex items-center gap-2 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
-        >
-          <Plus size={20} />
-          Nova Tarefa
-        </button>
+    <div className="w-full mx-auto relative">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-bold mb-1 text-center md:text-left">Matriz de Eisenhower</h2>
+          <p className="text-muted-foreground text-sm md:text-base text-center md:text-left">
+            Gerencie suas tarefas usando o método de priorização eficiente
+          </p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2 md:gap-4 justify-center sm:justify-end">
+          <div className="w-full sm:w-auto">
+            <TagFilterSelect 
+              type="project" 
+              value={tagFilters.project} 
+              onChange={(value) => handleTagFilter('project', value)} 
+            />
+          </div>
+          
+          <div className="flex justify-center gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="p-2 bg-primary text-white rounded-lg transition-colors hover:bg-primary-dark"
+                    title="Adicionar nova tarefa"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Nova Tarefa</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
       </div>
 
-      <Tabs defaultValue="matrix" className="w-full">
-        <TabsList className="bg-[#282a36]/90 mb-4 shadow-md">
-          <TabsTrigger value="matrix" className="data-[state=active]:bg-[#44475a] data-[state=active]:text-white">Matriz</TabsTrigger>
-          <TabsTrigger value="completed" className="data-[state=active]:bg-[#44475a] data-[state=active]:text-white">Concluídas</TabsTrigger>
-          <TabsTrigger value="all" className="data-[state=active]:bg-[#44475a] data-[state=active]:text-white">Todas</TabsTrigger>
+      <Tabs defaultValue="matriz" className="w-full">
+        <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-6">
+          <TabsTrigger value="matriz" className="text-sm">
+            <div className="flex items-center gap-1">
+              <LayoutGrid className="h-4 w-4" />
+              <span className="hidden sm:inline">Matriz</span>
+            </div>
+          </TabsTrigger>
+          <TabsTrigger value="concluidas" className="text-sm">
+            <div className="flex items-center gap-1">
+              <CheckCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Concluídas</span>
+            </div>
+          </TabsTrigger>
+          <TabsTrigger value="todas" className="text-sm">
+            <div className="flex items-center gap-1">
+              <BarChart2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Todas</span>
+            </div>
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="matrix">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {quadrants.map((quadrant, index) => (
-              <div
-                key={index}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, index)}
-                className={`p-6 rounded-xl ${quadrant.color} min-h-[10vh] shadow-xl border ${quadrant.borderColor}/40 backdrop-filter hover:shadow-2xl transition-all duration-300`}
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h2 className={`text-2xl font-bold ${quadrant.textColor} drop-shadow-sm`}>{quadrant.title}</h2>
-                    <p className={`text-sm ${quadrant.textColor} opacity-90 mt-1`}>{quadrant.description}</p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {tasks
-                    .filter(task => task.quadrant === index && !task.completed)
-                    .map(task => (
-                      <TaskCard key={task.id} task={task} />
-                    ))}
-                </div>
-              </div>
-            ))}
+        <TabsContent value="matriz" className="space-y-4">
+          {/* Mobile layout - Vertical stacking */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            <QuadrantContainer
+              title="Urgente e Importante"
+              description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
+              urgentLabel="Urgente"
+              importantLabel="Importante"
+              colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
+            >
+              {renderTasks(1)}
+            </QuadrantContainer>
+            
+            <QuadrantContainer
+              title="Importante, Não Urgente"
+              description="Planeje: Preparação, prevenção, planejamento e relacionamentos"
+              urgentLabel="Não urgente"
+              importantLabel="Importante"
+              colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
+            >
+              {renderTasks(2)}
+            </QuadrantContainer>
+            
+            <QuadrantContainer
+              title="Urgente, Não Importante"
+              description="Delegue: Interrupções, reuniões, e-mails, chamadas"
+              urgentLabel="Urgente"
+              importantLabel="Não importante"
+              colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
+            >
+              {renderTasks(3)}
+            </QuadrantContainer>
+            
+            <QuadrantContainer
+              title="Não Urgente, Não Importante"
+              description="Elimine: Distrações, tarefas triviais, tempo perdido"
+              urgentLabel="Não urgente"
+              importantLabel="Não importante"
+              colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
+            >
+              {renderTasks(4)}
+            </QuadrantContainer>
+          </div>
+          
+          {/* Desktop layout - 2x2 grid */}
+          <div className="hidden md:grid md:grid-cols-2 gap-4">
+            <QuadrantContainer
+              title="Urgente e Importante"
+              description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
+              urgentLabel="Urgente"
+              importantLabel="Importante"
+              colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
+            >
+              {renderTasks(1)}
+            </QuadrantContainer>
+            
+            <QuadrantContainer
+              title="Importante, Não Urgente"
+              description="Planeje: Preparação, prevenção, planejamento e relacionamentos"
+              urgentLabel="Não urgente"
+              importantLabel="Importante"
+              colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
+            >
+              {renderTasks(2)}
+            </QuadrantContainer>
+            
+            <QuadrantContainer
+              title="Urgente, Não Importante"
+              description="Delegue: Interrupções, reuniões, e-mails, chamadas"
+              urgentLabel="Urgente"
+              importantLabel="Não importante"
+              colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
+            >
+              {renderTasks(3)}
+            </QuadrantContainer>
+            
+            <QuadrantContainer
+              title="Não Urgente, Não Importante"
+              description="Elimine: Distrações, tarefas triviais, tempo perdido"
+              urgentLabel="Não urgente"
+              importantLabel="Não importante"
+              colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
+            >
+              {renderTasks(4)}
+            </QuadrantContainer>
           </div>
         </TabsContent>
 
-        <TabsContent value="completed">
+        <TabsContent value="concluidas">
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Tarefas Concluídas</h2>
             <div className="grid gap-3">
@@ -479,7 +719,7 @@ export const Matrix = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="all">
+        <TabsContent value="todas">
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Todas as Tarefas</h2>
             <div className="grid gap-3">
@@ -493,39 +733,37 @@ export const Matrix = () => {
         </TabsContent>
       </Tabs>
 
-      <AddTaskModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        newTask={newTask}
-        setNewTask={setNewTask}
-        onAddTask={handleAddTask}
-        isDarkMode={true}
-      />
-
-      {selectedTask && (
-        <EditTaskModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          task={selectedTask}
-          onSave={handleSaveTask}
-          isDarkMode={true}
+      {isAddModalOpen && (
+        <AddTaskModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onAddTask={handleAddTask}
+          newTask={newTask}
+          setNewTask={setNewTask}
+          isDarkMode={isDarkMode}
         />
       )}
+      
+      {selectedTask && (
+        <EditTaskModal
+          isOpen={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onSave={handleSaveTask}
+          task={{
+            id: selectedTask.id,
+            title: selectedTask.title,
+            description: selectedTask.description || '',  // Garantir que description seja uma string
+            urgency: selectedTask.urgency,
+            importance: selectedTask.importance,
+            completed: selectedTask.completed,
+            tags: selectedTask.tags
+          }}
+          isDarkMode={isDarkMode}
+        />
+      )}
+
+      {/* Botão de ação flutuante para dispositivos móveis */}
+      <FloatingActionButton onClick={() => setIsAddModalOpen(true)} />
     </div>
   );
 };
-
-<TooltipProvider>
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <button onClick={() => startTimer(task.id)}>
-        <Clock className="h-4 w-4" />
-      </button>
-    </TooltipTrigger>
-    <TooltipContent>
-      <p>Iniciar timer para esta tarefa</p>
-    </TooltipContent>
-  </Tooltip>
-</TooltipProvider>
-
-// Aplicar tooltips similares para outros botões de ação
