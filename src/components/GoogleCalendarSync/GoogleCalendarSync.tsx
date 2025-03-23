@@ -3,18 +3,21 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
-import { Calendar, CheckCircle, RefreshCw, ExternalLink, LogOut } from 'lucide-react';
+import { Calendar, CheckCircle, RefreshCw, ExternalLink, LogOut, AlertCircle } from 'lucide-react';
+import { Task } from '@/services/googleCalendar';
 import { 
-  loadGoogleApi, 
-  isUserSignedIn, 
-  signInWithGoogle, 
+  loadGoogleApiScript, 
+  initializeGoogleApi,
+  getGoogleAuthInstance,
+  isUserSignedIn,
+  signInWithGoogle,
   signOutFromGoogle,
-  getGoogleUserInfo,
-  addSignInListener,
-  syncTasksToCalendar,
-  Task
-} from '@/services/googleCalendar';
+  getGoogleUserInfo
+} from '@/utils/googleApiLoader';
 import './styles.css';
+
+// Use service for syncing tasks
+import { syncTasksToCalendar } from '@/services/googleCalendar';
 
 interface GoogleCalendarSyncProps {
   tasks: Task[];
@@ -37,17 +40,30 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
   useEffect(() => {
     const initGoogleApi = async () => {
       try {
-        console.log('Loading Google API...');
-        await loadGoogleApi();
-        setIsLoading(false);
+        console.log('Loading and initializing Google API...');
         
-        // Add listener for auth state changes
-        addSignInListener((signedIn) => {
+        // Load the API script
+        await loadGoogleApiScript();
+        
+        // Initialize the API client
+        await initializeGoogleApi();
+        
+        // Check if user is signed in and update state
+        const authInstance = getGoogleAuthInstance();
+        if (authInstance) {
+          const signedIn = authInstance.isSignedIn.get();
           setIsSignedIn(signedIn);
           setUserInfo(signedIn ? getGoogleUserInfo() : null);
-        });
+          
+          // Add listener for auth state changes
+          authInstance.isSignedIn.listen((signedIn: boolean) => {
+            setIsSignedIn(signedIn);
+            setUserInfo(signedIn ? getGoogleUserInfo() : null);
+          });
+        }
         
-        console.log('Google API loaded successfully');
+        setIsLoading(false);
+        console.log('Google API loaded and initialized successfully');
       } catch (error) {
         console.error('Error initializing Google API:', error);
         setIsLoading(false);
@@ -61,6 +77,15 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
     };
 
     initGoogleApi();
+    
+    // Cleanup function
+    return () => {
+      // Remove auth listener if needed
+      const authInstance = getGoogleAuthInstance();
+      if (authInstance && authInstance.isSignedIn) {
+        // No direct way to remove a specific listener, but could be implemented if needed
+      }
+    };
   }, []);
 
   const handleAuthClick = async () => {
@@ -156,6 +181,21 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
         Tarefas concluídas serão automaticamente removidas do calendário.
       </p>
       
+      {initError && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-md p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-destructive">Erro na inicialização</p>
+              <p className="text-sm text-muted-foreground mt-1">{initError}</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Verifique se as credenciais da API do Google estão corretas e se o domínio está autorizado.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {isLoading ? (
         <div className="flex items-center justify-center py-4">
           <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -231,6 +271,7 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
           <Button 
             onClick={handleAuthClick}
             className="w-full"
+            disabled={!!initError}
           >
             <Calendar className="mr-2 h-4 w-4" />
             Conectar ao Google Calendar
