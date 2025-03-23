@@ -1,5 +1,5 @@
 
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect, useRef } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,20 +22,40 @@ import GlobalErrorHandler from './components/GlobalErrorHandler';
 const queryClient = new QueryClient();
 
 const App = () => {
+  const googleScriptLoaded = useRef(false);
+
   // Load Google API script
   useEffect(() => {
     const loadGoogleScript = () => {
+      if (googleScriptLoaded.current || document.getElementById('google-api-script')) {
+        return;
+      }
+      
       console.log('Loading Google API script');
       const script = document.createElement("script");
+      script.id = 'google-api-script';
       script.src = "https://apis.google.com/js/api.js";
       script.async = true;
       script.defer = true;
-      script.onload = () => console.log('Google API script loaded');
-      script.onerror = (e) => console.error('Error loading Google API script', e);
+      
+      script.onload = () => {
+        console.log('Google API script loaded successfully');
+        googleScriptLoaded.current = true;
+      };
+      
+      script.onerror = (e) => {
+        console.error('Error loading Google API script', e);
+      };
+      
       document.body.appendChild(script);
     };
 
     loadGoogleScript();
+    
+    // Clean up function
+    return () => {
+      // No cleanup needed for the script as it should persist
+    };
   }, []);
 
   return (

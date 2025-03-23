@@ -15,46 +15,15 @@ declare global {
 =======
 
 import { logError, ErrorType } from '@/lib/logError';
+import { 
+  getGoogleAuthInstance,
+  isUserSignedIn as checkUserSignedIn 
+} from '@/utils/googleApiLoader';
 
-// Google API configuration - use environment variables
+// Use environment variables
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPES = 'https://www.googleapis.com/auth/calendar';
-
-// Interface for the Google auth instance
-interface GoogleAuthInstance {
-  isSignedIn: {
-    get: () => boolean;
-    listen: (callback: (isSignedIn: boolean) => void) => void;
-  };
-  signIn: () => Promise<any>;
-  signOut: () => Promise<any>;
-  currentUser: {
-    get: () => {
-      getBasicProfile: () => {
-        getName: () => string;
-        getEmail: () => string;
-        getImageUrl: () => string;
-      };
-      getAuthResponse: () => {
-        access_token: string;
-      };
-    };
-  };
-}
-
-// Interface for the Google API client
-interface GoogleApiClient {
-  init: (config: any) => Promise<void>;
-  calendar: {
-    events: {
-      insert: (params: any) => Promise<any>;
-      list: (params: any) => Promise<any>;
-      delete: (params: any) => Promise<any>;
-      update: (params: any) => Promise<any>;
-    };
-  };
-}
 
 // Task interface 
 >>>>>>> 76534f3dce8a6338e185f7c448554f8f74a8967d
@@ -229,219 +198,11 @@ export const createEventFromTask = async (task: Task): Promise<string | null> =>
   [key: string]: any;
 }
 
-let gapiInitialized = false;
-let authInstance: GoogleAuthInstance | null = null;
-
-/**
- * Loads the Google API client library
- */
-export const loadGoogleApi = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    if (gapiInitialized) {
-      resolve();
-      return;
-    }
-
-    if (!window.gapi) {
-      const script = document.createElement('script');
-      script.src = 'https://apis.google.com/js/api.js';
-      script.async = true;
-      script.defer = true;
-      
-      script.onload = () => {
-        window.gapi.load('client:auth2', async () => {
-          try {
-            await initGoogleClient();
-            gapiInitialized = true;
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        });
-      };
-      
-      script.onerror = () => {
-        reject(new Error('Failed to load Google API script'));
-      };
-      
-      document.body.appendChild(script);
-    } else {
-      window.gapi.load('client:auth2', async () => {
-        try {
-          await initGoogleClient();
-          gapiInitialized = true;
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      });
-    }
-  });
-};
-
-/**
- * Initialize the Google API client
- */
-const initGoogleClient = async (): Promise<void> => {
-  try {
-    console.log('Initializing Google API client with:', { 
-      apiKey: API_KEY ? 'API Key exists' : 'No API Key', 
-      clientId: CLIENT_ID ? 'Client ID exists' : 'No Client ID',
-      scope: SCOPES
-    });
-    
-    await window.gapi.client.init({
-      apiKey: API_KEY,
-      clientId: CLIENT_ID,
-      scope: SCOPES,
-      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest']
-    });
-    
-    authInstance = window.gapi.auth2.getAuthInstance();
-    console.log('Google API client initialized successfully');
-  } catch (error) {
-    console.error('Error initializing Google API client:', error);
-    logError(error instanceof Error ? error : new Error(String(error)), {
-      type: ErrorType.API,
-      code: 'google-client-init-failed',
-      context: { component: 'googleCalendar' }
-    });
-    throw error;
-  }
-};
-
 /**
  * Checks if the user is signed in
  */
 export const isUserSignedIn = (): boolean => {
-  if (!authInstance) return false;
-  return authInstance.isSignedIn.get();
-};
-
-/**
- * Signs in with Google
- */
-export const signInWithGoogle = async (): Promise<any> => {
-  if (!authInstance) {
-    try {
-      await loadGoogleApi();
-    } catch (error) {
-      logError(error instanceof Error ? error : new Error(String(error)), {
-        type: ErrorType.AUTH,
-        code: 'google-auth-load-failed',
-        context: { component: 'googleCalendar' }
-      });
-      throw new Error('Failed to load Google API');
-    }
-  }
-  
-  if (!authInstance) {
-    throw new Error('Google Auth not initialized');
-  }
-  
-  try {
-    return await authInstance.signIn();
-  } catch (error) {
-    logError(error instanceof Error ? error : new Error(String(error)), {
-      type: ErrorType.AUTH,
-      code: 'google-sign-in-failed',
-      context: { component: 'googleCalendar' }
-    });
-    throw error;
-  }
-};
-
-/**
- * Signs out from Google
- */
-export const signOutFromGoogle = async (): Promise<void> => {
-  if (!authInstance) {
-    return;
-  }
-  
-  try {
-    await authInstance.signOut();
-  } catch (error) {
-    logError(error instanceof Error ? error : new Error(String(error)), {
-      type: ErrorType.AUTH,
-      code: 'google-sign-out-failed',
-      context: { component: 'googleCalendar' }
-    });
-    throw error;
-  }
-};
-
-/**
- * Gets user information
- */
-export const getGoogleUserInfo = (): { name: string; email: string; imageUrl: string } | null => {
-  if (!authInstance || !authInstance.isSignedIn.get()) {
-    return null;
-  }
-  
-  try {
-    const profile = authInstance.currentUser.get().getBasicProfile();
-    return {
-      name: profile.getName(),
-      email: profile.getEmail(),
-      imageUrl: profile.getImageUrl()
-    };
-  } catch (error) {
-    logError(error instanceof Error ? error : new Error(String(error)), {
-      type: ErrorType.AUTH,
-      code: 'google-user-info-failed',
-      context: { component: 'googleCalendar' }
-    });
-    return null;
-  }
-};
-
-/**
- * Gets the access token
- */
-export const getAccessToken = (): string | null => {
-  if (!authInstance || !authInstance.isSignedIn.get()) {
-    return null;
-  }
-  
-  try {
-    return authInstance.currentUser.get().getAuthResponse().access_token;
-  } catch (error) {
-    logError(error instanceof Error ? error : new Error(String(error)), {
-      type: ErrorType.AUTH,
-      code: 'google-token-failed',
-      context: { component: 'googleCalendar' }
-    });
-    return null;
-  }
-};
-
-/**
- * Adds event listener for sign-in state
- */
-export const addSignInListener = (callback: (isSignedIn: boolean) => void): void => {
-  if (!authInstance) {
-    loadGoogleApi()
-      .then(() => {
-        if (authInstance) {
-          authInstance.isSignedIn.listen(callback);
-          // Initial callback with current state
-          callback(authInstance.isSignedIn.get());
-        }
-      })
-      .catch((error) => {
-        logError(error instanceof Error ? error : new Error(String(error)), {
-          type: ErrorType.AUTH,
-          code: 'google-listener-failed',
-          context: { component: 'googleCalendar' }
-        });
-      });
-    return;
-  }
-  
-  authInstance.isSignedIn.listen(callback);
-  // Initial callback with current state
-  callback(authInstance.isSignedIn.get());
+  return checkUserSignedIn();
 };
 
 /**
@@ -876,23 +637,12 @@ export default {
 // Add window type definitions
 declare global {
   interface Window {
-    gapi: {
-      load: (api: string, callback: () => void) => void;
-      client: GoogleApiClient;
-      auth2: {
-        getAuthInstance: () => GoogleAuthInstance;
-      };
-    };
+    gapi: any;
   }
 }
 
 export default {
-  loadGoogleApi,
   isUserSignedIn,
-  signInWithGoogle,
-  signOutFromGoogle,
-  getGoogleUserInfo,
-  addSignInListener,
   syncTaskToCalendar,
   syncTasksToCalendar,
   updateCalendarTask,

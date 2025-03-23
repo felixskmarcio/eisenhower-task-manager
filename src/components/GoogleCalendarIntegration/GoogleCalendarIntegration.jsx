@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import './styles.css';
 
@@ -10,25 +11,35 @@ const GoogleCalendarIntegration = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Carrega a biblioteca do cliente GAPI
     const loadGapiAndInitClient = () => {
-      gapi.load('client:auth2', initClient);
+      if (!window.gapi) {
+        console.error('Google API não carregada! Verifique se o script foi adicionado corretamente.');
+        setError('Google API não está disponível');
+        return;
+      }
+      
+      setIsLoading(true);
+      window.gapi.load('client:auth2', initClient);
     };
 
     // Inicializa o cliente GAPI
     const initClient = () => {
-      console.log('Initializing with client ID:', CLIENT_ID);
+      console.log('Inicializando com client ID:', CLIENT_ID);
+      console.log('Inicializando com API key:', API_KEY ? 'API Key existe' : 'API Key não existe');
       
-      gapi.client.init({
+      window.gapi.client.init({
         apiKey: API_KEY,
         clientId: CLIENT_ID,
         scope: SCOPES,
         discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest']
       }).then(() => {
+        console.log('Cliente Google API inicializado com sucesso');
         // Atualiza o estado de login
-        const authInstance = gapi.auth2.getAuthInstance();
+        const authInstance = window.gapi.auth2.getAuthInstance();
         setIsSignedIn(authInstance.isSignedIn.get());
         
         // Adiciona listener para mudanças de estado de autenticação
@@ -43,9 +54,12 @@ const GoogleCalendarIntegration = () => {
             imageUrl: profile.getImageUrl()
           });
         }
+        
+        setIsLoading(false);
       }).catch(error => {
         console.error('Erro ao inicializar cliente GAPI', error);
         setError(`Erro ao inicializar: ${error.message || 'Desconhecido'}`);
+        setIsLoading(false);
       });
     };
 
@@ -54,7 +68,7 @@ const GoogleCalendarIntegration = () => {
       setIsSignedIn(isUserSignedIn);
       
       if (isUserSignedIn) {
-        const profile = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile();
+        const profile = window.gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile();
         setUserInfo({
           name: profile.getName(),
           email: profile.getEmail(),
@@ -65,20 +79,49 @@ const GoogleCalendarIntegration = () => {
       }
     };
 
-    // Carrega a API quando o componente é montado
+    // Verifica se o gapi já está disponível
     if (window.gapi) {
       loadGapiAndInitClient();
+    } else {
+      // Configura um listener para quando o script for carregado
+      const checkGapiLoaded = setInterval(() => {
+        if (window.gapi) {
+          clearInterval(checkGapiLoaded);
+          loadGapiAndInitClient();
+        }
+      }, 100);
+      
+      // Limpa o intervalo após 10 segundos para evitar loops infinitos
+      setTimeout(() => {
+        clearInterval(checkGapiLoaded);
+        if (!window.gapi) {
+          setError('Tempo esgotado ao carregar a API do Google');
+        }
+      }, 10000);
     }
+    
+    // Limpa os listeners quando o componente é desmontado
+    return () => {
+      // Nenhuma limpeza específica necessária
+    };
   }, []);
 
   // Faz login no Google
   const handleAuthClick = () => {
-    if (window.gapi) {
-      if (!isSignedIn) {
-        gapi.auth2.getAuthInstance().signIn();
-      } else {
-        gapi.auth2.getAuthInstance().signOut();
-      }
+    if (!window.gapi) {
+      setError('Google API não está disponível');
+      return;
+    }
+    
+    if (!isSignedIn) {
+      window.gapi.auth2.getAuthInstance().signIn().catch(err => {
+        console.error('Erro ao fazer login:', err);
+        setError(`Erro ao fazer login: ${err.message || 'Desconhecido'}`);
+      });
+    } else {
+      window.gapi.auth2.getAuthInstance().signOut().catch(err => {
+        console.error('Erro ao fazer logout:', err);
+      });
     }
   };
 
@@ -100,7 +143,16 @@ const GoogleCalendarIntegration = () => {
         Sincronize suas tarefas com o Google Calendar para manter tudo organizado em um só lugar.
       </p>
       
-      {isSignedIn && userInfo ? (
+      {error && (
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={() => setError(null)}>Fechar</button>
+        </div>
+      )}
+      
+      {isLoading ? (
+        <div className="loading-indicator">Carregando...</div>
+      ) : isSignedIn && userInfo ? (
         <div className="google-account-info">
           <div className="user-profile">
             <img src={userInfo.imageUrl} alt={userInfo.name} className="user-avatar" />
@@ -137,6 +189,7 @@ const GoogleCalendarIntegration = () => {
           <button 
             className="google-auth-btn"
             onClick={handleAuthClick}
+            disabled={!window.gapi}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M21.8055 10.0415H21V10H12V14H17.6515C16.827 16.3285 14.6115 18 12 18C8.6865 18 6 15.3135 6 12C6 8.6865 8.6865 6 12 6C13.5295 6 14.921 6.577 15.9805 7.5195L18.809 4.691C17.023 3.0265 14.634 2 12 2C6.4775 2 2 6.4775 2 12C2 17.5225 6.4775 22 12 22C17.5225 22 22 17.5225 22 12C22 11.3295 21.931 10.675 21.8055 10.0415Z" fill="#FFC107"/>
