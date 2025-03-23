@@ -98,19 +98,19 @@ const VisualThemeSelector: React.FC<VisualThemeSelectorProps> = ({ className }) 
               <h3 className="text-sm font-medium opacity-70 mb-3">{category}</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {themesInCategory.map(theme => (
-                  <div
-                    key={theme.name}
-                    onClick={() => setTheme(theme.name as any)}
+          <div
+            key={theme.name}
+            onClick={() => setTheme(theme.name as any)}
                     className={`
                       relative p-1 rounded-xl cursor-pointer transition-all duration-300
                       ${currentTheme === theme.name 
                         ? 'ring-2 ring-primary ring-offset-2 ring-offset-base-100 scale-105 animate-pulse-soft shadow-lg' 
                         : 'hover:scale-105 hover:shadow-md bg-base-200'}
                     `}
-                  >
-                    <div 
+          >
+            <div 
                       className="h-24 rounded-lg overflow-hidden w-full" 
-                      style={{
+              style={{ 
                         background: `linear-gradient(135deg, ${theme.primary}40, ${theme.secondary}30, ${theme.accent}20)`,
                       }}
                     >
@@ -128,11 +128,11 @@ const VisualThemeSelector: React.FC<VisualThemeSelectorProps> = ({ className }) 
                           <Check className="h-3 w-3" />
                         </span>
                       )}
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
+                </div>
+              ))}
+            </div>
+          </div>
           );
         })}
       </div>

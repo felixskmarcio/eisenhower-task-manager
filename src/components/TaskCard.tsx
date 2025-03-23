@@ -1,9 +1,11 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, AlertCircle, Edit2, CheckCircle } from 'lucide-react';
+import { Clock, AlertCircle, Edit2, CheckCircle, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface TaskCardProps {
   title: string;
@@ -20,6 +22,7 @@ interface TaskCardProps {
     urgency: number;
     importance: number;
     completed: boolean;
+    start_date?: string | Date | null;
   };
 }
 
@@ -40,6 +43,11 @@ export const TaskCard = ({
     if (urgent) return 'from-yellow-50 to-orange-50 border-yellow-200/30';
     return 'from-green-50 to-teal-50 border-green-200/30';
   };
+  
+  // Formatar a data de início, se disponível
+  const formattedStartDate = task.start_date 
+    ? format(new Date(task.start_date), "d 'de' MMMM, yyyy", { locale: ptBR }) 
+    : null;
 
   return (
     <motion.div
@@ -64,6 +72,14 @@ export const TaskCard = ({
           <p className={`text-sm mt-2.5 leading-relaxed ${completed ? 'text-gray-400' : 'text-gray-600'} line-clamp-3`}>
             {description}
           </p>
+          
+          {formattedStartDate && (
+            <div className="flex items-center mt-3 text-xs text-gray-500">
+              <Calendar className="w-3.5 h-3.5 mr-1.5 inline" />
+              <span>Início: {formattedStartDate}</span>
+            </div>
+          )}
+          
           <div className="flex flex-wrap gap-2 mt-4">
             {important && (
               <Badge className="bg-primary/80 hover:bg-primary text-white backdrop-blur-sm transition-colors py-1 px-2.5 font-medium text-xs">

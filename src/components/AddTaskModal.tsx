@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, AlertTriangle } from 'lucide-react';
+import { X, Plus, AlertTriangle, Calendar } from 'lucide-react';
 import TagSelector from './TagSelector';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -17,6 +22,7 @@ interface AddTaskModalProps {
     urgency: number;
     importance: number;
     tags?: string[];
+    start_date?: Date | null;
   };
   setNewTask: React.Dispatch<React.SetStateAction<{
     title: string;
@@ -24,6 +30,7 @@ interface AddTaskModalProps {
     urgency: number;
     importance: number;
     tags?: string[];
+    start_date?: Date | null;
   }>>;
   onAddTask: () => void;
   isDarkMode: boolean;
@@ -141,6 +148,52 @@ const AddTaskModal = ({
                   ? 'bg-gray-800/70 border-gray-600 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400' 
                   : 'bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-black'}`} 
             />
+          </div>
+
+          <div>
+            <Label htmlFor="start-date" className="text-sm font-medium mb-1.5 block">
+              Data de Início (Opcional)
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="start-date"
+                  variant="outline"
+                  className={`w-full justify-start text-left font-normal ${
+                    !newTask.start_date && "text-muted-foreground"
+                  } ${isDarkMode 
+                    ? 'bg-gray-800/70 border-gray-600 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-700' 
+                    : 'bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-100'}`}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {newTask.start_date ? (
+                    format(newTask.start_date, "PPP", { locale: ptBR })
+                  ) : (
+                    <span>Selecione uma data</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={newTask.start_date || undefined}
+                  onSelect={(date) => setNewTask({...newTask, start_date: date})}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {newTask.start_date && (
+              <div className="flex justify-end mt-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs h-7 px-2"
+                  onClick={() => setNewTask({...newTask, start_date: null})}
+                >
+                  Limpar data
+                </Button>
+              </div>
+            )}
           </div>
 
           <div>

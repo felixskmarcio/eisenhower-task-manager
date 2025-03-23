@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Conexão</title>
+</head>
+<body>
+    <h1>Teste de Conexão ao Servidor</h1>
+    <button id="testButton">Testar Conexão</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('testButton').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = 'Testando conexão...';
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8080/');
+                if (response.ok) {
+                    const text = await response.text();
+                    resultDiv.textContent = `Conexão bem-sucedida! Resposta: ${text}`;
+                } else {
+                    resultDiv.textContent = `Erro na resposta: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.textContent = `Erro na conexão: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html> 

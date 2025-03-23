@@ -10,6 +10,7 @@ export interface Task {
   quadrant: number;
   completed: boolean;
   created_at: string;
+  start_date?: string | null;
   completed_at?: string | null;
   tags?: string[];
   user_id?: string;
@@ -26,6 +27,8 @@ export interface LocalTask {
   completed?: boolean;
   created_at?: string;
   createdAt?: Date | string;
+  start_date?: string | null;
+  startDate?: Date | string | null;
   completed_at?: string | null;
   completedAt?: Date | string | null;
   tags?: string[];

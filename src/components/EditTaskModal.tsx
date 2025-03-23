@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertTriangle, Save } from 'lucide-react';
+import { X, AlertTriangle, Save, Calendar } from 'lucide-react';
 import TagSelector from './TagSelector';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 interface EditTaskModalProps {
   isOpen: boolean;
@@ -17,6 +22,7 @@ interface EditTaskModalProps {
     urgency: number;
     importance: number;
     completed: boolean;
+    start_date?: Date | string | null;
     tags?: string[];
   };
   onSave: (task: {
@@ -26,6 +32,7 @@ interface EditTaskModalProps {
     urgency: number;
     importance: number;
     completed: boolean;
+    start_date?: Date | string | null;
     tags?: string[];
   }) => void;
   isDarkMode: boolean;
@@ -43,7 +50,12 @@ const EditTaskModal = ({
 
   // Atualizar o estado local quando a task de props mudar
   useEffect(() => {
-    setEditedTask(task);
+    // Garantir que a data de início seja um objeto Date se existir
+    const updatedTask = { ...task };
+    if (task.start_date && typeof task.start_date === 'string') {
+      updatedTask.start_date = new Date(task.start_date);
+    }
+    setEditedTask(updatedTask);
   }, [task]);
 
   if (!isOpen) return null;
@@ -143,6 +155,52 @@ const EditTaskModal = ({
                   ? 'bg-gray-800/70 border-gray-600 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400' 
                   : 'bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-black'}`}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="edit-start-date" className="text-sm font-medium mb-1.5 block">
+              Data de Início (Opcional)
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="edit-start-date"
+                  variant="outline"
+                  className={`w-full justify-start text-left font-normal ${
+                    !editedTask.start_date && "text-muted-foreground"
+                  } ${isDarkMode 
+                    ? 'bg-gray-800/70 border-gray-600 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-700' 
+                    : 'bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-100'}`}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {editedTask.start_date ? (
+                    format(new Date(editedTask.start_date), "PPP", { locale: ptBR })
+                  ) : (
+                    <span>Selecione uma data</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={editedTask.start_date ? new Date(editedTask.start_date) : undefined}
+                  onSelect={(date) => setEditedTask({...editedTask, start_date: date})}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {editedTask.start_date && (
+              <div className="flex justify-end mt-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs h-7 px-2"
+                  onClick={() => setEditedTask({...editedTask, start_date: null})}
+                >
+                  Limpar data
+                </Button>
+              </div>
+            )}
           </div>
           
           <div>
@@ -249,12 +307,7 @@ const EditTaskModal = ({
                   </svg>
                   Salvando...
                 </div>
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <Save className="h-4 w-4" />
-                  Salvar
-                </div>
-              )}
+              ) : 'Salvar'}
             </Button>
           </div>
         </div>

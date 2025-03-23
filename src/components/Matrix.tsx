@@ -32,6 +32,7 @@ interface Task {
   timeSpent?: number;
   isTimerActive?: boolean;
   tags?: string[]; // Array of tag IDs for categorization
+  start_date?: string | null;
 }
 
 // Definir a interface para o resultado de drag-and-drop
@@ -187,7 +188,7 @@ export const Matrix = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [activeView, setActiveView] = useState<'matrix' | 'tasks' | 'completed'>('matrix');
-  const [newTask, setNewTask] = useState<Omit<Task, 'id' | 'quadrant' | 'completed' | 'createdAt' | 'completedAt'>>({    
+  const [newTask, setNewTask] = useState<Omit<Task, 'id' | 'quadrant' | 'completed' | 'createdAt' | 'completedAt' | 'start_date'>>({    
     title: '',
     description: undefined,
     urgency: 5,
@@ -220,6 +221,7 @@ export const Matrix = () => {
     urgency: number;
     importance: number;
     completed: boolean;
+    start_date?: Date | string | null;
     tags?: string[];
   }) => {
     // Converter para o tipo Task
@@ -227,7 +229,8 @@ export const Matrix = () => {
       ...editedTask,
       quadrant: calculateQuadrant(editedTask.urgency, editedTask.importance),
       createdAt: tasks.find(t => t.id === editedTask.id)?.createdAt || new Date(),
-      completedAt: editedTask.completed ? (tasks.find(t => t.id === editedTask.id)?.completedAt || new Date()) : null
+      completedAt: editedTask.completed ? (tasks.find(t => t.id === editedTask.id)?.completedAt || new Date()) : null,
+      start_date: editedTask.start_date ? (typeof editedTask.start_date === 'string' ? editedTask.start_date : new Date(editedTask.start_date).toISOString()) : null
     };
     
     const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
@@ -405,7 +408,8 @@ export const Matrix = () => {
       quadrant: newTaskQuadrant,
       completed: false,
       createdAt: new Date(),
-      completedAt: null
+      completedAt: null,
+      start_date: newTask.start_date ? new Date(newTask.start_date).toISOString() : null
     };
     const updatedTasks = [...tasks, createdTask];
     setTasks(updatedTasks);
@@ -416,7 +420,8 @@ export const Matrix = () => {
       description: undefined,
       urgency: 5,
       importance: 5,
-      tags: []
+      tags: [],
+      start_date: null
     });
     toast({
       title: 'Tarefa adicionada',
@@ -826,7 +831,9 @@ export const Matrix = () => {
         const formattedTasks = parsedTasks.map(task => ({
           ...task,
           createdAt: task.createdAt ? new Date(task.createdAt) : new Date(),
-          completedAt: task.completedAt ? new Date(task.completedAt) : null
+          completedAt: task.completedAt ? new Date(task.completedAt) : null,
+          // Manter start_date como string ISO para compatibilidade com o restante do código
+          start_date: task.start_date || null
         }));
         setTasks(formattedTasks);
         console.log(`${formattedTasks.length} tarefas carregadas do localStorage`);
