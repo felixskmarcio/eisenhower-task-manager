@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -25,6 +24,16 @@ const themeColors = {
     bg: '#282a36', 
     colors: ['#ff79c6', '#bd93f9', '#50fa7b', '#f8f8f2'],
     category: 'Personalizado' 
+  },
+  'nebula': {
+    bg: '#1a0f30',
+    colors: ['#a47cff', '#ff6ecd', '#29b7db', '#f8f8f2'],
+    category: 'Personalizado'
+  },
+  'sunset': {
+    bg: '#faf5e9',
+    colors: ['#e86c30', '#ea4c89', '#f5b14c', '#333333'],
+    category: 'Personalizado'
   },
   'synthwave': { 
     bg: '#2d1b69', 
@@ -98,7 +107,7 @@ const themeColors = {
 };
 
 // Lista de temas claros para usar texto escuro
-const lightThemes = ['light', 'cupcake', 'emerald', 'bumblebee', 'corporate', 'valentine'];
+const lightThemes = ['light', 'cupcake', 'emerald', 'bumblebee', 'corporate', 'valentine', 'sunset'];
 
 const ThemeSelector: React.FC<ThemeSelectorProps> = ({ className }) => {
   const { currentTheme, setTheme } = useTheme();
@@ -123,15 +132,15 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ className }) => {
         <div 
           tabIndex={0} 
           role="button" 
-          className="btn btn-sm md:btn-md m-1 flex items-center space-x-2"
+          className="btn btn-sm md:btn-md m-1 flex items-center space-x-2 shadow-md hover:shadow-lg transition-all duration-200"
         >
           <span>Tema</span>
           <div className="flex space-x-1 ml-2">
             {themeColors[currentTheme]?.colors.slice(0, 3).map((color, index) => (
               <div
                 key={index}
-                className="w-3 h-3 rounded-full border border-base-content border-opacity-20"
-                style={{ backgroundColor: color }}
+                className="w-3 h-3 rounded-full border border-base-content border-opacity-20 animate-pulse-soft"
+                style={{ backgroundColor: color, animationDelay: `${index * 0.2}s` }}
               />
             ))}
           </div>
@@ -146,7 +155,7 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ className }) => {
         </div>
         <ul 
           tabIndex={0} 
-          className="dropdown-content bg-base-200 rounded-box z-10 w-64 p-3 shadow-xl max-h-[70vh] overflow-y-auto"
+          className="dropdown-content bg-base-200 rounded-box z-10 w-64 p-3 shadow-xl max-h-[70vh] overflow-y-auto custom-scrollbar"
         >
           {categoryOrder.map(category => {
             const themesInCategory = themesByCategory[category] || [];
@@ -159,7 +168,7 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ className }) => {
                   {themesInCategory.map(theme => (
                     <li key={theme.name}>
                       <button
-                        className={`w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 hover:bg-base-300 ${
+                        className={`w-full flex items-center px-3 py-2 rounded-md transition-all duration-300 hover:bg-base-300 ${
                           currentTheme === theme.name ? 'bg-primary bg-opacity-10 border-l-4 border-primary' : ''
                         }`}
                         onClick={() => setTheme(theme.name as any)}
@@ -171,7 +180,7 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ className }) => {
                           {theme.colors.map((color, index) => (
                             <div
                               key={index}
-                              className="w-4 h-4 rounded-full border border-base-content border-opacity-10"
+                              className="w-4 h-4 rounded-full border border-base-content border-opacity-10 transition-transform hover:scale-110"
                               style={{ backgroundColor: color }}
                             />
                           ))}

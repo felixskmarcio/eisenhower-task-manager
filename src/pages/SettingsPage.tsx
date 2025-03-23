@@ -5,7 +5,7 @@ import { Settings, Moon, Sun, Palette, Calendar, Database, Save, FileText } from
 import MarkdownImport from '@/components/MarkdownImport';
 import SupabaseIntegration from '@/components/SupabaseIntegration';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { signInWithGoogle, signOut, getCurrentUser, subscribeToAuthChanges } from '@/services/auth';
 import { auth } from '@/utils/firebase';
 import { User } from 'firebase/auth';

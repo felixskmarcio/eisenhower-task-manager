@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar, RefreshCw, Check, AlertCircle } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { syncTasksWithCalendar, checkCalendarAccess } from '@/services/googleCalendar';
 import { getAccessToken } from '@/services/auth';
 import GoogleCalendarErrorDisplay from './GoogleCalendarErrorDisplay';

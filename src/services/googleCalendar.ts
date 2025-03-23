@@ -1,6 +1,6 @@
 import { getAccessToken } from './auth';
 import { logError, ErrorType } from '@/lib/logError';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 // Adicionar declaração para o tipo Window global com gapi
 declare global {

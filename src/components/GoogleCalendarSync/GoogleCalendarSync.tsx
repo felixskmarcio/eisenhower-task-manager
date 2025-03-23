@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Calendar, CheckCircle, RefreshCw, ExternalLink, LogOut, AlertCircle } from 'lucide-react';
 import { Task } from '@/services/googleCalendar';
 import { 

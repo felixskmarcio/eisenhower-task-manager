@@ -56,6 +56,15 @@ export const Matrix = () => {
   const [isBreak, setIsBreak] = useState(false);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
 
+  // Lista de tags disponíveis (movida para o início do componente)
+  const availableTags = [
+    { id: '1', name: 'Trabalho', color: '#ff79c6' },
+    { id: '2', name: 'Pessoal', color: '#8be9fd' },
+    { id: '3', name: 'Saúde', color: '#50fa7b' },
+    { id: '4', name: 'Escritório', color: '#bd93f9' },
+    { id: '5', name: 'Casa', color: '#f1fa8c' }
+  ];
+
   const startTimer = (taskId: string) => {
     if (activeTimer && activeTimer !== taskId) {
       stopTimer();
@@ -479,85 +488,108 @@ export const Matrix = () => {
   };
 
   const TaskCard = ({ task }: { task: Task }) => (
-    <div 
-      draggable={!task.completed}
+    <div
+      className={`matrix-card mb-2 ${task.completed ? 'opacity-60' : ''}`}
+      draggable={true}
       onDragStart={(e) => handleDragStart(e, task)}
-      onDragEnd={(e) => {
-        // Remover classe quando o arrastar terminar
-        const element = e.currentTarget as HTMLElement;
-        element.classList.remove('dragging');
-      }}
-      onDoubleClick={() => handleEditTask(task)}
-      className={`matrix-card p-3 md:p-4 rounded-xl border transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer
-        ${task.quadrant === 0 ? 'border-red-400/40 bg-gradient-to-br from-red-50/20 to-red-100/20 hover:border-red-400/70' : 
-              task.quadrant === 1 ? 'border-blue-400/40 bg-gradient-to-br from-blue-50/20 to-blue-100/20 hover:border-blue-400/70' : 
-              task.quadrant === 2 ? 'border-amber-400/40 bg-gradient-to-br from-amber-50/20 to-amber-100/20 hover:border-amber-400/70' : 
-              'border-green-400/40 bg-gradient-to-br from-green-50/20 to-green-100/20 hover:border-green-400/70'}
-        ${task.completed ? 'opacity-60' : 'hover:scale-[1.02]'} backdrop-blur-sm group`}
+      id={`task-${task.id}`}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <h3 className={`font-semibold text-base line-clamp-1 ${task.completed ? 'line-through opacity-75' : ''}`}>
-            {task.title}
-          </h3>
-          {task.description && (
-            <p className={`text-sm text-muted-foreground mt-1 line-clamp-2 ${task.completed ? 'line-through opacity-75' : ''}`}>
-              {task.description}
-            </p>
-          )}
-          
-          {/* Tags da tarefa */}
-          {task.tags && task.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {task.tags.map(tagId => {
-                const tag = availableTags.find(t => t.id === tagId);
-                if (!tag) return null;
-                return (
-                  <span key={tagId} 
-                    className="text-[10px] px-1.5 py-0.5 rounded-full" 
-                    style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
-                  >
-                    {tag.name}
-                  </span>
-                );
-              })}
+      <div className="p-2 bg-base-200 rounded-md hover:bg-base-300 transition-all duration-300">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start flex-1 min-w-0">
+            <div className="flex-shrink-0 mt-0.5">
+              <button
+                onClick={() => toggleTaskCompletion(task.id)}
+                className="btn btn-circle btn-xs bg-opacity-30 hover:bg-opacity-50 mr-2"
+                aria-label={task.completed ? "Marcar como não concluída" : "Marcar como concluída"}
+              >
+                {task.completed ? (
+                  <CheckCircle className="h-4 w-4 text-success" />
+                ) : (
+                  <div className="w-3 h-3 rounded-full border-2 border-base-content"></div>
+                )}
+              </button>
             </div>
-          )}
-          
-          <p className={`text-[10px] mt-2 text-muted-foreground/80 italic`}>
-            {formatDate(task.createdAt)}
-          </p>
+            <div className="truncate">
+              <h3 className={`text-sm font-medium truncate ${task.completed ? 'line-through' : 'gradient-heading'}`}>
+                {task.title}
+              </h3>
+              {task.description && (
+                <p className="text-xs text-base-content text-opacity-70 mt-1 line-clamp-2">{task.description}</p>
+              )}
+              {task.tags && task.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {task.tags.map((tagId) => {
+                    const tag = availableTags.find((t) => t.id === tagId);
+                    if (!tag) return null;
+                    return (
+                      <span
+                        key={tagId}
+                        className="text-[10px] px-1.5 rounded-full font-medium inline-flex items-center"
+                        style={{
+                          backgroundColor: `${tag.color}20`,
+                          color: tag.color,
+                        }}
+                      >
+                        {tag.name}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         
-        <div className="card-actions flex flex-col space-y-1.5 transition-opacity">
-          <button 
-            onClick={(e) => { e.stopPropagation(); toggleTaskCompletion(task.id); }}
-            className={`flex-shrink-0 p-1.5 rounded-full transition-all duration-300 
-            ${task.completed 
-              ? 'bg-green-100 text-green-600 hover:bg-green-200' 
-              : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-green-600'}`}
-            title={task.completed ? "Desmarcar tarefa" : "Concluir tarefa"}
-          >
-            <CheckCircle size={14} className="transition-transform group-hover:scale-110" />
-          </button>
-          <button 
-            onClick={(e) => { e.stopPropagation(); confirmDeleteTask(task.id); }}
-            className={`flex-shrink-0 p-1.5 rounded-full transition-all duration-300
-            bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-600`}
-            title="Excluir tarefa"
-          >
-            <Trash2 size={14} className="transition-transform group-hover:scale-110" />
-          </button>
-          <button 
-            onClick={(e) => { e.stopPropagation(); startTimer(task.id); }}
-            className={`flex-shrink-0 p-1.5 rounded-full transition-all duration-300
-            ${activeTimer === task.id 
-              ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' 
-              : 'bg-gray-100 text-gray-400 hover:bg-blue-100 hover:text-blue-600'}`}
-            title="Iniciar timer"
-          >
-            <Clock size={14} className="transition-transform group-hover:scale-110" />
-          </button>
+        <div className="card-actions flex items-center justify-between mt-2 pt-2 border-t border-base-content border-opacity-10">
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => handleEditTask(task)}
+              className="btn btn-ghost btn-xs hover:bg-opacity-30"
+              aria-label="Editar tarefa"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => confirmDeleteTask(task.id)}
+              className="btn btn-ghost btn-xs hover:bg-opacity-30"
+              aria-label="Excluir tarefa"
+            >
+              <Trash2 className="h-3.5 w-3.5 text-error" />
+            </button>
+          </div>
+          
+          <div className="flex items-center">
+            {task.timeSpent && (
+              <span className="text-xs mr-2 flex items-center">
+                <Clock className="h-3 w-3 mr-1" />
+                {Math.floor(task.timeSpent / 60)}m
+              </span>
+            )}
+            {activeTimer === task.id ? (
+              <div className="flex items-center">
+                <span className="text-xs mr-1 font-mono">{formatTime(timeLeft)}</span>
+                <button
+                  onClick={stopTimer}
+                  className="btn btn-xs btn-error btn-circle"
+                  aria-label="Parar timer"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => startTimer(task.id)}
+                disabled={task.completed}
+                className={`btn btn-ghost btn-xs rounded-full ${task.completed ? 'opacity-50' : 'hover:bg-opacity-30'}`}
+                aria-label="Iniciar timer"
+              >
+                <Clock className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -632,37 +664,29 @@ export const Matrix = () => {
     colorClass: string;
     quadrantIndex: number;
   }) => {
-    // Contagem de tarefas no quadrante (apenas as não concluídas)
-    const taskCount = tasks.filter(task => task.quadrant === quadrantIndex && !task.completed).length;
-    
     return (
-      <div 
-        className={`p-3 border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${colorClass}`}
+      <div
+        className={`quadrant-card q${quadrantIndex + 1} h-full flex flex-col`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={(e) => handleDrop(e, quadrantIndex)}
       >
-        <div className="p-2">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="text-base md:text-lg font-semibold">{title}</h3>
-            <div className="flex items-center justify-center min-w-[22px] h-[22px] rounded-full bg-background/30 border border-muted/40 text-xs font-medium">
-              {taskCount}
+        <div className={`p-4 bg-base-200 bg-opacity-50 glass-effect`}>
+          <h2 className="text-xl font-bold mb-1 gradient-heading">{title}</h2>
+          <p className="text-sm opacity-75">{description}</p>
+          <div className="mt-3 text-xs grid grid-cols-2 gap-2">
+            <div className="flex items-center">
+              <span className={`inline-block w-3 h-3 rounded-full mr-1 bg-opacity-80 ${colorClass}`}></span>
+              <span>{urgentLabel}</span>
+            </div>
+            <div className="flex items-center">
+              <span className={`inline-block w-3 h-3 rounded-full mr-1 bg-opacity-80 ${colorClass}`}></span>
+              <span>{importantLabel}</span>
             </div>
           </div>
-          <p className="text-xs md:text-sm text-muted-foreground mb-3 hidden md:block line-clamp-2">{description}</p>
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            <span className={`text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium inline-flex items-center gap-1.5`}>
-              <span className="w-2 h-2 rounded-full bg-primary"></span>
-              {importantLabel}
-            </span>
-            <span className={`text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-medium inline-flex items-center gap-1.5`}>
-              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-              {urgentLabel}
-            </span>
-          </div>
-          <div className="min-h-[100px] md:min-h-[220px] max-h-[300px] md:max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
-            {children}
-          </div>
+        </div>
+        <div className="flex-1 p-2 overflow-y-auto custom-scrollbar bg-base-100 bg-opacity-90">
+          {children}
         </div>
       </div>
     );
@@ -672,24 +696,15 @@ export const Matrix = () => {
   const FloatingActionButton = ({ onClick }: { onClick: () => void }) => (
     <button
       onClick={onClick}
-      className="fixed bottom-20 right-4 z-40 md:hidden flex items-center justify-center w-14 h-14 rounded-full bg-primary shadow-lg text-white"
-      aria-label="Nova tarefa"
+      className="btn btn-primary btn-circle fixed right-6 bottom-6 shadow-xl floating-button btn-gradient btn-primary-gradient"
+      aria-label="Adicionar nova tarefa"
     >
-      <Plus className="h-6 w-6" />
+      <Plus size={24} />
     </button>
   );
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  
-  // Lista de tags disponíveis
-  const availableTags = [
-    { id: '1', name: 'Trabalho', color: '#ff79c6' },
-    { id: '2', name: 'Pessoal', color: '#8be9fd' },
-    { id: '3', name: 'Saúde', color: '#50fa7b' },
-    { id: '4', name: 'Escritório', color: '#bd93f9' },
-    { id: '5', name: 'Casa', color: '#f1fa8c' }
-  ];
   
   // Seletor de tags rápidas como chips
   const QuickTagSelector = () => {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { FileText, Upload, Check, AlertTriangle, Info } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { extractTasksFromMarkdown } from '@/utils/markdownUtils';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
