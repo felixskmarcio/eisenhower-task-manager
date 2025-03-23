@@ -1,11 +1,11 @@
+
 "use client"
 
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import Link from "next/link"
+import { Link, useLocation } from "react-router-dom"
 import { LucideIcon } from "lucide-react"
 import { cn } from "@/utils/classNames"
-import { usePathname } from "next/navigation"
 
 interface NavItem {
   name: string
@@ -19,19 +19,19 @@ interface NavBarProps {
 }
 
 export function NavBar({ items, className }: NavBarProps) {
-  const pathname = usePathname()
+  const location = useLocation()
   const [activeTab, setActiveTab] = useState("")
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     // Set active tab based on current path
-    const currentItem = items.find(item => pathname === item.url || pathname.startsWith(`${item.url}/`))
+    const currentItem = items.find(item => location.pathname === item.url || location.pathname.startsWith(`${item.url}/`))
     if (currentItem) {
       setActiveTab(currentItem.name)
     } else {
       setActiveTab(items[0].name)
     }
-  }, [pathname, items])
+  }, [location.pathname, items])
 
   useEffect(() => {
     const handleResize = () => {
@@ -67,7 +67,7 @@ export function NavBar({ items, className }: NavBarProps) {
           return (
             <Link
               key={item.name}
-              href={item.url}
+              to={item.url}
               onClick={() => setActiveTab(item.name)}
               className={cn(
                 "relative cursor-pointer text-sm font-medium px-4 sm:px-6 py-2.5 rounded-full transition-all duration-300",
@@ -115,6 +115,20 @@ export function NavBar({ items, className }: NavBarProps) {
                     <div className="absolute w-6 h-4 bg-primary/40 rounded-full blur-sm top-0 left-2" />
                   </div>
                 </motion.div>
+              )}
+              {isActive && (
+                <motion.div
+                  layoutId="active"
+                  className="absolute bottom-0 left-0 right-0 w-full h-0.5 bg-primary"
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              {isActive && (
+                <motion.div
+                  layoutId="hover"
+                  className="absolute bottom-0 left-0 right-0 w-full h-0.5 bg-primary"
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                />
               )}
             </Link>
           )

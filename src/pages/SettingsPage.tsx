@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -6,27 +7,13 @@ import MarkdownImport from '@/components/MarkdownImport';
 import SupabaseIntegration from '@/components/SupabaseIntegration';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { supabase, signInWithGoogle, signOut, getCurrentUser } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
-import GoogleCalendarErrorDisplay from '@/components/GoogleCalendarErrorDisplay';
-import GoogleCalendarSyncButton from '@/components/GoogleCalendarSyncButton';
-
-// Definir interface para Task
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  quadrant: number;
-  completed: boolean;
-  dueDate?: string;
-  tags?: string[];
-}
+import { signInWithGoogle, signOut, getCurrentUser, subscribeToAuthChanges } from '@/services/auth';
+import { auth } from '@/utils/firebase';
+import { User } from 'firebase/auth';
 
 const SettingsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [googleError, setGoogleError] = useState<{code?: string; message: string; details?: Record<string, unknown>} | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [user, setUser] = useState<User | null>(getCurrentUser());
 
   useEffect(() => {
     // Verificar usuário atual ao montar o componente
@@ -126,6 +113,11 @@ const SettingsPage = () => {
     }
   };
 
+  const handleSyncComplete = (success: boolean) => {
+    console.log('Sync completed:', success);
+    // In a real app, you might want to update your state or trigger other actions
+  };
+
   return (
     <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 md:px-8 relative">
       {/* Plano de fundo com gradiente e efeito */}
@@ -139,6 +131,16 @@ const SettingsPage = () => {
           <Settings className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary tracking-tight">Configurações</h1>
         </div>
+        
+        <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
+          <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
+            <Calendar className="h-5 w-5 text-primary" />
+            Google Calendar
+          </h2>
+          <Separator className="my-4" />
+          
+          <GoogleCalendarSync tasks={tasks} onSync={handleSyncComplete} />
+        </Card>
         
         <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
           <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
@@ -176,20 +178,11 @@ const SettingsPage = () => {
           <Separator className="my-4" />
           
           <div>
-            {googleError && (
-              <div className="mb-4">
-                <GoogleCalendarErrorDisplay 
-                  error={googleError}
-                  onRetry={() => handleGoogleLogin()}
-                />
-              </div>
-            )}
-            
             {user ? (
               <div className="bg-green-500/10 border border-green-500/30 rounded-md p-5">
                 <div className="flex items-center gap-2 text-green-600 mb-3 font-medium">
                   <Calendar size={18} />
-                  <span>Conectado como <span className="font-semibold">{user.email || (user.user_metadata?.email || '')}</span></span>
+                  <span>Conectado como <span className="font-semibold">{user.email}</span></span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                   Sua conta Google está conectada. Você pode usar os recursos de sincronização do calendário.
@@ -202,19 +195,6 @@ const SettingsPage = () => {
                 >
                   Desconectar
                 </Button>
-                {user && (
-                  <div className="mt-4 pt-4 border-t border-green-500/20">
-                    <h4 className="text-sm font-medium mb-3 text-primary/80">Sincronização com Google Calendar</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Sincronize suas tarefas com seu calendário Google para visualizá-las e gerenciá-las em qualquer dispositivo.
-                    </p>
-
-                    <GoogleCalendarSyncButton 
-                      tasks={tasks}
-                      className="w-full mt-2"
-                    />
-                  </div>
-                )}
               </div>
             ) : (
               <div className="space-y-4">
