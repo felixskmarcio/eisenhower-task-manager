@@ -4,7 +4,7 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { cn } from '@/utils/classNames';
+import { cn } from '@/lib/utils';
 
 interface TagFilterSelectProps {
   type: 'project' | 'context' | 'lifearea';
@@ -17,8 +17,10 @@ const TagFilterSelect: React.FC<TagFilterSelectProps> = ({ type, value, onChange
   const { tags, getTagsByType } = useTags();
   const [open, setOpen] = React.useState(false);
   
+  // Get tags of the specified type
   const filteredTags = getTagsByType(type);
   
+  // Generate a human-readable label for the filter type
   const getTypeLabel = () => {
     switch (type) {
       case 'project': return 'Projeto';
@@ -28,6 +30,7 @@ const TagFilterSelect: React.FC<TagFilterSelectProps> = ({ type, value, onChange
     }
   };
 
+  // Find the selected tag name
   const selectedTag = filteredTags.find(tag => tag.id === value);
 
   return (
