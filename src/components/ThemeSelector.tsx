@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -161,8 +162,8 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ className }) => {
                         className={`w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 hover:bg-base-300 ${
                           currentTheme === theme.name ? 'bg-primary bg-opacity-10 border-l-4 border-primary' : ''
                         }`}
-                        onClick={() => setTheme(theme.name)}
-                      >
+                        onClick={() => setTheme(theme.name as any)}
+                        >
                         <div className="flex-1 text-left capitalize">
                           {theme.name}
                         </div>
