@@ -56,6 +56,8 @@ export const Matrix = () => {
   const [timeLeft, setTimeLeft] = useState<number>(25 * 60); // 25 minutes in seconds
   const [isBreak, setIsBreak] = useState(false);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
+  const [timerElapsed, setTimerElapsed] = useState<number>(0);
+  const [taskTimeSpent, setTaskTimeSpent] = useState<{[key: string]: number}>({});
 
   // Lista de tags disponíveis (movida para o início do componente)
   const availableTags = [
@@ -66,6 +68,15 @@ export const Matrix = () => {
     { id: '5', name: 'Casa', color: '#f1fa8c' }
   ];
 
+  // Limpar o intervalo quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [intervalId]);
+
   const startTimer = (taskId: string) => {
     if (activeTimer && activeTimer !== taskId) {
       stopTimer();
@@ -74,6 +85,14 @@ export const Matrix = () => {
     setActiveTimer(taskId);
     setIsBreak(false);
     setTimeLeft(25 * 60);
+    setTimerElapsed(0);
+    
+    // Inicializar ou recuperar o tempo já gasto na tarefa
+    const currentTask = tasks.find(t => t.id === taskId);
+    setTaskTimeSpent(prev => ({
+      ...prev,
+      [taskId]: currentTask?.timeSpent || 0
+    }));
 
     const newInterval = setInterval(() => {
       setTimeLeft((prevTime) => {
@@ -89,13 +108,14 @@ export const Matrix = () => {
         return prevTime - 1;
       });
 
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === taskId
-            ? { ...task, timeSpent: (task.timeSpent || 0) + 1, isTimerActive: true }
-            : task
-        )
-      );
+      // Atualizar apenas o tempo decorrido sem modificar o estado das tarefas a cada segundo
+      setTimerElapsed(prev => prev + 1);
+      
+      // Atualiza o tempo gasto na tarefa atual em um objeto separado
+      setTaskTimeSpent(prev => ({
+        ...prev,
+        [taskId]: (prev[taskId] || 0) + 1
+      }));
     }, 1000);
 
     setIntervalId(newInterval);
@@ -115,12 +135,33 @@ export const Matrix = () => {
       clearInterval(intervalId);
       setIntervalId(null);
     }
-    setActiveTimer(null);
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
+    
+    if (activeTimer && timerElapsed > 0) {
+      // Atualizar o tempo total gasto na tarefa quando o timer parar
+      const totalTimeSpent = taskTimeSpent[activeTimer] || 0;
+      
+      const updatedTasks = tasks.map((task) =>
+        task.id === activeTimer
+          ? { ...task, timeSpent: totalTimeSpent, isTimerActive: false }
+          : task.isTimerActive ? { ...task, isTimerActive: false } : task
+      );
+      
+      setTasks(updatedTasks);
+      // Salvar as tarefas atualizadas no localStorage
+      saveTasksToLocalStorage(updatedTasks);
+    } else {
+      const updatedTasks = tasks.map((task) =>
         task.isTimerActive ? { ...task, isTimerActive: false } : task
-      )
-    );
+      );
+      
+      setTasks(updatedTasks);
+      // Salvar as tarefas atualizadas no localStorage
+      saveTasksToLocalStorage(updatedTasks);
+    }
+    
+    setActiveTimer(null);
+    setTimerElapsed(0);
+    
     toast({
       title: 'Timer parado',
       description: 'Tempo registrado com sucesso!',
@@ -567,10 +608,10 @@ export const Matrix = () => {
           </div>
           
           <div className="flex items-center">
-            {task.timeSpent && (
+            {(task.timeSpent || (activeTimer === task.id && taskTimeSpent[task.id])) && (
               <span className="text-xs mr-2 flex items-center">
                 <Clock className="h-3 w-3 mr-1" />
-                {Math.floor(task.timeSpent / 60)}m
+                {Math.floor((activeTimer === task.id ? taskTimeSpent[task.id] : task.timeSpent) / 60)}m
               </span>
             )}
             {activeTimer === task.id ? (
