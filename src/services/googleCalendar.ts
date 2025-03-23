@@ -1,7 +1,7 @@
 
 import { logError, ErrorType } from '@/lib/logError';
 
-// Google API configuration 
+// Google API configuration - use environment variables
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPES = 'https://www.googleapis.com/auth/calendar';
@@ -114,6 +114,12 @@ export const loadGoogleApi = (): Promise<void> => {
  */
 const initGoogleClient = async (): Promise<void> => {
   try {
+    console.log('Initializing Google API client with:', { 
+      apiKey: API_KEY ? 'API Key exists' : 'No API Key', 
+      clientId: CLIENT_ID ? 'Client ID exists' : 'No Client ID',
+      scope: SCOPES
+    });
+    
     await window.gapi.client.init({
       apiKey: API_KEY,
       clientId: CLIENT_ID,
@@ -122,7 +128,9 @@ const initGoogleClient = async (): Promise<void> => {
     });
     
     authInstance = window.gapi.auth2.getAuthInstance();
+    console.log('Google API client initialized successfully');
   } catch (error) {
+    console.error('Error initializing Google API client:', error);
     logError(error instanceof Error ? error : new Error(String(error)), {
       type: ErrorType.API,
       code: 'google-client-init-failed',

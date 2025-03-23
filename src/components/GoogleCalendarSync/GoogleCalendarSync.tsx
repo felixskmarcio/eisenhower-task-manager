@@ -32,10 +32,12 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
 
   useEffect(() => {
     const initGoogleApi = async () => {
       try {
+        console.log('Loading Google API...');
         await loadGoogleApi();
         setIsLoading(false);
         
@@ -44,12 +46,15 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
           setIsSignedIn(signedIn);
           setUserInfo(signedIn ? getGoogleUserInfo() : null);
         });
+        
+        console.log('Google API loaded successfully');
       } catch (error) {
         console.error('Error initializing Google API:', error);
         setIsLoading(false);
+        setInitError(`Erro ao inicializar Google API: ${error instanceof Error ? error.message : String(error)}`);
         toast({
-          title: "Erro",
-          description: "Não foi possível conectar ao Google API.",
+          title: "Erro na API Google",
+          description: "Não foi possível conectar à API do Google. Verifique as credenciais.",
           variant: "destructive"
         });
       }

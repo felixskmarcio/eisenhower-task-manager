@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import './styles.css';
 
-// Substitua pelos seus valores
-const API_KEY = 'SUA_API_KEY';
-const CLIENT_ID = 'SEU_CLIENT_ID';
+// Use environment variables
+const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPES = 'https://www.googleapis.com/auth/calendar';
 
 const GoogleCalendarIntegration = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // Carrega a biblioteca do cliente GAPI
@@ -18,6 +19,8 @@ const GoogleCalendarIntegration = () => {
 
     // Inicializa o cliente GAPI
     const initClient = () => {
+      console.log('Initializing with client ID:', CLIENT_ID);
+      
       gapi.client.init({
         apiKey: API_KEY,
         clientId: CLIENT_ID,
@@ -42,6 +45,7 @@ const GoogleCalendarIntegration = () => {
         }
       }).catch(error => {
         console.error('Erro ao inicializar cliente GAPI', error);
+        setError(`Erro ao inicializar: ${error.message || 'Desconhecido'}`);
       });
     };
 
@@ -148,4 +152,4 @@ const GoogleCalendarIntegration = () => {
   );
 };
 
-export default GoogleCalendarIntegration; 
+export default GoogleCalendarIntegration;

@@ -25,10 +25,13 @@ const App = () => {
   // Load Google API script
   useEffect(() => {
     const loadGoogleScript = () => {
+      console.log('Loading Google API script');
       const script = document.createElement("script");
       script.src = "https://apis.google.com/js/api.js";
       script.async = true;
       script.defer = true;
+      script.onload = () => console.log('Google API script loaded');
+      script.onerror = (e) => console.error('Error loading Google API script', e);
       document.body.appendChild(script);
     };
 
