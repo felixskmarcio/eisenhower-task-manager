@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Moon, Sun, Palette, Calendar, Database, Save, FileText } from "lucide-react";
+import { Settings, Moon, Sun, Palette, Calendar as CalendarIcon, Database, Save, FileText, User, Key, Bell, ChevronRight, Eye, EyeOff } from "lucide-react";
 import MarkdownImport from '@/components/MarkdownImport';
 import SupabaseIntegration from '@/components/SupabaseIntegration';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { signInWithGoogle, signOut, getCurrentUser, subscribeToAuthChanges } from '@/services/auth';
 import { auth } from '@/utils/firebase';
-import { User } from 'firebase/auth';
+import { User as FirebaseUser } from 'firebase/auth';
 import GoogleCalendarErrorDisplay from '@/components/GoogleCalendarErrorDisplay';
 import { AuthError } from 'firebase/auth';
 import GoogleCalendarSyncButton from '@/components/GoogleCalendarSyncButton';
@@ -26,7 +26,7 @@ interface Task {
 
 const SettingsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(getCurrentUser());
+  const [user, setUser] = useState<FirebaseUser | null>(getCurrentUser());
   const [googleError, setGoogleError] = useState<{code?: string; message: string; details?: Record<string, unknown>} | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
 
@@ -157,7 +157,7 @@ const SettingsPage = () => {
         
         <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
           <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
-            <Calendar className="h-5 w-5 text-primary" />
+            <CalendarIcon className="h-5 w-5 text-primary" />
             Conta Google
           </h2>
           <Separator className="my-4" />
@@ -175,7 +175,7 @@ const SettingsPage = () => {
             {user ? (
               <div className="bg-green-500/10 border border-green-500/30 rounded-md p-5">
                 <div className="flex items-center gap-2 text-green-600 mb-3 font-medium">
-                  <Calendar size={18} />
+                  <CalendarIcon size={18} />
                   <span>Conectado como <span className="font-semibold">{user.email}</span></span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
@@ -213,7 +213,7 @@ const SettingsPage = () => {
                   className="w-full"
                   disabled={isLoading}
                 >
-                  <Calendar className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4" />
                   {isLoading ? 'Conectando...' : 'Entrar com Google'}
                 </Button>
               </div>

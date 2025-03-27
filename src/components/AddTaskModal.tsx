@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Plus, AlertTriangle, Calendar } from 'lucide-react';
+import { X, Plus, AlertTriangle, Sparkles, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import TagSelector from './TagSelector';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -10,8 +11,9 @@ import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -45,6 +47,7 @@ const AddTaskModal = ({
   isDarkMode
 }: AddTaskModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTitleFocused, setIsTitleFocused] = useState(false);
 
   if (!isOpen) return null;
 
@@ -106,28 +109,78 @@ const AddTaskModal = ({
         {/* Content */}
         <div className="p-6 space-y-5">
           <div>
-            <Label htmlFor="title" className="text-sm font-medium mb-1.5 block">
-              Título da Tarefa
-            </Label>
-            <Input
-              id="title"
-              type="text" 
-              placeholder="Digite o título da tarefa" 
-              value={newTask.title} 
-              onChange={e => setNewTask({
-                ...newTask,
-                title: e.target.value
-              })}
-              className={`w-full transition-all
-                ${isDarkMode 
-                  ? 'bg-gray-800/70 border-gray-600 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400' 
-                  : 'bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-black'}`} 
-            />
+            <div className="flex items-center gap-2 mb-1.5">
+              <Label htmlFor="title" className="text-sm font-medium block">
+                Título da Tarefa
+              </Label>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              >
+                <Sparkles className="h-4 w-4 text-amber-400" />
+              </motion.div>
+            </div>
+            <div className={`relative group ${isTitleFocused ? 'z-10' : ''}`}>
+              <motion.div
+                className={`absolute -inset-0.5 rounded-lg blur opacity-80 group-hover:opacity-100 transition duration-500 ${
+                  isTitleFocused 
+                    ? 'bg-gradient-to-r from-purple-600 via-blue-500 to-amber-400' 
+                    : 'bg-gradient-to-r from-transparent to-transparent'
+                }`}
+                animate={{
+                  background: isTitleFocused 
+                    ? 'linear-gradient(90deg, rgb(147, 51, 234) 0%, rgb(59, 130, 246) 50%, rgb(251, 191, 36) 100%)' 
+                    : 'linear-gradient(90deg, transparent, transparent)'
+                }}
+                transition={{ duration: 0.3 }}
+              ></motion.div>
+              <Input
+                id="title"
+                type="text" 
+                placeholder="Crie um título envolvente..." 
+                value={newTask.title} 
+                onChange={e => setNewTask({
+                  ...newTask,
+                  title: e.target.value
+                })}
+                onFocus={() => setIsTitleFocused(true)}
+                onBlur={() => setIsTitleFocused(false)}
+                className={`w-full transition-all relative ${
+                  isDarkMode 
+                    ? 'bg-gray-800/70 border-gray-600 focus:ring-transparent focus:border-transparent text-white placeholder-gray-400' 
+                    : 'bg-gray-50 border-gray-300 focus:ring-transparent focus:border-transparent text-black'
+                } z-10 backdrop-blur-sm`} 
+              />
+            </div>
             {!newTask.title.trim() && (
-              <p className="text-amber-500 text-xs flex items-center gap-1 mt-1.5">
+              <motion.p 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="text-amber-500 text-xs flex items-center gap-1 mt-1.5"
+              >
                 <AlertTriangle size={12} />
                 Título é obrigatório
-              </p>
+              </motion.p>
+            )}
+            {newTask.title.trim() && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-2 px-2 py-1 rounded-md bg-gradient-to-r from-indigo-50 to-blue-50 border border-blue-100 dark:from-indigo-900/20 dark:to-blue-900/20 dark:border-blue-800/30"
+              >
+                <p className={`text-xs task-title-gradient ${
+                  newTask.urgency > 7 
+                    ? 'task-title-high-priority' 
+                    : newTask.urgency > 4 
+                    ? 'task-title-medium-priority' 
+                    : 'task-title-low-priority'
+                  } font-medium`}>
+                  Preview: {newTask.title}
+                </p>
+              </motion.div>
             )}
           </div>
           
@@ -165,7 +218,7 @@ const AddTaskModal = ({
                     ? 'bg-gray-800/70 border-gray-600 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-700' 
                     : 'bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-100'}`}
                 >
-                  <Calendar className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4" />
                   {newTask.start_date ? (
                     format(newTask.start_date, "PPP", { locale: ptBR })
                   ) : (
@@ -174,7 +227,7 @@ const AddTaskModal = ({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <CalendarComponent
+                <Calendar
                   mode="single"
                   selected={newTask.start_date || undefined}
                   onSelect={(date) => setNewTask({...newTask, start_date: date})}

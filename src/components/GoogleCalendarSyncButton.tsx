@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Calendar, RefreshCw, Check, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, RefreshCw, Check, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { syncTasksWithCalendar, checkCalendarAccess } from '@/services/googleCalendar';
 import { getAccessToken } from '@/services/auth';
@@ -174,7 +174,7 @@ const GoogleCalendarSyncButton: React.FC<GoogleCalendarSyncButtonProps> = ({
           </>
         ) : (
           <>
-            <Calendar size={16} />
+            <CalendarIcon size={16} />
             <span>Sincronizar com Google Calendar</span>
           </>
         )}

@@ -2,6 +2,7 @@
 @import './components.css';
 @import './utilities.css';
 @import './navigation.css';
+@import './task-title.css';
 
 /* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {

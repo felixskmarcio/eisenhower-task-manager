@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { Calendar, CheckCircle, RefreshCw, ExternalLink, LogOut, AlertCircle } from 'lucide-react';
+import { Check, Calendar as CalendarIcon, CheckCircle, RefreshCw, ExternalLink, LogOut, AlertCircle, AlertTriangle, X } from 'lucide-react';
 import { Task } from '@/services/googleCalendar';
 import { 
   loadGoogleApiScript, 
@@ -171,7 +171,7 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
   return (
     <Card className={`google-calendar-sync p-5 ${className}`}>
       <div className="flex items-center gap-2 mb-4 text-primary">
-        <Calendar className="h-5 w-5" />
+        <CalendarIcon className="h-5 w-5" />
         <h3 className="text-lg font-semibold">Sincronização com Google Calendar</h3>
       </div>
       
@@ -231,7 +231,7 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
                 </>
               ) : (
                 <>
-                  <Calendar className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4" />
                   Sincronizar Tarefas
                 </>
               )}
@@ -272,7 +272,7 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
             className="w-full"
             disabled={!!initError}
           >
-            <Calendar className="mr-2 h-4 w-4" />
+            <CalendarIcon className="mr-2 h-4 w-4" />
             Conectar ao Google Calendar
           </Button>
           

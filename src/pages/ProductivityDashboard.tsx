@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, BarChart2, ClipboardList, Clock, Calendar, CheckCircle, XCircle, TrendingUp, Activity, PieChart as PieChartIcon, Target, ChevronRight } from 'lucide-react';
+import { ArrowLeft, BarChart2, ClipboardList, Clock, Calendar as CalendarIcon, CheckCircle, XCircle, TrendingUp, Activity, PieChart as PieChartIcon, Target, ChevronRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
 import { formatDate } from '@/utils/dateUtils';
 
@@ -352,7 +352,7 @@ const ProductivityDashboard = () => {
             </div>
           </div>
           <div className="mt-3 text-xs text-muted-foreground flex items-center">
-            <Calendar className="h-3.5 w-3.5 mr-1" />
+            <CalendarIcon className="h-3.5 w-3.5 mr-1" />
             <span>Para concluir tarefas</span>
           </div>
         </Card>

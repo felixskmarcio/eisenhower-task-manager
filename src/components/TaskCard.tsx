@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, AlertCircle, Edit2, CheckCircle, Calendar } from 'lucide-react';
+import { Clock, AlertCircle, Edit2, CheckCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
@@ -66,16 +66,21 @@ export const TaskCard = ({
       >
       <div className="flex items-start justify-between">
         <div className="flex-1 pr-4">
-          <h4 className={`font-semibold text-lg ${completed ? 'line-through text-gray-400' : 'text-gray-800'} tracking-tight`}>
+          <motion.h4 
+            className={`${completed ? 'line-through text-gray-400' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'} font-bold text-lg tracking-tight`}
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             {title}
-          </h4>
+          </motion.h4>
           <p className={`text-sm mt-2.5 leading-relaxed ${completed ? 'text-gray-400' : 'text-gray-600'} line-clamp-3`}>
             {description}
           </p>
           
           {formattedStartDate && (
             <div className="flex items-center mt-3 text-xs text-gray-500">
-              <Calendar className="w-3.5 h-3.5 mr-1.5 inline" />
+              <CalendarIcon className="w-3.5 h-3.5 mr-1.5 inline" />
               <span>Início: {formattedStartDate}</span>
             </div>
           )}
