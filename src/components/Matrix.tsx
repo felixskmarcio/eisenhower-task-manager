@@ -333,47 +333,53 @@ export const Matrix = () => {
     const element = e.currentTarget as HTMLElement;
     element.classList.add('dragging');
     
-    // Adicionar imagem transparente para melhorar a experiência de arrastar
+    // Adicionar ghost element para feedback visual
+    const rect = element.getBoundingClientRect();
+    const ghostElement = document.createElement('div');
+    ghostElement.classList.add('drag-ghost');
+    ghostElement.style.width = `${rect.width}px`;
+    ghostElement.style.height = `${rect.height}px`;
+    ghostElement.style.left = `${rect.left}px`;
+    ghostElement.style.top = `${rect.top}px`;
+    document.body.appendChild(ghostElement);
+    
+    // Customizar imagem de arrasto para melhor experiência
     const dragImage = document.createElement('div');
     dragImage.style.width = '1px';
     dragImage.style.height = '1px';
+    dragImage.style.opacity = '0';
     document.body.appendChild(dragImage);
     e.dataTransfer.setDragImage(dragImage, 0, 0);
     
-    // Limpar após o próximo ciclo de renderização
-    setTimeout(() => document.body.removeChild(dragImage), 0);
+    // Adicionar efeito visual à tarefa
+    element.style.transform = 'scale(1.05) rotate(1deg)';
+    
+    // Limpar elementos temporários após o próximo ciclo de renderização
+    setTimeout(() => {
+      document.body.removeChild(dragImage);
+      // Não remover o ghost element ainda, será removido no dragEnd
+    }, 0);
+    
+    // Armazenar referência ao ghost element para remoção posterior
+    (e.currentTarget as any)._ghostElement = ghostElement;
+    // Armazenar a tarefa que está sendo arrastada
+    (document as any)._draggedTask = task;
   };
 
-  const handleDragEnd = (result: DragResult) => {
-    if (!result.destination) return;
-    
-    const sourceDroppableId = result.source.droppableId;
-    const destinationDroppableId = result.destination.droppableId;
-    
-    if (sourceDroppableId === destinationDroppableId) return;
-    
-    const taskId = result.draggableId;
-    const updatedTasks = tasks.map(task => {
-      if (task.id === taskId) {
-        const newQuadrant = parseInt(destinationDroppableId.split('-')[1]);
-        return { ...task, quadrant: newQuadrant };
+  const handleDragEnd = (e: React.DragEvent) => {
+    // Remover ghost element
+    const elements = document.querySelectorAll('.dragging');
+    elements.forEach(element => {
+      element.classList.remove('dragging');
+      const ghostElement = (element as any)._ghostElement;
+      if (ghostElement && ghostElement.parentNode) {
+        ghostElement.parentNode.removeChild(ghostElement);
       }
-      return task;
+      (element as HTMLElement).style.transform = '';
     });
     
-    updateTasks(updatedTasks);
-    
-    // Mostrar toast com a mudança de quadrante
-    const newQuadrant = parseInt(destinationDroppableId.split('-')[1]);
-    toast({
-      title: 'Tarefa movida para novo quadrante',
-      description: `Agora esta tarefa está classificada como "${
-        newQuadrant === 0 ? 'Urgente, Importante' :
-        newQuadrant === 1 ? 'Não Urgente, Importante' :
-        newQuadrant === 2 ? 'Urgente, Não Importante' :
-        'Não Urgente, Não Importante'
-      }"`,
-    });
+    // Limpar a tarefa arrastada
+    (document as any)._draggedTask = null;
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -381,6 +387,30 @@ export const Matrix = () => {
     // Adicionar efeito visual na zona de soltar
     const element = e.currentTarget as HTMLElement;
     element.classList.add('dropzone-hover');
+    element.classList.add('quadrant-highlight');
+    element.classList.add('active');
+    
+    // Atualizar posição do ghost element
+    const draggingElements = document.querySelectorAll('.dragging');
+    draggingElements.forEach(draggingElement => {
+      const ghostElement = (draggingElement as any)._ghostElement;
+      if (ghostElement) {
+        // Calcular posição dentro do quadrante para o ghost element
+        const rect = element.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+        
+        // Limitar ao tamanho do quadrante
+        const maxX = rect.width - ghostElement.offsetWidth;
+        const maxY = rect.height - ghostElement.offsetHeight;
+        const limitedX = Math.max(0, Math.min(offsetX, maxX));
+        const limitedY = Math.max(0, Math.min(offsetY, maxY));
+        
+        ghostElement.style.top = `${limitedY + rect.top}px`;
+        ghostElement.style.left = `${limitedX + rect.left}px`;
+        ghostElement.style.opacity = '0.2';
+      }
+    });
     
     // Indicar que o drop é permitido
     e.dataTransfer.dropEffect = 'move';
@@ -390,6 +420,7 @@ export const Matrix = () => {
     // Remover efeito visual quando o cursor sair da zona
     const element = e.currentTarget as HTMLElement;
     element.classList.remove('dropzone-hover');
+    element.classList.remove('active');
   };
 
   const handleDrop = (e: React.DragEvent, quadrantIndex: number) => {
@@ -397,37 +428,65 @@ export const Matrix = () => {
     // Remover efeito visual da zona de soltar
     const element = e.currentTarget as HTMLElement;
     element.classList.remove('dropzone-hover');
+    element.classList.remove('active');
     
     const taskData = e.dataTransfer.getData('text/plain');
     if (taskData) {
-      const droppedTask = JSON.parse(taskData);
-      
-      // Verificar se o quadrante mudou
-      if (droppedTask.quadrant !== quadrantIndex) {
-      const updatedTasks = tasks.map(task => 
-        task.id === droppedTask.id 
-          ? { ...task, quadrant: quadrantIndex } 
-          : task
-      );
-      
-      setTasks(updatedTasks);
+      try {
+        const droppedTask = JSON.parse(taskData);
         
-        // Adicionar efeito visual de destaque temporário ao quadrante de destino
-        element.style.transition = 'box-shadow 0.3s ease';
-        element.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.5)';
-        setTimeout(() => {
-          element.style.boxShadow = '';
-        }, 500);
-        
-        // Mostrar notificação
+        // Verificar se o quadrante mudou
+        if (droppedTask.quadrant !== quadrantIndex) {
+          // Animação de destaque na tarefa sendo movida
+          const taskElement = document.getElementById(`task-${droppedTask.id}`);
+          if (taskElement) {
+            // Adicionar classe para animar a transição
+            taskElement.style.transition = 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+            taskElement.style.transform = 'scale(1.08)';
+            taskElement.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.2)';
+            
+            // Restaurar após a animação
+            setTimeout(() => {
+              taskElement.style.transform = '';
+              taskElement.style.boxShadow = '';
+            }, 600);
+          }
+          
+          const updatedTasks = tasks.map(task => 
+            task.id === droppedTask.id 
+              ? { ...task, quadrant: quadrantIndex } 
+              : task
+          );
+          
+          // Atualizar as tarefas e salvar no localStorage
+          updateTasks(updatedTasks);
+          
+          // Adicionar efeito visual de destaque temporário ao quadrante de destino
+          element.style.transition = 'box-shadow 0.4s ease, background-color 0.4s ease';
+          element.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.7)';
+          element.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+          
+          setTimeout(() => {
+            element.style.boxShadow = '';
+            element.style.backgroundColor = '';
+          }, 800);
+          
+          // Mostrar notificação com ícone relevante
+          toast({
+            title: 'Tarefa movida',
+            description: `Tarefa "${droppedTask.title}" movida para ${
+              quadrantIndex === 0 ? 'Urgente e Importante' :
+              quadrantIndex === 1 ? 'Importante, Não Urgente' :
+              quadrantIndex === 2 ? 'Urgente, Não Importante' :
+              'Não Urgente, Não Importante'
+            }`,
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao processar a tarefa arrastada:", error);
         toast({
-          title: 'Tarefa movida',
-          description: `Tarefa "${droppedTask.title}" movida para ${
-            quadrantIndex === 0 ? 'Urgente e Importante' :
-            quadrantIndex === 1 ? 'Importante, Não Urgente' :
-            quadrantIndex === 2 ? 'Urgente, Não Importante' :
-            'Não Urgente, Não Importante'
-          }`,
+          title: 'Erro',
+          description: 'Ocorreu um erro ao mover a tarefa.',
         });
       }
     }
@@ -542,6 +601,7 @@ export const Matrix = () => {
         className={`matrix-card mb-2 ${task.completed ? 'opacity-60' : ''}`}
         draggable={true}
         onDragStart={(e) => handleDragStart(e, task)}
+        onDragEnd={handleDragEnd}
         id={`task-${task.id}`}
       >
         <div className="p-2 bg-base-200 rounded-md hover:bg-base-300 transition-all duration-300">
@@ -732,12 +792,44 @@ export const Matrix = () => {
     colorClass: string;
     quadrantIndex: number;
   }) => {
+    const [isDragOver, setIsDragOver] = useState(false);
+    
+    const handleDragOverQuadrant = (e: React.DragEvent) => {
+      e.preventDefault();
+      if (!isDragOver) {
+        setIsDragOver(true);
+      }
+      handleDragOver(e);
+    };
+    
+    const handleDragLeaveQuadrant = (e: React.DragEvent) => {
+      // Verificar se o cursor realmente saiu do elemento e não entrou em um filho
+      const relatedTarget = e.relatedTarget as HTMLElement;
+      if (!e.currentTarget.contains(relatedTarget)) {
+        setIsDragOver(false);
+        handleDragLeave(e);
+      }
+    };
+    
+    const handleDropQuadrant = (e: React.DragEvent) => {
+      setIsDragOver(false);
+      handleDrop(e, quadrantIndex);
+    };
+    
     return (
-      <div
-        className={`quadrant-card q${quadrantIndex + 1} h-full flex flex-col`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={(e) => handleDrop(e, quadrantIndex)}
+      <motion.div
+        className={`quadrant-card q${quadrantIndex + 1} h-full flex flex-col ${isDragOver ? 'drop-ready' : ''}`}
+        onDragOver={handleDragOverQuadrant}
+        onDragLeave={handleDragLeaveQuadrant}
+        onDrop={handleDropQuadrant}
+        animate={isDragOver ? {
+          scale: 1.01,
+          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)"
+        } : {
+          scale: 1,
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.06)"
+        }}
+        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
       >
         <div className={`p-4 bg-base-200 bg-opacity-50 glass-effect`}>
           <h2 className="text-xl font-bold mb-1 gradient-heading">{title}</h2>
@@ -752,11 +844,21 @@ export const Matrix = () => {
               <span>{importantLabel}</span>
             </div>
           </div>
+          {isDragOver && (
+            <motion.div 
+              className="drop-indicator mt-2 p-1 rounded-md border border-dashed border-primary bg-primary bg-opacity-10 text-center"
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <p className="text-xs text-primary">Solte aqui para mover para este quadrante</p>
+            </motion.div>
+          )}
         </div>
         <div className="flex-1 p-2 overflow-y-auto custom-scrollbar bg-base-100 bg-opacity-90">
           {children}
         </div>
-      </div>
+      </motion.div>
     );
   };
 
