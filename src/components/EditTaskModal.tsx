@@ -26,7 +26,7 @@ interface EditTaskModalProps {
     urgency: number;
     importance: number;
     completed: boolean;
-    start_date?: Date | string | null;
+    start_date?: string | Date | null;
     tags?: string[];
   };
   onSave: (task: {
@@ -36,7 +36,7 @@ interface EditTaskModalProps {
     urgency: number;
     importance: number;
     completed: boolean;
-    start_date?: Date | string | null;
+    start_date?: string | Date | null;
     tags?: string[];
   }) => void;
   isDarkMode: boolean;
@@ -53,14 +53,8 @@ const EditTaskModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTitleFocused, setIsTitleFocused] = useState(false);
 
-  // Atualizar o estado local quando a task de props mudar
   useEffect(() => {
-    // Garantir que a data de início seja um objeto Date se existir
-    const updatedTask = { ...task };
-    if (task.start_date && typeof task.start_date === 'string') {
-      updatedTask.start_date = new Date(task.start_date);
-    }
-    setEditedTask(updatedTask);
+    setEditedTask(task);
   }, [task]);
 
   if (!isOpen) return null;
@@ -70,7 +64,6 @@ const EditTaskModal = ({
     
     setIsSubmitting(true);
     
-    // Simulando um pequeno atraso para feedback visual
     setTimeout(() => {
       onSave(editedTask);
       setIsSubmitting(false);
@@ -223,7 +216,7 @@ const EditTaskModal = ({
                   <Calendar
                     mode="single"
                     selected={editedTask.start_date ? new Date(editedTask.start_date) : undefined}
-                    onSelect={(date) => setEditedTask({...editedTask, start_date: date})}
+                    onSelect={(date) => setEditedTask({...editedTask, start_date: date ? date.toISOString() : null})}
                     initialFocus
                   />
                 </PopoverContent>

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -269,7 +268,7 @@ export const Matrix = () => {
     urgency: number;
     importance: number;
     completed: boolean;
-    start_date?: Date | string | null;
+    start_date?: string | Date | null;
     tags?: string[];
   }) => {
     // Converter para o tipo Task
@@ -278,7 +277,11 @@ export const Matrix = () => {
       quadrant: calculateQuadrant(editedTask.urgency, editedTask.importance),
       createdAt: tasks.find(t => t.id === editedTask.id)?.createdAt || new Date(),
       completedAt: editedTask.completed ? (tasks.find(t => t.id === editedTask.id)?.completedAt || new Date()) : null,
-      start_date: editedTask.start_date ? (typeof editedTask.start_date === 'string' ? editedTask.start_date : new Date(editedTask.start_date).toISOString()) : null
+      start_date: editedTask.start_date ? 
+        (typeof editedTask.start_date === 'string' ? 
+          editedTask.start_date : 
+          editedTask.start_date.toISOString()) : 
+        null
     };
     
     const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
@@ -516,7 +519,7 @@ export const Matrix = () => {
       completed: false,
       createdAt: new Date(),
       completedAt: null,
-      start_date: newTask.start_date ? newTask.start_date : null
+      start_date: newTask.start_date
     };
     const updatedTasks = [...tasks, createdTask];
     setTasks(updatedTasks);
@@ -1229,7 +1232,8 @@ export const Matrix = () => {
             urgency: selectedTask.urgency,
             importance: selectedTask.importance,
             completed: selectedTask.completed,
-            tags: selectedTask.tags
+            tags: selectedTask.tags,
+            start_date: selectedTask.start_date
           }}
           isDarkMode={isDarkMode}
         />

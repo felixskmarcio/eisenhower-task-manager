@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Tag, AlertTriangle, Calendar as CalendarIcon } from 'lucide-react';
@@ -24,7 +25,7 @@ interface AddTaskModalProps {
     urgency: number;
     importance: number;
     tags?: string[];
-    start_date?: Date | null;
+    start_date?: string | Date | null;
   };
   setNewTask: React.Dispatch<React.SetStateAction<{
     title: string;
@@ -32,7 +33,7 @@ interface AddTaskModalProps {
     urgency: number;
     importance: number;
     tags?: string[];
-    start_date?: Date | null;
+    start_date?: string | Date | null;
   }>>;
   onAddTask: () => void;
   isDarkMode: boolean;
@@ -204,7 +205,7 @@ const AddTaskModal = ({
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {newTask.start_date ? (
-                      format(newTask.start_date, "PPP", { locale: ptBR })
+                      format(new Date(newTask.start_date), "PPP", { locale: ptBR })
                     ) : (
                       <span>Selecione uma data</span>
                     )}
@@ -213,8 +214,8 @@ const AddTaskModal = ({
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={newTask.start_date || undefined}
-                    onSelect={(date) => setNewTask({...newTask, start_date: date})}
+                    selected={newTask.start_date ? new Date(newTask.start_date) : undefined}
+                    onSelect={(date) => setNewTask({...newTask, start_date: date ? date.toISOString() : null})}
                     initialFocus
                   />
                 </PopoverContent>
