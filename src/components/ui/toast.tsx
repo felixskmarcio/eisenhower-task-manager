@@ -2,6 +2,5 @@
 import * as React from "react"
 import { toast as sonnerToast } from "sonner"
 
-const Toast = sonnerToast;
-
-export { Toast }
+// Exportar a função toast diretamente
+export const Toast = sonnerToast;

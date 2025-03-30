@@ -1,4 +1,4 @@
-import * as React from "react"
+
 import { toast as sonnerToast } from "sonner"
 
 // Definição simplificada dos tipos para o toast
@@ -10,7 +10,7 @@ export type ToastProps = {
 }
 
 // Wrapper para a função toast do sonner
-function toast(props: ToastProps) {
+export function toast(props: ToastProps) {
   const { title, description, action, variant } = props
   
   return sonnerToast(title as string, {
@@ -24,11 +24,9 @@ function toast(props: ToastProps) {
 }
 
 // Hook para manter compatibilidade com código existente
-function useToast() {
+export function useToast() {
   return {
     toast,
     dismiss: sonnerToast.dismiss
   }
 }
-
-export { useToast, toast }

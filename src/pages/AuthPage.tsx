@@ -30,7 +30,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { signInWithGoogle } from '@/services/auth';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 
 const loginSchema = z.object({
@@ -88,7 +88,7 @@ const AuthPage: React.FC = () => {
       await signInWithGoogle();
       toast({
         title: "Login realizado",
-        description: "Login com Google realizado com sucesso",
+        description: "Login com Google realizado com sucesso"
       });
     } catch (error) {
       console.error('Erro ao fazer login com Google:', error);

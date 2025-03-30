@@ -3,7 +3,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { auth as firebaseAuth, googleProvider } from '@/utils/firebase';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 

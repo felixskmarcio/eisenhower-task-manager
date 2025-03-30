@@ -9,7 +9,7 @@ import {
   AuthError
 } from 'firebase/auth';
 import { auth, googleProvider } from '@/utils/firebase';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { logError, ErrorType } from '@/lib/logError';
 
 // Códigos de erro comuns e suas mensagens amigáveis
