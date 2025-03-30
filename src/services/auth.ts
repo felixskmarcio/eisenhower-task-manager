@@ -1,3 +1,4 @@
+
 import { 
   signInWithPopup,
   GoogleAuthProvider,
@@ -8,7 +9,7 @@ import {
   AuthError
 } from 'firebase/auth';
 import { auth, googleProvider } from '@/utils/firebase';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { logError, ErrorType } from '@/lib/logError';
 
 // Códigos de erro comuns e suas mensagens amigáveis
@@ -110,4 +111,4 @@ export const getAccessToken = (): string | null => {
 // Função auxiliar para monitorar mudanças no estado de autenticação
 export const subscribeToAuthChanges = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
-}; 
+};

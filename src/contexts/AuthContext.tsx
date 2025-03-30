@@ -3,7 +3,9 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { auth as firebaseAuth, googleProvider } from '@/utils/firebase';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 interface AuthContextType {
   session: Session | null;
@@ -11,6 +13,7 @@ interface AuthContextType {
   profile: any | null;
   signUp: (email: string, password: string, nome: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
 }
@@ -98,7 +101,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Cadastro realizado",
         description: "Verifique seu e-mail para confirmar seu cadastro.",
-        variant: "default",
       });
       
       // Redireciona para login após cadastro
@@ -156,6 +158,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      setLoading(true);
+      
+      // Login com Firebase Google Auth
+      const result = await signInWithPopup(firebaseAuth, googleProvider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const idToken = await result.user.getIdToken();
+      
+      // Use o token para fazer login no Supabase
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: idToken,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      navigate('/');
+      
+    } catch (error: any) {
+      console.error('Erro no login com Google:', error);
+      
+      toast({
+        title: "Erro no login com Google",
+        description: "Não foi possível fazer login com o Google. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOut = async () => {
     try {
       setLoading(true);
@@ -179,6 +215,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     profile,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     loading
   };
