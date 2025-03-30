@@ -167,13 +167,7 @@ export const getGoogleUserInfo = (): { name: string; email: string; imageUrl: st
   }
 };
 
-// Add window type definitions
-declare global {
-  interface Window {
-    gapi: any;
-  }
-}
-
+// Use TS interface instead of redefining Window
 export default {
   loadGoogleApiScript,
   initializeGoogleApi,

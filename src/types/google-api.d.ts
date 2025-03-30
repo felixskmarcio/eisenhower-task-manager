@@ -46,15 +46,27 @@ interface GoogleApiCalendar {
       };
     }>;
   };
+  calendarList: {
+    list: (params?: { maxResults?: number; [key: string]: any }) => Promise<{
+      result: {
+        items: Array<{
+          id: string;
+          summary: string;
+          [key: string]: any;
+        }>;
+        [key: string]: any;
+      };
+    }>;
+  };
 }
 
 declare namespace gapi {
   namespace client {
     function init(config: {
       apiKey: string;
-      clientId: string;
-      scope: string;
-      discoveryDocs: string[];
+      clientId?: string;
+      scope?: string;
+      discoveryDocs?: string[];
     }): Promise<void>;
 
     const calendar: GoogleApiCalendar;

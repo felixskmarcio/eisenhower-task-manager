@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -36,6 +37,9 @@ interface Task {
   tags?: string[]; // Array of tag IDs for categorization
   start_date?: string | null;
 }
+
+// Type for new task that excludes certain properties that will be generated when created
+type NewTask = Omit<Task, 'id' | 'quadrant' | 'completed' | 'createdAt' | 'completedAt'>;
 
 // Definir a interface para o resultado de drag-and-drop
 interface DragResult {
@@ -231,12 +235,13 @@ export const Matrix = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [activeView, setActiveView] = useState<'matrix' | 'tasks' | 'completed'>('matrix');
-  const [newTask, setNewTask] = useState<Omit<Task, 'id' | 'quadrant' | 'completed' | 'createdAt' | 'completedAt' | 'start_date'>>({    
+  const [newTask, setNewTask] = useState<NewTask>({    
     title: '',
     description: undefined,
     urgency: 5,
     importance: 5,
     tags: [],
+    start_date: null
   });
   
   const [tagFilters, setTagFilters] = useState<{
@@ -511,7 +516,7 @@ export const Matrix = () => {
       completed: false,
       createdAt: new Date(),
       completedAt: null,
-      start_date: newTask.start_date ? new Date(newTask.start_date).toISOString() : null
+      start_date: newTask.start_date ? newTask.start_date : null
     };
     const updatedTasks = [...tasks, createdTask];
     setTasks(updatedTasks);
