@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, Star, CheckCircle, Share, Settings, Home, BarChart2, Tag, CheckSquare } from "lucide-react";
+
+import React from 'react';
+import { Clock, Star, CheckCircle, Share, Settings, Home, BarChart2, Tag, CheckSquare, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatedNavigationTabs } from "@/components/ui/animated-navigation-tabs";
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,6 +12,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const { signOut, user } = useAuth();
   
   // Define items para o menu AnimatedNavigationTabs
   const navItems = [
@@ -57,7 +61,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
               </Link>
               
-              <AnimatedNavigationTabs items={navItems} />
+              <div className="flex items-center gap-2">
+                <AnimatedNavigationTabs items={navItems} />
+                
+                {user && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={signOut} 
+                    className="ml-2 text-muted-foreground hover:text-destructive"
+                  >
+                    <LogOut className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Sair</span>
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </header>

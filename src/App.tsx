@@ -1,3 +1,4 @@
+
 import React, { lazy, Suspense } from 'react';
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,8 +10,12 @@ import NotFound from "./pages/NotFound";
 import ProductivityDashboard from "./pages/ProductivityDashboard";
 import { TagProvider } from "./contexts/TagContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { PrivateRoute } from "./components/PrivateRoute";
+import { PublicRoute } from "./components/PublicRoute";
 import TagsPage from "./pages/TagsPage";
 import SettingsPage from "./pages/SettingsPage";
+import AuthPage from "./pages/AuthPage";
 import './styles/index.css';
 import './styles/settings.css';
 import DebugTools from '@/components/DebugTools'
@@ -23,25 +28,54 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TagProvider>
-          <TooltipProvider>
-            <Sonner />
-            <BrowserRouter>
-              <Layout>
+        <BrowserRouter>
+          <AuthProvider>
+            <TagProvider>
+              <TooltipProvider>
+                <Sonner />
                 <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/dashboard" element={<ProductivityDashboard />} />
-                  <Route path="/tags" element={<TagsPage />} />
-                  <Route path="/config" element={<SettingsPage />} />
+                  <Route path="/login" element={
+                    <PublicRoute>
+                      <AuthPage />
+                    </PublicRoute>
+                  } />
+                  <Route path="/" element={
+                    <PrivateRoute>
+                      <Layout>
+                        <Index />
+                      </Layout>
+                    </PrivateRoute>
+                  } />
+                  <Route path="/dashboard" element={
+                    <PrivateRoute>
+                      <Layout>
+                        <ProductivityDashboard />
+                      </Layout>
+                    </PrivateRoute>
+                  } />
+                  <Route path="/tags" element={
+                    <PrivateRoute>
+                      <Layout>
+                        <TagsPage />
+                      </Layout>
+                    </PrivateRoute>
+                  } />
+                  <Route path="/config" element={
+                    <PrivateRoute>
+                      <Layout>
+                        <SettingsPage />
+                      </Layout>
+                    </PrivateRoute>
+                  } />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </Layout>
-            </BrowserRouter>
-            {process.env.NODE_ENV === 'development' && <DebugTools />}
-            <GlobalErrorHandler />
-          </TooltipProvider>
-        </TagProvider>
+                {process.env.NODE_ENV === 'development' && <DebugTools />}
+                <GlobalErrorHandler />
+              </TooltipProvider>
+            </TagProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>
   </ErrorBoundary>
