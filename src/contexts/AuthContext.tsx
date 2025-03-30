@@ -20,6 +20,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Credenciais para teste
+const TEST_EMAIL = 'teste@example.com';
+const TEST_PASSWORD = 'senha123';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -127,6 +131,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
+      
+      // Verificar se são as credenciais de teste
+      if (email === TEST_EMAIL && password === TEST_PASSWORD) {
+        // Criar um usuário de teste simulado
+        const testUser = {
+          id: 'test-user-id',
+          email: TEST_EMAIL,
+          user_metadata: {
+            full_name: 'Usuário de Teste'
+          },
+          app_metadata: {},
+          created_at: new Date().toISOString()
+        };
+        
+        // Simular uma sessão
+        const testSession = {
+          access_token: 'test-token',
+          refresh_token: 'test-refresh-token',
+          expires_in: 3600,
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+          user: testUser as unknown as User
+        };
+        
+        // Atualizar o estado da autenticação
+        setUser(testUser as unknown as User);
+        setSession(testSession as unknown as Session);
+        setProfile({
+          id: testUser.id,
+          full_name: 'Usuário de Teste',
+          email: TEST_EMAIL
+        });
+        
+        toast({
+          title: "Login de teste realizado",
+          description: "Você está usando uma conta de teste"
+        });
+        
+        navigate('/');
+        return;
+      }
+      
+      // Login normal com Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -195,6 +241,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setLoading(true);
+      // Verificar se é usuário de teste
+      if (user?.email === TEST_EMAIL) {
+        // Limpar estado para usuário de teste
+        setUser(null);
+        setSession(null);
+        setProfile(null);
+        navigate('/login');
+        return;
+      }
+      
+      // Logout normal do Supabase
       await supabase.auth.signOut();
       navigate('/login');
     } catch (error) {

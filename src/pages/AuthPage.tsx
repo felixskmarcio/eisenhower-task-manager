@@ -12,10 +12,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { signInWithGoogle } from '@/services/auth';
 import { toast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+
 const loginSchema = z.object({
   email: z.string().email('Digite um e-mail válido'),
   password: z.string().min(6, 'A senha precisa ter pelo menos 6 caracteres')
 });
+
 const signupSchema = z.object({
   nome: z.string().min(3, 'O nome precisa ter pelo menos 3 caracteres'),
   email: z.string().email('Digite um e-mail válido'),
@@ -25,8 +27,10 @@ const signupSchema = z.object({
   path: ['confirmPassword'],
   message: 'As senhas não conferem'
 });
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type SignupFormValues = z.infer<typeof signupSchema>;
+
 const AuthPage: React.FC = () => {
   const {
     signIn,
@@ -36,6 +40,7 @@ const AuthPage: React.FC = () => {
   } = useAuth();
   const [activeTab, setActiveTab] = useState('login');
   const [googleLoading, setGoogleLoading] = useState(false);
+
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -43,6 +48,7 @@ const AuthPage: React.FC = () => {
       password: ''
     }
   });
+
   const signupForm = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -52,12 +58,15 @@ const AuthPage: React.FC = () => {
       confirmPassword: ''
     }
   });
+
   const onLoginSubmit = async (values: LoginFormValues) => {
     await signIn(values.email, values.password);
   };
+
   const onSignupSubmit = async (values: SignupFormValues) => {
     await signUp(values.email, values.password, values.nome);
   };
+
   const handleGoogleLogin = async () => {
     try {
       setGoogleLoading(true);
@@ -72,6 +81,12 @@ const AuthPage: React.FC = () => {
       setGoogleLoading(false);
     }
   };
+
+  const fillTestCredentials = () => {
+    loginForm.setValue('email', 'teste@example.com');
+    loginForm.setValue('password', 'senha123');
+  };
+
   return <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 flex flex-col items-center justify-center relative">
       <div className="absolute inset-0 overflow-hidden -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-base-100 to-secondary/10"></div>
@@ -158,6 +173,17 @@ const AuthPage: React.FC = () => {
                           </svg>
                           <span className="text-stone-950">Entrar com Google</span>
                         </>}
+                    </Button>
+                    
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full text-xs text-muted-foreground mt-4 hover:text-primary"
+                      onClick={fillTestCredentials}
+                    >
+                      <LogIn className="h-3 w-3 mr-1" />
+                      Usar credenciais de teste
                     </Button>
                   </form>
                 </Form>
@@ -258,4 +284,5 @@ const AuthPage: React.FC = () => {
       </div>
     </div>;
 };
+
 export default AuthPage;
