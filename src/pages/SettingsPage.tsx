@@ -12,8 +12,8 @@ import { User as FirebaseUser } from 'firebase/auth';
 import GoogleCalendarErrorDisplay from '@/components/GoogleCalendarErrorDisplay';
 import { AuthError } from 'firebase/auth';
 import GoogleCalendarSyncButton from '@/components/GoogleCalendarSyncButton';
+import GoogleCalendarSync from '@/components/GoogleCalendarSync/GoogleCalendarSync';
 
-// Definir interface para Task
 interface Task {
   id: string;
   title: string;
@@ -31,7 +31,6 @@ const SettingsPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
-    // Monitorar mudanças no estado de autenticação
     const unsubscribe = subscribeToAuthChanges((currentUser) => {
       setUser(currentUser);
       setIsLoading(false);
@@ -59,7 +58,6 @@ const SettingsPage = () => {
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
-      // Limpar erros anteriores quando tenta novamente
       setGoogleError(null);
       
       const user = await signInWithGoogle();
@@ -72,7 +70,6 @@ const SettingsPage = () => {
     } catch (error) {
       console.error('Erro no login:', error);
       
-      // Capturar detalhes do erro para exibição
       if (error instanceof Error) {
         const authError = error as AuthError;
         setGoogleError({
@@ -115,7 +112,6 @@ const SettingsPage = () => {
 
   return (
     <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 md:px-8 relative">
-      {/* Plano de fundo com gradiente e efeito */}
       <div className="absolute inset-0 overflow-hidden -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-base-100 to-secondary/5"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMDIiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8L3N2Zz4=')] opacity-10"></div>

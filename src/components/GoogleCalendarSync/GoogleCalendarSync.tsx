@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -16,7 +17,7 @@ import {
 import './styles.css';
 
 // Use service for syncing tasks
-import { syncTasksToCalendar } from '@/services/googleCalendar';
+import { syncTasksWithCalendar } from '@/services/googleCalendar';
 
 interface GoogleCalendarSyncProps {
   tasks: Task[];
@@ -136,12 +137,12 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
     setSyncStatus('Sincronizando tarefas...');
 
     try {
-      const result = await syncTasksToCalendar(tasks);
+      const result = await syncTasksWithCalendar(tasks);
       
-      setSyncStatus(result.message);
+      setSyncStatus(`Sincronização concluída: ${result.synced} tarefas sincronizadas${result.failed > 0 ? `, ${result.failed} falhas` : ''}`);
       toast({
         title: result.success ? "Sincronização Concluída" : "Sincronização Parcial",
-        description: result.message
+        description: `${result.synced} tarefas sincronizadas${result.failed > 0 ? `, ${result.failed} falhas` : ''}`
       });
       
       if (onSync) {
