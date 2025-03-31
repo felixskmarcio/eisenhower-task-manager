@@ -1,6 +1,6 @@
 # 🦅 Task Eagle Eye
 
-> Gerencie suas tarefas com a precisão de uma águia
+> Gerencie suas tarefas com a precisão de uma águia. Task Eagle Eye é um aplicativo de gerenciamento de tarefas que se destaca por sua interface intuitiva e funcionalidades poderosas, projetado para maximizar sua produtividade e facilitar a colaboração em equipe.
 
 ## 🚀 Visão Geral
 
@@ -21,15 +21,15 @@ Task Eagle Eye é uma aplicação moderna de gerenciamento de tarefas que combin
 ### Pré-requisitos
 - Node.js & npm - [instale com nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-### Opções de Desenvolvimento
+### Exemplos de Uso
 
-<details>
-<summary><b>📱 Usar Claude IA (Sem Configuração)</b></summary>
-<br>
-Acesse o <a href="https://claude.site/artifacts/e0d54848-736e-4222-98ea-739271c4f284">Projeto no Claude IA</a> e comece a desenvolver.
-<br><br>
-Alterações feitas via Claude IA serão automaticamente commitadas neste repositório.
-</details>
+Veja abaixo como é fácil gerenciar suas tarefas com o Task Eagle Eye:
+
+- **Adicionar Tarefas**: Crie novas tarefas rapidamente com descrições detalhadas e prazos.
+- **Acompanhar Progresso**: Use o dashboard para visualizar o progresso de suas tarefas em tempo real.
+- **Colaboração**: Compartilhe tarefas com sua equipe e acompanhe o progresso coletivo.
+
+### Opções de Desenvolvimento
 
 <details>
 <summary><b>💻 Usar seu IDE Preferido</b></summary>
@@ -80,6 +80,16 @@ npm run start
 - 🔔 **Notificações inteligentes** - Receba lembretes no momento certo
 - 🔄 **Sincronização em nuvem** - Acesse suas tarefas em qualquer dispositivo
 - 🤝 **Colaboração em equipe** - Compartilhe projetos e delegue tarefas
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas! Se você deseja contribuir com o projeto, siga estas etapas:
+
+1. Faça um fork do repositório.
+2. Crie uma nova branch para suas alterações.
+3. Envie um pull request com uma descrição detalhada das mudanças.
+
+Para reportar problemas ou sugerir melhorias, abra uma issue no GitHub.
 
 ## 📝 Licença
 
