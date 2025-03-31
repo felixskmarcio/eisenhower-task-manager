@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
@@ -168,7 +167,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: "Você está usando uma conta de teste"
         });
         
-        navigate('/');
+        // Redirecionar para o dashboard em vez da página inicial
+        navigate('/dashboard');
         return;
       }
       
@@ -182,7 +182,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
-      navigate('/');
+      // Redirecionar para o dashboard em vez da página inicial
+      navigate('/dashboard');
 
     } catch (error: any) {
       console.error('Erro no login:', error);
@@ -208,22 +209,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Login com Firebase Google Auth
+      // Autenticação com o Google via Firebase
       const result = await signInWithPopup(firebaseAuth, googleProvider);
       const credential = GoogleAuthProvider.credentialFromResult(result);
-      const idToken = await result.user.getIdToken();
       
-      // Use o token para fazer login no Supabase
-      const { data, error } = await supabase.auth.signInWithIdToken({
+      if (!credential) throw new Error('Falha na autenticação');
+      
+      const user = result.user;
+      
+      // Integração com o Supabase
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        token: idToken,
+        options: {
+          redirectTo: window.location.origin,
+        }
       });
-
-      if (error) {
-        throw error;
-      }
-
-      navigate('/');
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Login realizado com sucesso",
+        description: "Bem-vindo de volta!"
+      });
+      
+      // Redirecionar para o dashboard em vez da página inicial
+      navigate('/dashboard');
       
     } catch (error: any) {
       console.error('Erro no login com Google:', error);

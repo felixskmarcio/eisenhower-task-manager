@@ -1,4 +1,3 @@
-
 import React, { lazy, Suspense } from 'react';
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +15,9 @@ import { PublicRoute } from "./components/PublicRoute";
 import TagsPage from "./pages/TagsPage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
+import Introduction from "./pages/Introduction";
+import Demo from "./pages/Demo";
+import Landing from "./pages/Landing";
 import './styles/index.css';
 import './styles/settings.css';
 import DebugTools from '@/components/DebugTools'
@@ -34,19 +36,49 @@ const App = () => (
               <TooltipProvider>
                 <Sonner />
                 <Routes>
+                  {/* Rotas públicas */}
                   <Route path="/login" element={
                     <PublicRoute>
                       <AuthPage />
                     </PublicRoute>
                   } />
+                  <Route path="/introduction" element={
+                    <PublicRoute allowAuthenticated={true}>
+                      <Layout>
+                        <Introduction />
+                      </Layout>
+                    </PublicRoute>
+                  } />
+                  <Route path="/demo" element={
+                    <PublicRoute allowAuthenticated={true}>
+                      <Layout>
+                        <Demo />
+                      </Layout>
+                    </PublicRoute>
+                  } />
+                  {/* Nova Landing Page como rota raiz pública */}
                   <Route path="/" element={
+                    <PublicRoute allowAuthenticated={false}>
+                      <Landing />
+                    </PublicRoute>
+                  } />
+
+                  {/* Rotas privadas - requerem autenticação */}
+                  <Route path="/dashboard" element={
                     <PrivateRoute>
                       <Layout>
                         <Index />
                       </Layout>
                     </PrivateRoute>
                   } />
-                  <Route path="/dashboard" element={
+                  <Route path="/matrix" element={
+                    <PrivateRoute>
+                      <Layout>
+                        <Index />
+                      </Layout>
+                    </PrivateRoute>
+                  } />
+                  <Route path="/productivity" element={
                     <PrivateRoute>
                       <Layout>
                         <ProductivityDashboard />

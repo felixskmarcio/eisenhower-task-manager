@@ -1,12 +1,12 @@
-
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PublicRouteProps {
   children: React.ReactNode;
+  allowAuthenticated?: boolean;
 }
 
-export const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
+export const PublicRoute: React.FC<PublicRouteProps> = ({ children, allowAuthenticated = false }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   
@@ -18,7 +18,7 @@ export const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
     );
   }
 
-  if (user) {
+  if (user && !allowAuthenticated) {
     const from = location.state?.from || '/';
     return <Navigate to={from} replace />;
   }
