@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { cn } from "@/utils/classNames";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import NavigationLink from "@/components/NavigationLink";
 
 interface NavItem {
   id: number;
@@ -47,13 +48,14 @@ export function AnimatedNavigationTabs({ items }: AnimatedNavigationTabsProps) {
     <div className="relative">
       <ul className="flex items-center justify-center">
         {items.map((item) => (
-          <Link
+          <NavigationLink
             key={item.id}
             to={item.url}
             className={cn(
               "py-2 relative duration-300 transition-colors hover:!text-primary",
               active.id === item.id ? "text-primary" : "text-muted-foreground"
             )}
+            showLoadingScreen={true}
             onClick={() => setActive(item)}
             onMouseEnter={() => setIsHover(item)}
             onMouseLeave={() => setIsHover(null)}
@@ -86,7 +88,7 @@ export function AnimatedNavigationTabs({ items }: AnimatedNavigationTabsProps) {
                 transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
               />
             )}
-          </Link>
+          </NavigationLink>
         ))}
       </ul>
     </div>

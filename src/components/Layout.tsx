@@ -1,9 +1,10 @@
 import React from 'react';
 import { Clock, Star, CheckCircle, Share, Settings, Home, BarChart2, Tag, CheckSquare, LogOut, InfoIcon, PlayCircle } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { AnimatedNavigationTabs } from "@/components/ui/animated-navigation-tabs";
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import NavigationLink from './NavigationLink';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -69,7 +70,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <header className="w-full border-b shadow-sm bg-background/95 backdrop-blur-sm sticky top-0 z-20">
           <div className="container mx-auto">
             <div className="flex items-center justify-between py-2 sm:py-3 px-3 sm:px-4">
-              <Link to={user ? "/dashboard" : "/"} className="group flex items-center gap-1.5 sm:gap-2">
+              <NavigationLink to={user ? "/dashboard" : "/"} className="group flex items-center gap-1.5 sm:gap-2" showLoadingScreen={true}>
                 <div className="relative hidden sm:flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10 rounded-lg bg-gradient-to-br from-primary/80 to-primary transition-all duration-300 group-hover:shadow-md group-hover:shadow-primary/20">
                   <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-white absolute transform group-hover:scale-110 transition-transform duration-300" />
                   <div className="absolute inset-0 bg-primary/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse" />
@@ -80,7 +81,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <div className="h-1 w-1 rounded-full bg-primary/70 mx-0.5 group-hover:bg-primary transition-colors duration-300 hidden sm:block" />
                   <span className="text-xs sm:text-sm font-medium text-muted-foreground tracking-wide group-hover:text-primary/70 transition-colors duration-300">Task Manager</span>
                 </div>
-              </Link>
+              </NavigationLink>
               
               <div className="flex items-center gap-2">
                 {user ? (
@@ -105,7 +106,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       size="sm" 
                       className="ml-2"
                     >
-                      <Link to="/login">Entrar</Link>
+                      <NavigationLink to="/login" showLoadingScreen={true}>Entrar</NavigationLink>
                     </Button>
                   </>
                 )}
@@ -128,8 +129,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <span>Versão 1.1.0</span>
               </div>
               <div className="flex items-center gap-4">
-                <Link to="/introduction" className="text-muted-foreground hover:text-primary transition-colors">Sobre</Link>
-                <Link to="/demo" className="text-muted-foreground hover:text-primary transition-colors">Demonstração</Link>
+                <NavigationLink to="/introduction" className="text-muted-foreground hover:text-primary transition-colors" showLoadingScreen={true}>Sobre</NavigationLink>
+                <NavigationLink to="/demo" className="text-muted-foreground hover:text-primary transition-colors" showLoadingScreen={true}>Demonstração</NavigationLink>
                 <p>© 2025 Todos os direitos reservados</p>
               </div>
             </div>
