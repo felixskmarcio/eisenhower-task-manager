@@ -70,19 +70,19 @@ const Landing = () => {
         
         {/* Seção de recursos */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-20">
-          <Card className="bg-card/60 backdrop-blur-sm">
-            <CardHeader>
+          <Card className="bg-card/60 backdrop-blur-sm flex flex-col">
+            <CardHeader className="flex-1">
               <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <InfoIcon className="h-6 w-6 text-primary" />
               </div>
               <CardTitle>Matriz de Eisenhower</CardTitle>
-              <CardDescription>
+              <CardDescription className="min-h-[60px]">
                 Aprenda a classificar suas tarefas em quatro quadrantes para 
                 maximizar sua produtividade e foco.
               </CardDescription>
             </CardHeader>
-            <CardFooter>
-              <Button asChild variant="secondary" className="w-full gap-2">
+            <CardFooter className="flex items-end">
+              <Button asChild variant="secondary" className="w-full gap-2 h-10">
                 <Link to="/introduction">
                   Entenda a Metodologia
                   <ArrowRight className="h-4 w-4" />
@@ -91,19 +91,19 @@ const Landing = () => {
             </CardFooter>
           </Card>
           
-          <Card className="bg-card/60 backdrop-blur-sm">
-            <CardHeader>
+          <Card className="bg-card/60 backdrop-blur-sm flex flex-col">
+            <CardHeader className="flex-1">
               <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <PlayCircle className="h-6 w-6 text-primary" />
               </div>
               <CardTitle>Demonstração Interativa</CardTitle>
-              <CardDescription>
+              <CardDescription className="min-h-[60px]">
                 Experimente a ferramenta sem precisar criar uma conta. 
                 Cadastre tarefas e veja como funciona.
               </CardDescription>
             </CardHeader>
-            <CardFooter>
-              <Button asChild variant="secondary" className="w-full gap-2">
+            <CardFooter className="flex items-end">
+              <Button asChild variant="secondary" className="w-full gap-2 h-10">
                 <Link to="/demo">
                   Testar Agora
                   <ArrowRight className="h-4 w-4" />
@@ -112,19 +112,19 @@ const Landing = () => {
             </CardFooter>
           </Card>
           
-          <Card className="bg-card/60 backdrop-blur-sm">
-            <CardHeader>
+          <Card className="bg-card/60 backdrop-blur-sm flex flex-col">
+            <CardHeader className="flex-1">
               <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <LogIn className="h-6 w-6 text-primary" />
               </div>
               <CardTitle>Crie sua Conta</CardTitle>
-              <CardDescription>
+              <CardDescription className="min-h-[60px]">
                 Registre-se gratuitamente para salvar suas tarefas na nuvem e 
                 acessar todos os recursos avançados.
               </CardDescription>
             </CardHeader>
-            <CardFooter>
-              <Button asChild variant="secondary" className="w-full gap-2">
+            <CardFooter className="flex items-end">
+              <Button asChild variant="secondary" className="w-full gap-2 h-10">
                 <Link to="/login">
                   Cadastrar
                   <ArrowRight className="h-4 w-4" />
