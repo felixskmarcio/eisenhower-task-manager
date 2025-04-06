@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { PlusCircle, AlertTriangle, Clock, CheckSquare, Trash2, ArrowRight, HelpCircle, X, Move } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -542,7 +541,6 @@ const TaskCard = ({
 }) => {
   const Icon = quadrantData.icon;
   
-  // Modificação aqui: Use manejos de eventos standard HTML para drag ao invés dos eventos do Framer Motion
   return (
     <div
       className="border rounded-lg p-3 hover:shadow-sm transition-all group cursor-grab"
