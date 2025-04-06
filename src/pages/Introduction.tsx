@@ -3,9 +3,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, CheckCircle, BarChart2, ArrowRight, Star } from "lucide-react";
+import { Clock, CheckCircle, BarChart2, ArrowRight, Star, AlertTriangle, Zap, X } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import InnovativeEisenhowerAnimation from '@/components/InnovativeEisenhowerAnimation';
 
 const Introduction = () => {
   return (
@@ -34,6 +35,10 @@ const Introduction = () => {
             >
               Uma poderosa técnica de gestão de tempo que ajuda a priorizar tarefas com base em sua urgência e importância.
             </motion.p>
+          </div>
+
+          <div className="flex justify-center mb-10">
+            <InnovativeEisenhowerAnimation />
           </div>
 
           <Tabs defaultValue="what" className="w-full">
@@ -68,22 +73,46 @@ const Introduction = () => {
                 </ul>
                 
                 <div className="mt-6">
-                  <div className="grid grid-cols-2 gap-4 border rounded-lg overflow-hidden">
-                    <div className="bg-red-500/10 p-4 border-r border-b">
-                      <h3 className="font-semibold text-red-600 dark:text-red-400">Q1: Urgente & Importante</h3>
-                      <p className="text-sm text-muted-foreground">Fazer</p>
+                  <div className="grid grid-cols-2 gap-4 border rounded-lg overflow-hidden shadow-md">
+                    <div className="bg-red-500/20 p-6 border-r border-b hover:bg-red-500/30 transition-colors">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-red-500 text-white rounded-full p-1 w-8 h-8 flex items-center justify-center font-bold">Q1</div>
+                        <h3 className="font-semibold text-red-600 dark:text-red-400 text-lg">Urgente & Importante</h3>
+                      </div>
+                      <div className="flex items-center gap-2 text-red-600/80">
+                        <Zap className="h-4 w-4" />
+                        <p className="text-sm font-medium">FAZER AGORA</p>
+                      </div>
                     </div>
-                    <div className="bg-blue-500/10 p-4 border-b">
-                      <h3 className="font-semibold text-blue-600 dark:text-blue-400">Q2: Não Urgente & Importante</h3>
-                      <p className="text-sm text-muted-foreground">Agendar</p>
+                    <div className="bg-blue-500/20 p-6 border-b hover:bg-blue-500/30 transition-colors">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-blue-500 text-white rounded-full p-1 w-8 h-8 flex items-center justify-center font-bold">Q2</div>
+                        <h3 className="font-semibold text-blue-600 dark:text-blue-400 text-lg">Não Urgente & Importante</h3>
+                      </div>
+                      <div className="flex items-center gap-2 text-blue-600/80">
+                        <Clock className="h-4 w-4" />
+                        <p className="text-sm font-medium">AGENDAR</p>
+                      </div>
                     </div>
-                    <div className="bg-yellow-500/10 p-4 border-r">
-                      <h3 className="font-semibold text-yellow-600 dark:text-yellow-400">Q3: Urgente & Não Importante</h3>
-                      <p className="text-sm text-muted-foreground">Delegar</p>
+                    <div className="bg-yellow-500/20 p-6 border-r hover:bg-yellow-500/30 transition-colors">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-yellow-500 text-white rounded-full p-1 w-8 h-8 flex items-center justify-center font-bold">Q3</div>
+                        <h3 className="font-semibold text-yellow-600 dark:text-yellow-400 text-lg">Urgente & Não Importante</h3>
+                      </div>
+                      <div className="flex items-center gap-2 text-yellow-600/80">
+                        <AlertTriangle className="h-4 w-4" />
+                        <p className="text-sm font-medium">DELEGAR</p>
+                      </div>
                     </div>
-                    <div className="bg-green-500/10 p-4">
-                      <h3 className="font-semibold text-green-600 dark:text-green-400">Q4: Não Urgente & Não Importante</h3>
-                      <p className="text-sm text-muted-foreground">Eliminar</p>
+                    <div className="bg-green-500/20 p-6 hover:bg-green-500/30 transition-colors">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-green-500 text-white rounded-full p-1 w-8 h-8 flex items-center justify-center font-bold">Q4</div>
+                        <h3 className="font-semibold text-green-600 dark:text-green-400 text-lg">Não Urgente & Não Importante</h3>
+                      </div>
+                      <div className="flex items-center gap-2 text-green-600/80">
+                        <X className="h-4 w-4" />
+                        <p className="text-sm font-medium">ELIMINAR</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -101,11 +130,12 @@ const Introduction = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
-                  className="bg-red-500/10 p-6 rounded-xl border-l-4 border-red-500"
+                  className="bg-red-500/10 p-6 rounded-xl border-l-4 border-red-500 hover:shadow-lg transition-shadow"
                 >
-                  <h3 className="text-xl font-bold mb-3 text-red-600 dark:text-red-400 flex items-center">
-                    Q1: Urgente & Importante
-                  </h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="bg-red-500 text-white rounded-full p-1 w-8 h-8 flex items-center justify-center font-bold">Q1</div>
+                    <h3 className="text-xl font-bold text-red-600 dark:text-red-400">Urgente & Importante</h3>
+                  </div>
                   <p className="text-muted-foreground mb-2">
                     Tarefas que requerem atenção imediata e têm resultados significativos.
                   </p>
@@ -115,7 +145,8 @@ const Introduction = () => {
                     <li>Prazos iminentes</li>
                     <li>Emergências de saúde</li>
                   </ul>
-                  <div className="mt-4 text-sm font-medium text-red-600 dark:text-red-400">
+                  <div className="mt-4 text-sm font-medium flex items-center gap-2 text-red-600 dark:text-red-400">
+                    <Zap className="h-4 w-4" />
                     Ação: FAZER imediatamente
                   </div>
                 </motion.div>
@@ -124,11 +155,12 @@ const Introduction = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2, duration: 0.5 }}
-                  className="bg-blue-500/10 p-6 rounded-xl border-l-4 border-blue-500"
+                  className="bg-blue-500/10 p-6 rounded-xl border-l-4 border-blue-500 hover:shadow-lg transition-shadow"
                 >
-                  <h3 className="text-xl font-bold mb-3 text-blue-600 dark:text-blue-400 flex items-center">
-                    Q2: Não Urgente & Importante
-                  </h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="bg-blue-500 text-white rounded-full p-1 w-8 h-8 flex items-center justify-center font-bold">Q2</div>
+                    <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400">Não Urgente & Importante</h3>
+                  </div>
                   <p className="text-muted-foreground mb-2">
                     Tarefas que contribuem para objetivos de longo prazo e crescimento pessoal.
                   </p>
@@ -138,7 +170,8 @@ const Introduction = () => {
                     <li>Exercícios físicos</li>
                     <li>Relacionamentos</li>
                   </ul>
-                  <div className="mt-4 text-sm font-medium text-blue-600 dark:text-blue-400">
+                  <div className="mt-4 text-sm font-medium flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                    <Clock className="h-4 w-4" />
                     Ação: AGENDAR tempo para estas atividades
                   </div>
                 </motion.div>
@@ -147,11 +180,12 @@ const Introduction = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
-                  className="bg-yellow-500/10 p-6 rounded-xl border-l-4 border-yellow-500"
+                  className="bg-yellow-500/10 p-6 rounded-xl border-l-4 border-yellow-500 hover:shadow-lg transition-shadow"
                 >
-                  <h3 className="text-xl font-bold mb-3 text-yellow-600 dark:text-yellow-400 flex items-center">
-                    Q3: Urgente & Não Importante
-                  </h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="bg-yellow-500 text-white rounded-full p-1 w-8 h-8 flex items-center justify-center font-bold">Q3</div>
+                    <h3 className="text-xl font-bold text-yellow-600 dark:text-yellow-400">Urgente & Não Importante</h3>
+                  </div>
                   <p className="text-muted-foreground mb-2">
                     Tarefas que parecem urgentes mas têm pouco impacto em seus objetivos.
                   </p>
@@ -161,7 +195,8 @@ const Introduction = () => {
                     <li>Algumas reuniões</li>
                     <li>Interrupções</li>
                   </ul>
-                  <div className="mt-4 text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                  <div className="mt-4 text-sm font-medium flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
+                    <AlertTriangle className="h-4 w-4" />
                     Ação: DELEGAR para outros quando possível
                   </div>
                 </motion.div>
@@ -170,11 +205,12 @@ const Introduction = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
-                  className="bg-green-500/10 p-6 rounded-xl border-l-4 border-green-500"
+                  className="bg-green-500/10 p-6 rounded-xl border-l-4 border-green-500 hover:shadow-lg transition-shadow"
                 >
-                  <h3 className="text-xl font-bold mb-3 text-green-600 dark:text-green-400 flex items-center">
-                    Q4: Não Urgente & Não Importante
-                  </h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="bg-green-500 text-white rounded-full p-1 w-8 h-8 flex items-center justify-center font-bold">Q4</div>
+                    <h3 className="text-xl font-bold text-green-600 dark:text-green-400">Não Urgente & Não Importante</h3>
+                  </div>
                   <p className="text-muted-foreground mb-2">
                     Atividades que consomem tempo e oferecem pouco valor.
                   </p>
@@ -184,7 +220,8 @@ const Introduction = () => {
                     <li>Vídeos aleatórios</li>
                     <li>Atividades sem propósito</li>
                   </ul>
-                  <div className="mt-4 text-sm font-medium text-green-600 dark:text-green-400">
+                  <div className="mt-4 text-sm font-medium flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <X className="h-4 w-4" />
                     Ação: ELIMINAR ou reduzir ao mínimo
                   </div>
                 </motion.div>

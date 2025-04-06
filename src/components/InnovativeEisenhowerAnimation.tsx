@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle2, Lightbulb, Clock, ListChecks } from 'lucide-react';
 
