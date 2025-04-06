@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import InnovativeEisenhowerAnimation from './InnovativeEisenhowerAnimation';
+import InnovativeEisenhowerAnimation from './eisenhower-animation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface LoadingScreenProps {
@@ -152,4 +152,4 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   );
 };
 
-export default LoadingScreen; 
+export default LoadingScreen;
