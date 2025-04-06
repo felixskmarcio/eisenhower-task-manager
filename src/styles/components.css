@@ -1,3 +1,4 @@
+
 /* Componentes base */
 .app {
   background-color: var(--color-background);
@@ -33,6 +34,83 @@ button:disabled {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+/* Card Animations */
+.matrix-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fade-in 0.3s ease-out;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.matrix-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.matrix-card:hover .card-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.matrix-card .card-header {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(var(--color-base-content-rgb), 0.1);
+  font-weight: 600;
+}
+
+.matrix-card .card-content {
+  padding: 1rem;
+}
+
+.card-actions {
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: translateY(5px);
+}
+
+/* Quadrant Cards */
+.quadrant-card {
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.quadrant-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.quadrant-card.drop-ready {
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 8px 8px -5px rgba(0, 0, 0, 0.05);
+  border: 1px dashed rgba(99, 102, 241, 0.4);
+  background-color: rgba(99, 102, 241, 0.02);
+}
+
+.drop-indicator {
+  animation: pulse-soft 1.5s infinite;
+}
+
+.quadrant-card.q1 {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+  border-top: 3px solid rgb(239, 68, 68);
+}
+
+.quadrant-card.q2 {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+  border-top: 3px solid rgb(59, 130, 246);
+}
+
+.quadrant-card.q3 {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+  border-top: 3px solid rgb(16, 185, 129);
+}
+
+.quadrant-card.q4 {
+  background: linear-gradient(135deg, rgba(107, 114, 128, 0.1), rgba(107, 114, 128, 0.05));
+  border-top: 3px solid rgb(107, 114, 128);
+}
+
 /* Logo */
 .logo {
   height: 6em;
@@ -62,4 +140,4 @@ button:disabled {
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
-} 
+}
