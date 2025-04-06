@@ -542,11 +542,9 @@ const TaskCard = ({
 }) => {
   const Icon = quadrantData.icon;
   
+  // Modificação aqui: Use manejos de eventos standard HTML para drag ao invés dos eventos do Framer Motion
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+    <div
       className="border rounded-lg p-3 hover:shadow-sm transition-all group cursor-grab"
       draggable={true}
       onDragStart={(e) => onDragStart(e, task)}
@@ -576,7 +574,7 @@ const TaskCard = ({
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
