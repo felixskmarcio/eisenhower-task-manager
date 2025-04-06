@@ -10,7 +10,6 @@ const InnovativeEisenhowerAnimation = () => {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   
-  // Efeito para rotação gradual dos ícones decorativos
   useEffect(() => {
     const interval = setInterval(() => {
       setIconRotation(prev => (prev + 1) % 360);
@@ -19,9 +18,7 @@ const InnovativeEisenhowerAnimation = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Initialize 3D effect and particles
   useEffect(() => {
-    // Create particles com cores mais vibrantes
     const newParticles = Array.from({ length: 40 }, () => ({
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -29,28 +26,25 @@ const InnovativeEisenhowerAnimation = () => {
       size: Math.random() * 3 + 1,
       speed: Math.random() * 0.5 + 0.2,
       color: [
-        'rgba(99, 102, 241, 0.7)', // Indigo
-        'rgba(139, 92, 246, 0.8)', // Purple
-        'rgba(236, 72, 153, 0.7)', // Pink
-        'rgba(79, 70, 229, 0.8)',  // Indigo mais escuro
-        'rgba(167, 139, 250, 0.7)' // Lilás
+        'rgba(99, 102, 241, 0.7)',
+        'rgba(139, 92, 246, 0.8)',
+        'rgba(236, 72, 153, 0.7)',
+        'rgba(79, 70, 229, 0.8)',
+        'rgba(167, 139, 250, 0.7)'
       ][Math.floor(Math.random() * 5)]
     }));
     
     setParticles(newParticles);
     
-    // Setup canvas
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
     
-    // Animation loop
     let animationId;
     const animate = () => {
       ctx.clearRect(0, 0, width, height);
       
-      // Draw swirling path com efeito melhorado
       const time = Date.now() * 0.001;
       ctx.strokeStyle = 'rgba(139, 92, 246, 0.5)';
       ctx.lineWidth = 2;
@@ -71,7 +65,6 @@ const InnovativeEisenhowerAnimation = () => {
       ctx.closePath();
       ctx.stroke();
       
-      // Adicionar um segundo caminho decorativo
       ctx.strokeStyle = 'rgba(236, 72, 153, 0.3)';
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -90,17 +83,14 @@ const InnovativeEisenhowerAnimation = () => {
       
       ctx.stroke();
       
-      // Update and draw particles
       setParticles(prev => prev.map(particle => {
         const updatedParticle = {...particle};
         
-        // Circular motion pattern mais dinâmico
         const angle = time * particle.speed;
         const radius = 30 + updatedParticle.z * 2 + Math.sin(time * 0.5) * 5;
         updatedParticle.x = 50 + Math.cos(angle) * radius;
         updatedParticle.y = 50 + Math.sin(angle) * radius;
         
-        // Draw particle
         const x = (updatedParticle.x / 100) * width;
         const y = (updatedParticle.y / 100) * height;
         const size = updatedParticle.size * (hoverEffect ? 1.8 : 1);
@@ -110,7 +100,6 @@ const InnovativeEisenhowerAnimation = () => {
         ctx.arc(x, y, size, 0, Math.PI * 2);
         ctx.fill();
         
-        // Adicionar glow às partículas
         if (size > 2) {
           ctx.shadowColor = updatedParticle.color;
           ctx.shadowBlur = 5;
@@ -131,7 +120,6 @@ const InnovativeEisenhowerAnimation = () => {
     };
   }, [hoverEffect]);
   
-  // Simulate loading progress
   useEffect(() => {
     const interval = setInterval(() => {
       setLoadingProgress(prev => {
@@ -148,12 +136,10 @@ const InnovativeEisenhowerAnimation = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Calculate the elements for the circular progress
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (loadingProgress / 100) * circumference;
   
-  // Ícones para decoração
   const icons = [
     <Clock key="clock" className="w-4 h-4 text-indigo-500" />,
     <ListChecks key="list" className="w-4 h-4 text-purple-500" />,
@@ -174,7 +160,6 @@ const InnovativeEisenhowerAnimation = () => {
       onMouseEnter={() => setHoverEffect(true)}
       onMouseLeave={() => setHoverEffect(false)}
     >
-      {/* 3D rotating canvas background */}
       <canvas 
         ref={canvasRef} 
         width="200" 
@@ -186,7 +171,6 @@ const InnovativeEisenhowerAnimation = () => {
         }}
       />
       
-      {/* Main content */}
       <div 
         className="relative z-10 flex flex-col items-center"
         style={{
@@ -203,9 +187,7 @@ const InnovativeEisenhowerAnimation = () => {
           Eisenhower Matrix
         </h1>
         
-        {/* Custom morphing loader */}
         <div className="relative w-28 h-28 mb-2">
-          {/* Glowing background */}
           <div 
             className="absolute w-full h-full rounded-full"
             style={{
@@ -216,9 +198,7 @@ const InnovativeEisenhowerAnimation = () => {
             }}
           />
           
-          {/* Animated SVG loader */}
           <svg className="absolute w-full h-full" viewBox="0 0 100 100">
-            {/* Background Circle */}
             <circle
               cx="50"
               cy="50"
@@ -228,7 +208,6 @@ const InnovativeEisenhowerAnimation = () => {
               strokeWidth="4"
             />
             
-            {/* Progress Ring with Gradient */}
             <circle
               cx="50"
               cy="50"
@@ -246,7 +225,6 @@ const InnovativeEisenhowerAnimation = () => {
               }}
             />
             
-            {/* Define the gradient */}
             <defs>
               <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#8b5cf6" />
@@ -263,7 +241,6 @@ const InnovativeEisenhowerAnimation = () => {
               </linearGradient>
             </defs>
             
-            {/* Decorative orbital elements com ícones */}
             {[0, 60, 120, 180, 240, 300].map((angle, i) => (
               <g 
                 key={i} 
@@ -289,7 +266,6 @@ const InnovativeEisenhowerAnimation = () => {
             ))}
           </svg>
           
-          {/* Percentage display */}
           <div 
             className="absolute inset-0 flex items-center justify-center"
             style={{
@@ -307,7 +283,6 @@ const InnovativeEisenhowerAnimation = () => {
             </span>
           </div>
           
-          {/* Decorative icons around the circle */}
           {icons.map((icon, i) => (
             <div
               key={i}
@@ -325,7 +300,6 @@ const InnovativeEisenhowerAnimation = () => {
           ))}
         </div>
         
-        {/* Loading state text with dynamic effect */}
         <div 
           className="h-6 mt-2 overflow-hidden" 
           style={{ 
@@ -361,7 +335,8 @@ const InnovativeEisenhowerAnimation = () => {
         </div>
       </div>
       
-      <style jsx>{`
+      <style>
+        {`
         @keyframes pulse {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.05); }
@@ -392,9 +367,10 @@ const InnovativeEisenhowerAnimation = () => {
             transform: translateY(0);
           }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
 
-export default InnovativeEisenhowerAnimation; 
+export default InnovativeEisenhowerAnimation;

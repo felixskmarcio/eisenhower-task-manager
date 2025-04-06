@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Layout } from '@/components/Layout';
+import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Clock, CheckCircle, BarChart2, ArrowRight, Star } from "lucide-react";
 import { Button } from '@/components/ui/button';
