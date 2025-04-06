@@ -42,7 +42,7 @@ const TaskCard = ({
       onDragEnd={onDragEnd}
     >
       <div className="flex items-start gap-2">
-        <div className={`p-1.5 rounded-md ${quadrantData.color}/20 mt-0.5`}>
+        <div className={`p-1.5 rounded-md ${quadrantData.color} mt-0.5`}>
           <Icon className={`h-3.5 w-3.5 ${quadrantData.textColor}`} />
         </div>
         
