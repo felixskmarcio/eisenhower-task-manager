@@ -1,25 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { PlusCircle, AlertTriangle, Clock, CheckSquare, Trash2, ArrowRight, HelpCircle, X, Move } from 'lucide-react';
+
+import React, { useState, useEffect } from 'react';
+import { PlusCircle, AlertTriangle, Clock, CheckSquare, Trash2, ArrowRight, HelpCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { motion } from 'framer-motion';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
-// Interface para uma tarefa na matriz
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  quadrant: 1 | 2 | 3 | 4;
-  createdAt: Date;
-}
+import { Task } from '@/components/eisenhower/TaskCard';
+import TutorialAlert from '@/components/eisenhower/TutorialAlert';
+import CreateTaskDialog from '@/components/eisenhower/CreateTaskDialog';
+import MatrixGrid from '@/components/eisenhower/MatrixGrid';
+import TaskList from '@/components/eisenhower/TaskList';
+import TipsCard from '@/components/eisenhower/TipsCard';
 
 const Demo = () => {
   // Estado para as tarefas de demonstração
@@ -237,61 +227,7 @@ const Demo = () => {
       </div>
 
       {/* Tutorial / Instruções */}
-      {showTutorial && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <Alert className="bg-primary/10 border-primary/20">
-            <div className="flex justify-between w-full">
-              <div className="flex-1">
-                <AlertTitle className="text-lg font-semibold text-primary mb-2">
-                  Bem-vindo à demonstração da Matriz de Eisenhower
-                </AlertTitle>
-                <AlertDescription className="text-muted-foreground">
-                  <p className="mb-2">
-                    Esta é uma versão demonstrativa onde você pode experimentar como funciona a 
-                    matriz de Eisenhower sem necessidade de criar uma conta.
-                  </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-foreground">Como usar:</h4>
-                      <ul className="space-y-1 text-sm list-disc pl-5">
-                        <li>Clique em <strong>Nova Tarefa</strong> para adicionar novas atividades</li>
-                        <li>Escolha o quadrante apropriado para cada tarefa</li>
-                        <li>Use as abas para filtrar tarefas por quadrante</li>
-                        <li><strong>Arraste e solte</strong> tarefas entre os quadrantes para reclassificá-las</li>
-                        <li>Passe o mouse sobre uma tarefa e clique no ícone de lixeira para removê-la</li>
-                      </ul>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-foreground">Dicas para classificar suas tarefas:</h4>
-                      <ul className="space-y-1 text-sm list-disc pl-5">
-                        <li><strong>Q1 (Vermelho):</strong> Crises, problemas urgentes, prazos inadiáveis</li>
-                        <li><strong>Q2 (Verde):</strong> Planejamento, desenvolvimento pessoal, relacionamentos</li>
-                        <li><strong>Q3 (Amarelo):</strong> Interrupções, algumas reuniões, e-mails</li>
-                        <li><strong>Q4 (Cinza):</strong> Distrações, atividades triviais, procrastinação</li>
-                      </ul>
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm">
-                    As tarefas que você adicionar ficarão salvas apenas neste navegador. Para salvar permanentemente e 
-                    acessar recursos avançados, crie uma conta.
-                  </p>
-                </AlertDescription>
-              </div>
-              
-              <Button variant="ghost" size="icon" onClick={closeTutorial} className="h-6 w-6 shrink-0">
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </Alert>
-        </motion.div>
-      )}
+      {showTutorial && <TutorialAlert onClose={closeTutorial} />}
 
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
         <TabsList className="grid grid-cols-5">
@@ -316,200 +252,40 @@ const Demo = () => {
         
         <TabsContent value={activeTab} className="mt-6">
           {activeTab === 'all' ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {[1, 2, 3, 4].map(quadrant => {
-                const quadTasks = tasks.filter(task => task.quadrant === quadrant);
-                const { title, icon: Icon, color } = quadrantData[quadrant as 1 | 2 | 3 | 4];
-                
-                return (
-                  <div 
-                    key={quadrant} 
-                    className="border rounded-lg p-4 quadrant-drop-zone transition-all duration-300"
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDrop(e, quadrant)}
-                  >
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className={`p-1.5 rounded-md ${color}/20`}>
-                        <Icon className={`h-4 w-4 ${quadrantData[quadrant as 1 | 2 | 3 | 4].textColor}`} />
-                      </div>
-                      <h3 className="font-medium">{title}</h3>
-                      <Badge variant="outline" className="ml-auto">
-                        {quadTasks.length}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                      {quadTasks.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          Sem tarefas neste quadrante
-                        </p>
-                      ) : (
-                        quadTasks.map(task => (
-                          <TaskCard 
-                            key={task.id} 
-                            task={task} 
-                            quadrantData={quadrantData[task.quadrant]} 
-                            onRemove={handleRemoveTask}
-                            onDragStart={handleDragStart}
-                            onDragEnd={handleDragEnd}
-                          />
-                        ))
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <MatrixGrid 
+              tasks={tasks}
+              quadrantData={quadrantData}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onRemoveTask={handleRemoveTask}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            />
           ) : (
-            <div className="space-y-4">
-              {getFilteredTasks().length === 0 ? (
-                <p className="text-center py-8 text-muted-foreground">
-                  Sem tarefas para mostrar neste quadrante
-                </p>
-              ) : (
-                getFilteredTasks().map(task => (
-                  <TaskCard 
-                    key={task.id} 
-                    task={task} 
-                    quadrantData={quadrantData[task.quadrant]} 
-                    onRemove={handleRemoveTask}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                  />
-                ))
-              )}
-            </div>
+            <TaskList
+              tasks={getFilteredTasks()}
+              quadrantData={quadrantData}
+              onRemoveTask={handleRemoveTask}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            />
           )}
         </TabsContent>
       </Tabs>
 
       {/* Dialog de nova tarefa */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar Nova Tarefa</DialogTitle>
-            <DialogDescription>
-              Preencha os detalhes da tarefa e selecione o quadrante correto na matriz.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Título da Tarefa</Label>
-              <Input
-                id="title"
-                placeholder="Digite o título da tarefa"
-                value={newTask.title}
-                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição (opcional)</Label>
-              <Textarea
-                id="description"
-                placeholder="Detalhes adicionais sobre a tarefa"
-                value={newTask.description}
-                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Quadrante</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {Object.entries(quadrantData).map(([key, data]) => {
-                  const Icon = data.icon;
-                  const isSelected = newTask.quadrant === parseInt(key);
-                  
-                  return (
-                    <div
-                      key={key}
-                      className={`border rounded-lg p-3 cursor-pointer transition-all ${
-                        isSelected ? 'border-primary ring-1 ring-primary' : ''
-                      }`}
-                      onClick={() => setNewTask({ ...newTask, quadrant: parseInt(key) as 1 | 2 | 3 | 4 })}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1 rounded-md ${data.color}/20`}>
-                          <Icon className={`h-4 w-4 ${data.textColor}`} />
-                        </div>
-                        <span className="text-sm font-medium">{`Q${key}: ${data.title.split(",")[0]}`}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAddTask} disabled={!newTask.title}>Adicionar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateTaskDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        onAddTask={handleAddTask}
+        quadrantData={quadrantData}
+      />
 
       <div className="mt-16 text-center border-t pt-8">
-        <Card className="max-w-3xl mx-auto mb-8 bg-muted/40">
-          <CardHeader>
-            <CardTitle>Maximizando sua produtividade</CardTitle>
-            <CardDescription>Dicas para uso eficiente da Matriz de Eisenhower no dia a dia</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-2">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <div className="p-1 rounded-full bg-red-500/20">
-                      <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
-                    </div>
-                    <span>Quadrante 1: Urgente & Importante</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground">Dedique tempo para <strong>reduzir</strong> as tarefas deste quadrante melhorando seu planejamento. Muitas tarefas aqui indicam gerenciamento reativo.</p>
-                </div>
-                
-                <div className="flex flex-col gap-2">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <div className="p-1 rounded-full bg-green-500/20">
-                      <CheckSquare className="h-3.5 w-3.5 text-green-500" />
-                    </div>
-                    <span>Quadrante 2: Não-Urgente & Importante</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground"><strong>Amplie</strong> seu foco aqui. Investir tempo em planejamento, relacionamentos e desenvolvimento pessoal traz os melhores resultados a longo prazo.</p>
-                </div>
-                
-                <div className="flex flex-col gap-2">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <div className="p-1 rounded-full bg-amber-500/20">
-                      <Clock className="h-3.5 w-3.5 text-amber-500" />
-                    </div>
-                    <span>Quadrante 3: Urgente & Não-Importante</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground"><strong>Reduza ou delegue</strong> estas tarefas. Elas parecem importantes pela urgência, mas não contribuem para seus objetivos de longo prazo.</p>
-                </div>
-                
-                <div className="flex flex-col gap-2">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <div className="p-1 rounded-full bg-gray-500/20">
-                      <Trash2 className="h-3.5 w-3.5 text-gray-500" />
-                    </div>
-                    <span>Quadrante 4: Não-Urgente & Não-Importante</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground"><strong>Elimine</strong> estas atividades. Elas são desperdiçadores de tempo que não trazem valor significativo para sua vida ou objetivos.</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="justify-center">
-            <Button asChild variant="outline" size="sm">
-              <Link to="/introduction">
-                Ver guia completo
-                <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-              </Link>
-            </Button>
-          </CardFooter>
-        </Card>
+        <TipsCard />
 
         <p className="text-muted-foreground mb-4">
           Esta é uma versão de demonstração. Crie uma conta para salvar suas tarefas e acessar todos os recursos.
@@ -519,57 +295,6 @@ const Demo = () => {
             Criar conta
             <ArrowRight className="h-4 w-4" />
           </Link>
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-// Componente para exibir uma tarefa
-const TaskCard = ({ 
-  task, 
-  quadrantData, 
-  onRemove,
-  onDragStart,
-  onDragEnd
-}: { 
-  task: Task; 
-  quadrantData: { title: string; icon: React.ElementType; color: string; textColor: string; }; 
-  onRemove: (id: string) => void;
-  onDragStart: (e: React.DragEvent, task: Task) => void;
-  onDragEnd: (e: React.DragEvent) => void;
-}) => {
-  const Icon = quadrantData.icon;
-  
-  return (
-    <div
-      className="border rounded-lg p-3 hover:shadow-sm transition-all group cursor-grab"
-      draggable={true}
-      onDragStart={(e) => onDragStart(e, task)}
-      onDragEnd={onDragEnd}
-    >
-      <div className="flex items-start gap-2">
-        <div className={`p-1.5 rounded-md ${quadrantData.color}/20 mt-0.5`}>
-          <Icon className={`h-3.5 w-3.5 ${quadrantData.textColor}`} />
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center">
-            <h4 className="font-medium text-sm truncate flex-1">{task.title}</h4>
-            <Move className="h-3 w-3 text-muted-foreground opacity-40 group-hover:opacity-100 ml-1 drag-handle" />
-          </div>
-          {task.description && (
-            <p className="text-muted-foreground text-xs mt-1 line-clamp-2">{task.description}</p>
-          )}
-        </div>
-        
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => onRemove(task.id)}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>
     </div>
