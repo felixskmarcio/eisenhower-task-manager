@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { PlusCircle, AlertTriangle, Clock, CheckSquare, Trash2, ArrowRight, HelpCircle, X } from 'lucide-react';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { PlusCircle, AlertTriangle, Clock, CheckSquare, Trash2, ArrowRight, HelpCircle, X, Move } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,6 +75,10 @@ const Demo = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 
+  // Estado para drag and drop
+  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
   // Novo estado para mostrar/ocultar o tutorial
   const [showTutorial, setShowTutorial] = useState(() => {
     // Verifica se o usuário já viu o tutorial antes
@@ -101,6 +106,83 @@ const Demo = () => {
     setTasks(prev => [...prev, task]);
     setDialogOpen(false);
     setNewTask({ title: '', description: '', quadrant: 1 });
+  };
+
+  // Funções para drag and drop
+  const handleDragStart = (e: React.DragEvent, task: Task) => {
+    e.dataTransfer.setData('taskId', task.id);
+    setDraggedTask(task);
+    setIsDragging(true);
+    
+    // Adiciona classe visual para o elemento arrastado
+    const element = e.currentTarget as HTMLElement;
+    element.classList.add('dragging');
+    
+    // Adiciona offset para melhorar a experiência visual
+    const rect = element.getBoundingClientRect();
+    e.dataTransfer.setDragImage(element, rect.width / 2, rect.height / 2);
+    
+    // Feedback visual para arrastar
+    setTimeout(() => {
+      element.style.opacity = '0.5';
+      element.style.transform = 'scale(1.03)';
+    }, 0);
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    setIsDragging(false);
+    setDraggedTask(null);
+    
+    // Remove estilos visuais
+    const element = e.currentTarget as HTMLElement;
+    element.classList.remove('dragging');
+    element.style.opacity = '';
+    element.style.transform = '';
+    
+    // Remove a classe de todos os quadrantes
+    document.querySelectorAll('.quadrant-drop-zone').forEach(zone => {
+      zone.classList.remove('drag-over');
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Adiciona efeito visual ao quadrante
+    const dropZone = e.currentTarget as HTMLElement;
+    dropZone.classList.add('drag-over');
+    
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Remove efeito visual quando o cursor sai da zona
+    const dropZone = e.currentTarget as HTMLElement;
+    dropZone.classList.remove('drag-over');
+  };
+
+  const handleDrop = (e: React.DragEvent, newQuadrant: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Remove efeito visual
+    const dropZone = e.currentTarget as HTMLElement;
+    dropZone.classList.remove('drag-over');
+    
+    // Recupera o ID da tarefa arrastada
+    const taskId = e.dataTransfer.getData('taskId');
+    if (!taskId) return;
+    
+    // Atualiza o quadrante da tarefa
+    const updatedTasks = tasks.map(task => {
+      if (task.id === taskId && task.quadrant !== newQuadrant) {
+        return { ...task, quadrant: newQuadrant as 1 | 2 | 3 | 4 };
+      }
+      return task;
+    });
+    
+    setTasks(updatedTasks);
   };
 
   // Remove uma tarefa
@@ -181,6 +263,7 @@ const Demo = () => {
                         <li>Clique em <strong>Nova Tarefa</strong> para adicionar novas atividades</li>
                         <li>Escolha o quadrante apropriado para cada tarefa</li>
                         <li>Use as abas para filtrar tarefas por quadrante</li>
+                        <li><strong>Arraste e solte</strong> tarefas entre os quadrantes para reclassificá-las</li>
                         <li>Passe o mouse sobre uma tarefa e clique no ícone de lixeira para removê-la</li>
                       </ul>
                     </div>
@@ -240,7 +323,13 @@ const Demo = () => {
                 const { title, icon: Icon, color } = quadrantData[quadrant as 1 | 2 | 3 | 4];
                 
                 return (
-                  <div key={quadrant} className="border rounded-lg p-4">
+                  <div 
+                    key={quadrant} 
+                    className="border rounded-lg p-4 quadrant-drop-zone transition-all duration-300"
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, quadrant)}
+                  >
                     <div className="flex items-center gap-2 mb-4">
                       <div className={`p-1.5 rounded-md ${color}/20`}>
                         <Icon className={`h-4 w-4 ${quadrantData[quadrant as 1 | 2 | 3 | 4].textColor}`} />
@@ -262,7 +351,9 @@ const Demo = () => {
                             key={task.id} 
                             task={task} 
                             quadrantData={quadrantData[task.quadrant]} 
-                            onRemove={handleRemoveTask} 
+                            onRemove={handleRemoveTask}
+                            onDragStart={handleDragStart}
+                            onDragEnd={handleDragEnd}
                           />
                         ))
                       )}
@@ -283,7 +374,9 @@ const Demo = () => {
                     key={task.id} 
                     task={task} 
                     quadrantData={quadrantData[task.quadrant]} 
-                    onRemove={handleRemoveTask} 
+                    onRemove={handleRemoveTask}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
                   />
                 ))
               )}
@@ -437,11 +530,15 @@ const Demo = () => {
 const TaskCard = ({ 
   task, 
   quadrantData, 
-  onRemove 
+  onRemove,
+  onDragStart,
+  onDragEnd
 }: { 
   task: Task; 
   quadrantData: { title: string; icon: React.ElementType; color: string; textColor: string; }; 
-  onRemove: (id: string) => void; 
+  onRemove: (id: string) => void;
+  onDragStart: (e: React.DragEvent, task: Task) => void;
+  onDragEnd: (e: React.DragEvent) => void;
 }) => {
   const Icon = quadrantData.icon;
   
@@ -450,7 +547,10 @@ const TaskCard = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="border rounded-lg p-3 hover:shadow-sm transition-all group"
+      className="border rounded-lg p-3 hover:shadow-sm transition-all group cursor-grab"
+      draggable={true}
+      onDragStart={(e) => onDragStart(e, task)}
+      onDragEnd={onDragEnd}
     >
       <div className="flex items-start gap-2">
         <div className={`p-1.5 rounded-md ${quadrantData.color}/20 mt-0.5`}>
@@ -458,7 +558,10 @@ const TaskCard = ({
         </div>
         
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm truncate">{task.title}</h4>
+          <div className="flex items-center">
+            <h4 className="font-medium text-sm truncate flex-1">{task.title}</h4>
+            <Move className="h-3 w-3 text-muted-foreground opacity-40 group-hover:opacity-100 ml-1 drag-handle" />
+          </div>
           {task.description && (
             <p className="text-muted-foreground text-xs mt-1 line-clamp-2">{task.description}</p>
           )}
@@ -477,4 +580,4 @@ const TaskCard = ({
   );
 };
 
-export default Demo; 
+export default Demo;
