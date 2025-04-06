@@ -5,67 +5,59 @@ import { AnimatedNavigationTabs } from "@/components/ui/animated-navigation-tabs
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import NavigationLink from './NavigationLink';
-
 interface LayoutProps {
   children: React.ReactNode;
 }
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<LayoutProps> = ({
+  children
+}) => {
   const location = useLocation();
-  const { signOut, user } = useAuth();
-  
+  const {
+    signOut,
+    user
+  } = useAuth();
+
   // Define items para o menu AnimatedNavigationTabs
-  const navItems = [
-    {
-      id: 1,
-      tile: "Dashboard",
-      url: "/dashboard",
-      icon: Home
-    },
-    {
-      id: 2,
-      tile: "Produtividade",
-      url: "/productivity",
-      icon: BarChart2
-    },
-    {
-      id: 3,
-      tile: "Tags",
-      url: "/tags",
-      icon: Tag
-    },
-    {
-      id: 4,
-      tile: "Configurações",
-      url: "/config",
-      icon: Settings
-    },
-  ];
+  const navItems = [{
+    id: 1,
+    tile: "Dashboard",
+    url: "/dashboard",
+    icon: Home
+  }, {
+    id: 2,
+    tile: "Produtividade",
+    url: "/productivity",
+    icon: BarChart2
+  }, {
+    id: 3,
+    tile: "Tags",
+    url: "/tags",
+    icon: Tag
+  }, {
+    id: 4,
+    tile: "Configurações",
+    url: "/config",
+    icon: Settings
+  }];
 
   // Items públicos que não requerem autenticação
-  const publicItems = [
-    {
-      id: 101,
-      tile: "Início",
-      url: "/",
-      icon: Home
-    },
-    {
-      id: 102,
-      tile: "Introdução",
-      url: "/introduction",
-      icon: InfoIcon
-    },
-    {
-      id: 103,
-      tile: "Demonstração",
-      url: "/demo",
-      icon: PlayCircle
-    }
-  ];
-
-  return (
-    <>
+  const publicItems = [{
+    id: 101,
+    tile: "Início",
+    url: "/",
+    icon: Home
+  }, {
+    id: 102,
+    tile: "Introdução",
+    url: "/introduction",
+    icon: InfoIcon
+  }, {
+    id: 103,
+    tile: "Demonstração",
+    url: "/demo",
+    icon: PlayCircle
+  }];
+  return <>
       <div className="min-h-screen flex flex-col bg-background">
         <header className="w-full border-b shadow-sm bg-background/95 backdrop-blur-sm sticky top-0 z-20">
           <div className="container mx-auto">
@@ -84,32 +76,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </NavigationLink>
               
               <div className="flex items-center gap-2">
-                {user ? (
-                  <>
+                {user ? <>
                     <AnimatedNavigationTabs items={navItems} />
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={signOut} 
-                      className="ml-2 text-muted-foreground hover:text-destructive"
-                    >
+                    <Button variant="ghost" size="sm" onClick={signOut} className="ml-2 text-muted-foreground hover:text-destructive">
                       <LogOut className="h-4 w-4 mr-1" />
                       <span className="hidden sm:inline">Sair</span>
                     </Button>
-                  </>
-                ) : (
-                  <>
+                  </> : <>
                     <AnimatedNavigationTabs items={publicItems} />
-                    <Button 
-                      asChild
-                      variant="default" 
-                      size="sm" 
-                      className="ml-2"
-                    >
+                    <Button asChild variant="default" size="sm" className="ml-2">
                       <NavigationLink to="/login" showLoadingScreen={true}>Entrar</NavigationLink>
                     </Button>
-                  </>
-                )}
+                  </>}
               </div>
             </div>
           </div>
@@ -126,7 +104,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Clock className="h-3.5 w-3.5 text-primary/60" />
                 <span className="font-medium text-primary/70">Eisenhower Task Manager</span>
                 <span className="text-primary/40">•</span>
-                <span>Versão 1.1.0</span>
+                <span>Versão 1.1.1</span>
               </div>
               <div className="flex items-center gap-4">
                 <NavigationLink to="/introduction" className="text-muted-foreground hover:text-primary transition-colors" showLoadingScreen={true}>Sobre</NavigationLink>
@@ -137,8 +115,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </footer>
       </div>
-    </>
-  );
+    </>;
 };
-
 export default Layout;
