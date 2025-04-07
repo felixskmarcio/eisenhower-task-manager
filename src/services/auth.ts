@@ -1,4 +1,3 @@
-
 import { 
   signInWithPopup,
   GoogleAuthProvider,
@@ -8,7 +7,8 @@ import {
   Auth,
   AuthError,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth, googleProvider } from '@/utils/firebase';
 import { toast } from '@/hooks/use-toast';
@@ -212,4 +212,54 @@ export const getAccessToken = (): string | null => {
 // Função auxiliar para monitorar mudanças no estado de autenticação
 export const subscribeToAuthChanges = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
+};
+
+export const resetPassword = async (email: string): Promise<void> => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    
+    toast({
+      title: "E-mail enviado",
+      description: "Enviamos um link para redefinição de senha ao seu e-mail.",
+      variant: "default"
+    });
+  } catch (error) {
+    const authError = error as AuthError;
+    
+    // Registrar no sistema de log
+    logError(authError, {
+      type: ErrorType.AUTH,
+      code: authError.code,
+      details: {
+        provider: 'email',
+        errorInfo: {
+          name: authError.name,
+          message: authError.message
+        }
+      },
+      context: {
+        action: 'resetPassword',
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+    // Log detalhado no console para desenvolvimento
+    console.error('Erro ao enviar e-mail de recuperação:', {
+      code: authError.code,
+      message: authError.message,
+      details: authError
+    });
+    
+    // Mensagem amigável para o usuário
+    const friendlyMessage = errorMessages[authError.code] || 
+                           'Não foi possível enviar o e-mail de recuperação. Verifique se o e-mail está correto.';
+    
+    toast({
+      title: "Erro ao enviar e-mail",
+      description: friendlyMessage,
+      variant: "destructive"
+    });
+    
+    throw authError;
+  }
 };

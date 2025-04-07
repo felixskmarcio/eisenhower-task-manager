@@ -13,6 +13,14 @@ import { toast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { useTheme } from '@/contexts/ThemeContext';
 import { motion } from 'framer-motion';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const loginSchema = z.object({
   email: z.string().email('Digite um e-mail válido'),
@@ -29,17 +37,24 @@ const signupSchema = z.object({
   message: 'As senhas não conferem'
 });
 
+const resetPasswordSchema = z.object({
+  email: z.string().email('Digite um e-mail válido')
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type SignupFormValues = z.infer<typeof signupSchema>;
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 const AuthPage: React.FC = () => {
-  const { signIn, signUp, signInWithGoogle, loading, user } = useAuth();
+  const { signIn, signUp, signInWithGoogle, resetPassword, loading, user } = useAuth();
   const [activeTab, setActiveTab] = useState('login');
   const [googleLoading, setGoogleLoading] = useState(false);
   const { isDarkTheme } = useTheme();
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showSignupConfirmPassword, setShowSignupConfirmPassword] = useState(false);
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -59,6 +74,13 @@ const AuthPage: React.FC = () => {
     }
   });
 
+  const resetPasswordForm = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      email: ''
+    }
+  });
+
   const loginPasswordValue = loginForm.watch('password');
   const signupPasswordValue = signupForm.watch('password');
   const signupConfirmPasswordValue = signupForm.watch('confirmPassword');
@@ -69,6 +91,23 @@ const AuthPage: React.FC = () => {
 
   const onSignupSubmit = async (values: SignupFormValues) => {
     await signUp(values.email, values.password, values.nome);
+  };
+
+  const onResetPasswordSubmit = async (values: ResetPasswordFormValues) => {
+    setResetPasswordLoading(true);
+    try {
+      await resetPassword(values.email);
+      setResetPasswordOpen(false);
+      resetPasswordForm.reset();
+      toast({
+        title: "Email enviado",
+        description: "Se o email estiver cadastrado, você receberá as instruções para redefinir sua senha.",
+      });
+    } catch (error) {
+      console.error("Erro ao enviar email de redefinição:", error);
+    } finally {
+      setResetPasswordLoading(false);
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -251,6 +290,15 @@ const AuthPage: React.FC = () => {
                               </FormControl>
                               <FormMessage />
                             </FormItem>} />
+                        
+                        <div className="flex items-center justify-end">
+                          <span 
+                            className="text-xs text-muted-foreground/70 hover:text-muted-foreground cursor-pointer transition-colors duration-200" 
+                            onClick={() => setResetPasswordOpen(true)}
+                          >
+                            Esqueci minha senha
+                          </span>
+                        </div>
                         
                         <Button type="submit" className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium text-base relative overflow-hidden group shadow-lg shadow-primary/20 animate-gradient-shift mt-2" disabled={loading}>
                           <span className="absolute inset-0 w-0 bg-white/20 transition-all duration-300 ease-out group-hover:w-full"></span>
@@ -457,6 +505,68 @@ const AuthPage: React.FC = () => {
           </Tabs>
         </motion.div>
       </motion.div>
+      
+      <Dialog open={resetPasswordOpen} onOpenChange={setResetPasswordOpen}>
+        <DialogContent className="sm:max-w-[425px] border-none shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Lock className="h-5 w-5 text-foreground" />
+              <span>Redefinir senha</span>
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground/80">
+              Digite seu email para receber instruções de redefinição de senha.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...resetPasswordForm}>
+            <form onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)} className="space-y-4">
+              <FormField
+                control={resetPasswordForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>E-mail</FormLabel>
+                    <FormControl>
+                      <div className="relative group">
+                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-muted-foreground transition-colors duration-200" />
+                        <Input 
+                          placeholder="seu@email.com" 
+                          className="pl-10 ring-offset-background focus-visible:ring-muted/20 transition-all duration-200 border-input/50 focus:border-muted" 
+                          {...field} 
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter className="pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setResetPasswordOpen(false)}
+                  className="border-input/50 hover:border-muted/30 transition-all duration-200"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={resetPasswordLoading}
+                  className="bg-foreground text-background hover:bg-foreground/90"
+                >
+                  {resetPasswordLoading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 border-2 border-background/20 border-t-background rounded-full animate-spin"></div>
+                      Enviando...
+                    </span>
+                  ) : (
+                    "Enviar email"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

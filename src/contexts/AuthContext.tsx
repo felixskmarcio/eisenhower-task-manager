@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { User } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
@@ -10,7 +9,8 @@ import {
   createUserWithEmail, 
   signOut as authSignOut,
   getCurrentUser,
-  subscribeToAuthChanges 
+  subscribeToAuthChanges,
+  resetPassword as authResetPassword
 } from '@/services/auth';
 
 interface AuthContextType {
@@ -20,6 +20,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -265,6 +266,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const handleResetPassword = async (email: string) => {
+    try {
+      await authResetPassword(email);
+    } catch (error) {
+      console.error('Erro ao solicitar redefinição de senha:', error);
+    }
+  };
+
   const value = {
     user,
     profile,
@@ -272,6 +281,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signInWithGoogle: handleGoogleSignIn,
     signOut: handleSignOut,
+    resetPassword: handleResetPassword,
     loading
   };
 
