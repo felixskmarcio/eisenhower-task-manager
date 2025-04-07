@@ -1,3 +1,4 @@
+
 /* Tema personalizado para cores específicas baseado em seleções de temas */
 
 /* Variáveis base e transições para todos os temas */
@@ -17,7 +18,6 @@
 .theme-bg {
   min-height: 100vh;
   width: 100%;
-  padding: 1rem;
   background-color: var(--theme-bg);
   background-image: var(--bg-gradient), var(--bg-pattern);
   background-attachment: fixed;
@@ -35,9 +35,9 @@
 /* TEMA LIGHT */
 [data-theme="light"] {
   /* Backgrounds e variáveis de gradientes */
-  --theme-bg: hsl(210, 30%, 95%);
-  --bg-gradient: linear-gradient(to bottom right, hsl(210, 30%, 95%), hsl(200, 25%, 90%));
-  --bg-pattern: radial-gradient(circle at 1px 1px, hsl(210, 40%, 93%) 1px, transparent 0);
+  --theme-bg: hsl(0, 0%, 100%);
+  --bg-gradient: linear-gradient(to bottom right, hsl(0, 0%, 100%), hsl(0, 0%, 98%));
+  --bg-pattern: radial-gradient(circle at 1px 1px, hsl(0, 0%, 96%) 1px, transparent 0);
   
   /* Sombras personalizadas */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
