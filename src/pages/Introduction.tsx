@@ -4,10 +4,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Clock, CheckCircle, BarChart2, ArrowRight, Star } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const Introduction = () => {
+  const { currentTheme } = useTheme();
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 theme-bg">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

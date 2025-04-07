@@ -22,12 +22,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       'abyss', 'silk'
     ].includes(savedTheme)
       ? savedTheme
-      : 'light'; // Usando 'light' como tema padrão para melhor visibilidade
+      : 'light';
   });
 
   // Apply theme when it changes
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', currentTheme);
+    document.body.setAttribute('data-theme', currentTheme);
     localStorage.setItem('theme', currentTheme);
   }, [currentTheme]);
 
