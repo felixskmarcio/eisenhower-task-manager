@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,18 +7,20 @@ import * as z from 'zod';
 import { Clock, ArrowRight, Mail, Lock, User, LogIn, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { signInWithGoogle } from '@/services/auth';
 import { toast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { useTheme } from '@/contexts/ThemeContext';
 import { motion } from 'framer-motion';
+
+// Esquemas de validação
 const loginSchema = z.object({
   email: z.string().email('Digite um e-mail válido'),
   password: z.string().min(6, 'A senha precisa ter pelo menos 6 caracteres')
 });
+
 const signupSchema = z.object({
   nome: z.string().min(3, 'O nome precisa ter pelo menos 3 caracteres'),
   email: z.string().email('Digite um e-mail válido'),
@@ -27,20 +30,16 @@ const signupSchema = z.object({
   path: ['confirmPassword'],
   message: 'As senhas não conferem'
 });
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type SignupFormValues = z.infer<typeof signupSchema>;
+
 const AuthPage: React.FC = () => {
-  const {
-    signIn,
-    signUp,
-    loading,
-    user
-  } = useAuth();
+  const { signIn, signUp, signInWithGoogle, loading, user } = useAuth();
   const [activeTab, setActiveTab] = useState('login');
   const [googleLoading, setGoogleLoading] = useState(false);
-  const {
-    isDarkTheme
-  } = useTheme();
+  const { isDarkTheme } = useTheme();
+
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -48,6 +47,7 @@ const AuthPage: React.FC = () => {
       password: ''
     }
   });
+
   const signupForm = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -57,26 +57,26 @@ const AuthPage: React.FC = () => {
       confirmPassword: ''
     }
   });
+
   const onLoginSubmit = async (values: LoginFormValues) => {
     await signIn(values.email, values.password);
   };
+
   const onSignupSubmit = async (values: SignupFormValues) => {
     await signUp(values.email, values.password, values.nome);
   };
+
   const handleGoogleLogin = async () => {
     try {
       setGoogleLoading(true);
       await signInWithGoogle();
-      toast({
-        title: "Login realizado",
-        description: "Login com Google realizado com sucesso"
-      });
     } catch (error) {
       console.error('Erro ao fazer login com Google:', error);
     } finally {
       setGoogleLoading(false);
     }
   };
+
   const fillTestCredentials = () => {
     loginForm.setValue('email', 'teste@example.com');
     loginForm.setValue('password', 'senha123');
@@ -95,6 +95,7 @@ const AuthPage: React.FC = () => {
       }
     }
   };
+  
   const itemVariants = {
     hidden: {
       y: 20,
@@ -109,7 +110,9 @@ const AuthPage: React.FC = () => {
       }
     }
   };
-  return <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 flex flex-col items-center justify-center relative overflow-hidden">
+
+  return (
+    <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 flex flex-col items-center justify-center relative overflow-hidden">
       {/* Fundo animado */}
       <div className="absolute inset-0 overflow-hidden -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-base-100 to-secondary/20"></div>
@@ -267,10 +270,19 @@ const AuthPage: React.FC = () => {
                               <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
                               <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
                             </svg>
-                            <span className="font-medium text-base text-slate-900">Entrar com Google</span>
+                            <span className="font-medium text-base text-slate-900 dark:text-slate-200">Entrar com Google</span>
                           </span>
                         </Button>
                         
+                        <div className="mt-6 text-center">
+                          <button 
+                            type="button" 
+                            onClick={fillTestCredentials}
+                            className="text-xs text-muted-foreground/70 hover:text-primary transition-colors duration-200"
+                          >
+                            Usar credenciais de teste
+                          </button>
+                        </div>
                         
                       </form>
                     </Form>
@@ -385,7 +397,7 @@ const AuthPage: React.FC = () => {
                               <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
                               <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
                             </svg>
-                            <span className="font-medium text-base text-slate-800">Cadastrar com Google</span>
+                            <span className="font-medium text-base text-slate-800 dark:text-slate-200">Cadastrar com Google</span>
                           </span>
                         </Button>
                       </form>
@@ -397,6 +409,8 @@ const AuthPage: React.FC = () => {
           </Tabs>
         </motion.div>
       </motion.div>
-    </div>;
+    </div>
+  );
 };
+
 export default AuthPage;
