@@ -112,30 +112,30 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-transparent py-8 px-4 sm:px-6 flex flex-col items-center justify-center relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-base-100 to-secondary/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-base-100/80 to-secondary/10"></div>
         
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMDIiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8L3N2Zz4=')] opacity-10"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMDIiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8L3N2Zz4=')] opacity-5"></div>
         
-        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-gradient-to-br from-primary/20 to-secondary/10 blur-3xl opacity-50 animate-pulse"></div>
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-gradient-to-br from-secondary/20 to-primary/10 blur-3xl opacity-50 animate-pulse" style={{
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-gradient-to-br from-primary/15 to-secondary/5 blur-3xl opacity-40 animate-pulse"></div>
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-gradient-to-br from-secondary/15 to-primary/5 blur-3xl opacity-40 animate-pulse" style={{
         animationDelay: '1s'
       }}></div>
         
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/50 rounded-full blur-sm animate-pulse"></div>
-        <div className="absolute top-3/4 left-2/3 w-3 h-3 bg-secondary/50 rounded-full blur-sm animate-pulse" style={{
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/30 rounded-full blur-sm animate-pulse"></div>
+        <div className="absolute top-3/4 left-2/3 w-3 h-3 bg-secondary/30 rounded-full blur-sm animate-pulse" style={{
         animationDelay: '0.5s'
       }}></div>
-        <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-primary/50 rounded-full blur-sm animate-pulse" style={{
+        <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-primary/30 rounded-full blur-sm animate-pulse" style={{
         animationDelay: '1.5s'
       }}></div>
-        <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-secondary/50 rounded-full blur-sm animate-pulse" style={{
+        <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-secondary/30 rounded-full blur-sm animate-pulse" style={{
         animationDelay: '2s'
       }}></div>
       </div>
       
-      <motion.div className="w-full max-w-md" initial="hidden" animate="visible" variants={containerVariants}>
+      <motion.div className="w-full max-w-md mx-auto" initial="hidden" animate="visible" variants={containerVariants}>
         <motion.div className="mb-8 text-center" variants={itemVariants}>
           <div className="inline-flex items-center justify-center mb-4">
             <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/30 z-20 relative overflow-hidden">
