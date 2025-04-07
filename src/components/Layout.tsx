@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Clock, Star, CheckCircle, Share, Settings, Home, BarChart2, Tag, CheckSquare, LogOut, InfoIcon, PlayCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
@@ -5,7 +6,6 @@ import { AnimatedNavigationTabs } from "@/components/ui/animated-navigation-tabs
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import NavigationLink from './NavigationLink';
-import { useTheme } from '@/contexts/ThemeContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,8 +15,10 @@ const Layout: React.FC<LayoutProps> = ({
   children
 }) => {
   const location = useLocation();
-  const { signOut, user } = useAuth();
-  const { currentTheme } = useTheme();
+  const {
+    signOut,
+    user
+  } = useAuth();
 
   // Define items para o menu AnimatedNavigationTabs
   const navItems = [{
@@ -60,7 +62,7 @@ const Layout: React.FC<LayoutProps> = ({
   }];
 
   return (
-    <div className={`min-h-screen flex flex-col bg-background theme-bg`} data-theme={currentTheme}>
+    <div className="min-h-screen flex flex-col bg-background">
       <header className="w-full border-b shadow-sm bg-background/95 backdrop-blur-sm sticky top-0 z-20">
         <div className="container mx-auto">
           <div className="flex items-center justify-between py-2 sm:py-3 px-3 sm:px-4">

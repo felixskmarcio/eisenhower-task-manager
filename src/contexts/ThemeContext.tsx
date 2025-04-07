@@ -11,7 +11,7 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Check if theme is stored in localStorage, otherwise use default light theme
+  // Check if theme is stored in localStorage, otherwise use default theme
   const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
     const savedTheme = localStorage.getItem('theme') as ThemeType;
     return savedTheme && [
@@ -22,13 +22,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       'abyss', 'silk'
     ].includes(savedTheme)
       ? savedTheme
-      : 'light';
+      : 'light'; // Usando 'light' como tema padrão para melhor visibilidade
   });
 
   // Apply theme when it changes
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', currentTheme);
-    document.body.setAttribute('data-theme', currentTheme);
     localStorage.setItem('theme', currentTheme);
   }, [currentTheme]);
 
