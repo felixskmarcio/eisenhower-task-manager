@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Clock, ArrowRight, Mail, Lock, User, LogIn, Sparkles } from 'lucide-react';
+import { Clock, ArrowRight, Mail, Lock, User, LogIn, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +14,6 @@ import { Separator } from '@/components/ui/separator';
 import { useTheme } from '@/contexts/ThemeContext';
 import { motion } from 'framer-motion';
 
-// Esquemas de validação
 const loginSchema = z.object({
   email: z.string().email('Digite um e-mail válido'),
   password: z.string().min(6, 'A senha precisa ter pelo menos 6 caracteres')
@@ -39,6 +37,9 @@ const AuthPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('login');
   const [googleLoading, setGoogleLoading] = useState(false);
   const { isDarkTheme } = useTheme();
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showSignupConfirmPassword, setShowSignupConfirmPassword] = useState(false);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -82,7 +83,6 @@ const AuthPage: React.FC = () => {
     loginForm.setValue('password', 'senha123');
   };
 
-  // Variantes para animações
   const containerVariants = {
     hidden: {
       opacity: 0
@@ -113,20 +113,16 @@ const AuthPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Fundo animado */}
       <div className="absolute inset-0 overflow-hidden -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-base-100 to-secondary/20"></div>
         
-        {/* Padrão de fundo */}
         <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMDIiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8L3N2Zz4=')] opacity-10"></div>
         
-        {/* Círculos decorativos */}
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-gradient-to-br from-primary/20 to-secondary/10 blur-3xl opacity-50 animate-pulse"></div>
         <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-gradient-to-br from-secondary/20 to-primary/10 blur-3xl opacity-50 animate-pulse" style={{
         animationDelay: '1s'
       }}></div>
         
-        {/* Partículas brilhantes */}
         <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/50 rounded-full blur-sm animate-pulse"></div>
         <div className="absolute top-3/4 left-2/3 w-3 h-3 bg-secondary/50 rounded-full blur-sm animate-pulse" style={{
         animationDelay: '0.5s'
@@ -232,11 +228,28 @@ const AuthPage: React.FC = () => {
                               <FormControl>
                                 <div className="relative group">
                                   <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                                  <Input type="password" placeholder="••••••" className="pl-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" {...field} />
+                                  <Input 
+                                    type={showLoginPassword ? "text" : "password"} 
+                                    placeholder="••••••" 
+                                    className="pl-10 pr-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" 
+                                    {...field} 
+                                  />
+                                  <button 
+                                    type="button"
+                                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-primary transition-colors duration-200"
+                                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                                    tabIndex={-1}
+                                  >
+                                    {showLoginPassword ? 
+                                      <EyeOff className="h-4 w-4" /> : 
+                                      <Eye className="h-4 w-4" />
+                                    }
+                                  </button>
                                 </div>
                               </FormControl>
                               <FormMessage />
                             </FormItem>} />
+                        
                         <Button type="submit" className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium text-base relative overflow-hidden group shadow-lg shadow-primary/20 animate-gradient-shift" disabled={loading}>
                           <span className="absolute inset-0 w-0 bg-white/20 transition-all duration-300 ease-out group-hover:w-full"></span>
                           <span className="relative flex items-center justify-center gap-1 font-medium">
@@ -350,7 +363,23 @@ const AuthPage: React.FC = () => {
                               <FormControl>
                                 <div className="relative group">
                                   <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                                  <Input type="password" placeholder="••••••" className="pl-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" {...field} />
+                                  <Input 
+                                    type={showSignupPassword ? "text" : "password"} 
+                                    placeholder="••••••" 
+                                    className="pl-10 pr-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" 
+                                    {...field} 
+                                  />
+                                  <button 
+                                    type="button"
+                                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-primary transition-colors duration-200"
+                                    onClick={() => setShowSignupPassword(!showSignupPassword)}
+                                    tabIndex={-1}
+                                  >
+                                    {showSignupPassword ? 
+                                      <EyeOff className="h-4 w-4" /> : 
+                                      <Eye className="h-4 w-4" />
+                                    }
+                                  </button>
                                 </div>
                               </FormControl>
                               <FormMessage />
@@ -362,11 +391,28 @@ const AuthPage: React.FC = () => {
                               <FormControl>
                                 <div className="relative group">
                                   <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                                  <Input type="password" placeholder="••••••" className="pl-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" {...field} />
+                                  <Input 
+                                    type={showSignupConfirmPassword ? "text" : "password"} 
+                                    placeholder="••••••" 
+                                    className="pl-10 pr-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" 
+                                    {...field} 
+                                  />
+                                  <button 
+                                    type="button"
+                                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-primary transition-colors duration-200"
+                                    onClick={() => setShowSignupConfirmPassword(!showSignupConfirmPassword)}
+                                    tabIndex={-1}
+                                  >
+                                    {showSignupConfirmPassword ? 
+                                      <EyeOff className="h-4 w-4" /> : 
+                                      <Eye className="h-4 w-4" />
+                                    }
+                                  </button>
                                 </div>
                               </FormControl>
                               <FormMessage />
                             </FormItem>} />
+                        
                         <Button type="submit" className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium text-base relative overflow-hidden group shadow-lg shadow-primary/20 animate-gradient-shift" disabled={loading}>
                           <span className="absolute inset-0 w-0 bg-white/20 transition-all duration-300 ease-out group-hover:w-full"></span>
                           <span className="relative flex items-center justify-center font-medium">
