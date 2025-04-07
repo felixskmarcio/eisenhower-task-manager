@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Clock, ArrowRight, Mail, Lock, User, LogIn, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { Clock, ArrowRight, Mail, Lock, User, LogIn, Sparkles, Eye, EyeOff, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,6 +59,10 @@ const AuthPage: React.FC = () => {
     }
   });
 
+  const loginPasswordValue = loginForm.watch('password');
+  const signupPasswordValue = signupForm.watch('password');
+  const signupConfirmPasswordValue = signupForm.watch('confirmPassword');
+
   const onLoginSubmit = async (values: LoginFormValues) => {
     await signIn(values.email, values.password);
   };
@@ -76,11 +80,6 @@ const AuthPage: React.FC = () => {
     } finally {
       setGoogleLoading(false);
     }
-  };
-
-  const fillTestCredentials = () => {
-    loginForm.setValue('email', 'teste@example.com');
-    loginForm.setValue('password', 'senha123');
   };
 
   const containerVariants = {
@@ -136,7 +135,7 @@ const AuthPage: React.FC = () => {
       </div>
       
       <motion.div className="w-full max-w-md mx-auto" initial="hidden" animate="visible" variants={containerVariants}>
-        <motion.div className="mb-8 text-center" variants={itemVariants}>
+        <motion.div className="mb-6 text-center" variants={itemVariants}>
           <div className="inline-flex items-center justify-center mb-4">
             <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/30 z-20 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 animate-gradient-shift"></div>
@@ -154,7 +153,7 @@ const AuthPage: React.FC = () => {
 
         <motion.div variants={itemVariants}>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8 h-14 rounded-full p-1.5 shadow-xl bg-background/50 backdrop-blur-md border border-white/10">
+            <TabsList className="grid w-full grid-cols-2 mb-6 h-14 rounded-full p-1.5 shadow-xl bg-background/50 backdrop-blur-md border border-white/10">
               <TabsTrigger value="login" className={`
                   data-[state=active]:bg-gradient-to-r 
                   data-[state=active]:from-primary 
@@ -200,10 +199,10 @@ const AuthPage: React.FC = () => {
                   <CardHeader className="pb-4">
                     <CardTitle className="text-2xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80 flex items-center gap-2">
                       <Sparkles className="h-5 w-5 text-primary animate-pulse" />
-                      Fazer Login
+                      Bem-vindo de volta
                     </CardTitle>
                     <CardDescription className="text-muted-foreground/80">
-                      Entre com seu e-mail e senha para acessar sua conta
+                      Acesse sua conta para gerenciar suas tarefas
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -234,23 +233,26 @@ const AuthPage: React.FC = () => {
                                     className="pl-10 pr-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" 
                                     {...field} 
                                   />
-                                  <button 
-                                    type="button"
-                                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-primary transition-colors duration-200"
-                                    onClick={() => setShowLoginPassword(!showLoginPassword)}
-                                    tabIndex={-1}
-                                  >
-                                    {showLoginPassword ? 
-                                      <EyeOff className="h-4 w-4" /> : 
-                                      <Eye className="h-4 w-4" />
-                                    }
-                                  </button>
+                                  {loginPasswordValue && loginPasswordValue.length > 0 && (
+                                    <button 
+                                      type="button"
+                                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none outline-none hover:bg-transparent focus:bg-transparent active:bg-transparent p-0 m-0"
+                                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                                      tabIndex={-1}
+                                      style={{ backgroundColor: 'transparent' }}
+                                    >
+                                      {showLoginPassword ? 
+                                        <EyeOff className="h-4 w-4 text-gray-400" /> : 
+                                        <Eye className="h-4 w-4 text-gray-400" />
+                                      }
+                                    </button>
+                                  )}
                                 </div>
                               </FormControl>
                               <FormMessage />
                             </FormItem>} />
                         
-                        <Button type="submit" className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium text-base relative overflow-hidden group shadow-lg shadow-primary/20 animate-gradient-shift" disabled={loading}>
+                        <Button type="submit" className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium text-base relative overflow-hidden group shadow-lg shadow-primary/20 animate-gradient-shift mt-2" disabled={loading}>
                           <span className="absolute inset-0 w-0 bg-white/20 transition-all duration-300 ease-out group-hover:w-full"></span>
                           <span className="relative flex items-center justify-center gap-1 font-medium">
                             {loading ? <span className="flex items-center gap-2">
@@ -263,7 +265,7 @@ const AuthPage: React.FC = () => {
                           </span>
                         </Button>
                         
-                        <div className="relative my-7">
+                        <div className="relative my-6">
                           <div className="absolute inset-0 flex items-center">
                             <span className="w-full border-t border-input/40" />
                           </div>
@@ -286,17 +288,6 @@ const AuthPage: React.FC = () => {
                             <span className="font-medium text-base text-slate-900 dark:text-slate-200">Entrar com Google</span>
                           </span>
                         </Button>
-                        
-                        <div className="mt-6 text-center">
-                          <button 
-                            type="button" 
-                            onClick={fillTestCredentials}
-                            className="text-xs text-muted-foreground/70 hover:text-primary transition-colors duration-200"
-                          >
-                            Usar credenciais de teste
-                          </button>
-                        </div>
-                        
                       </form>
                     </Form>
                   </CardContent>
@@ -323,10 +314,10 @@ const AuthPage: React.FC = () => {
                   <CardHeader className="pb-4">
                     <CardTitle className="text-2xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80 flex items-center gap-2">
                       <Sparkles className="h-5 w-5 text-primary animate-pulse" />
-                      Criar Conta
+                      Crie sua conta
                     </CardTitle>
                     <CardDescription className="text-muted-foreground/80">
-                      Preencha seus dados para criar uma nova conta
+                      Comece a organizar suas tarefas em poucos minutos
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -369,17 +360,20 @@ const AuthPage: React.FC = () => {
                                     className="pl-10 pr-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" 
                                     {...field} 
                                   />
-                                  <button 
-                                    type="button"
-                                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-primary transition-colors duration-200"
-                                    onClick={() => setShowSignupPassword(!showSignupPassword)}
-                                    tabIndex={-1}
-                                  >
-                                    {showSignupPassword ? 
-                                      <EyeOff className="h-4 w-4" /> : 
-                                      <Eye className="h-4 w-4" />
-                                    }
-                                  </button>
+                                  {signupPasswordValue && signupPasswordValue.length > 0 && (
+                                    <button 
+                                      type="button"
+                                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none outline-none hover:bg-transparent focus:bg-transparent active:bg-transparent p-0 m-0"
+                                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                                      tabIndex={-1}
+                                      style={{ backgroundColor: 'transparent' }}
+                                    >
+                                      {showSignupPassword ? 
+                                        <EyeOff className="h-4 w-4 text-gray-400" /> : 
+                                        <Eye className="h-4 w-4 text-gray-400" />
+                                      }
+                                    </button>
+                                  )}
                                 </div>
                               </FormControl>
                               <FormMessage />
@@ -397,33 +391,41 @@ const AuthPage: React.FC = () => {
                                     className="pl-10 pr-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" 
                                     {...field} 
                                   />
-                                  <button 
-                                    type="button"
-                                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-primary transition-colors duration-200"
-                                    onClick={() => setShowSignupConfirmPassword(!showSignupConfirmPassword)}
-                                    tabIndex={-1}
-                                  >
-                                    {showSignupConfirmPassword ? 
-                                      <EyeOff className="h-4 w-4" /> : 
-                                      <Eye className="h-4 w-4" />
-                                    }
-                                  </button>
+                                  {signupConfirmPasswordValue && signupConfirmPasswordValue.length > 0 && (
+                                    <button 
+                                      type="button"
+                                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none outline-none hover:bg-transparent focus:bg-transparent active:bg-transparent p-0 m-0"
+                                      onClick={() => setShowSignupConfirmPassword(!showSignupConfirmPassword)}
+                                      tabIndex={-1}
+                                      style={{ backgroundColor: 'transparent' }}
+                                    >
+                                      {showSignupConfirmPassword ? 
+                                        <EyeOff className="h-4 w-4 text-gray-400" /> : 
+                                        <Eye className="h-4 w-4 text-gray-400" />
+                                      }
+                                    </button>
+                                  )}
                                 </div>
                               </FormControl>
                               <FormMessage />
                             </FormItem>} />
+                            
+                        <div className="pt-2">
+                          <Button type="submit" className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium text-base relative overflow-hidden group shadow-lg shadow-primary/20 animate-gradient-shift" disabled={loading}>
+                            <span className="absolute inset-0 w-0 bg-white/20 transition-all duration-300 ease-out group-hover:w-full"></span>
+                            <span className="relative flex items-center justify-center font-medium">
+                              {loading ? <span className="flex items-center gap-2">
+                                  <div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                  Criando conta...
+                                </span> : <>
+                                  Criar conta
+                                  <Check className="h-4 w-4 ml-1 group-hover:scale-110 transition-transform" />
+                                </>}
+                            </span>
+                          </Button>
+                        </div>
                         
-                        <Button type="submit" className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium text-base relative overflow-hidden group shadow-lg shadow-primary/20 animate-gradient-shift" disabled={loading}>
-                          <span className="absolute inset-0 w-0 bg-white/20 transition-all duration-300 ease-out group-hover:w-full"></span>
-                          <span className="relative flex items-center justify-center font-medium">
-                            {loading ? <span className="flex items-center gap-2">
-                                <div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                                Criando conta...
-                              </span> : 'Criar conta'}
-                          </span>
-                        </Button>
-                        
-                        <div className="relative my-7">
+                        <div className="relative my-6">
                           <div className="absolute inset-0 flex items-center">
                             <span className="w-full border-t border-input/40" />
                           </div>
