@@ -3,6 +3,7 @@
 @import './utilities.css';
 @import './navigation.css';
 @import './task-title.css';
+@import './loading.css';
 
 /* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
@@ -21,6 +22,40 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(180, 180, 180, 0.3);
+}
+
+/* Glass Morphism Effects */
+.glass-effect {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+}
+
+.glass-card {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+/* Modern gradients */
+.gradient-blue {
+  background: linear-gradient(45deg, #60a5fa, #a78bfa);
+}
+
+.gradient-purple {
+  background: linear-gradient(45deg, #8b5cf6, #ec4899);  
+}
+
+.gradient-green {
+  background: linear-gradient(45deg, #10b981, #a3e635);
+}
+
+.gradient-red {
+  background: linear-gradient(45deg, #f87171, #fb923c);
 }
 
 /* Drag and Drop Styles */
@@ -238,6 +273,84 @@
   background-image: linear-gradient(45deg, hsl(var(--accent)), hsl(var(--accent-focus, var(--accent))));
 }
 
+/* Modern Button Effect */
+.button-modern {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.button-modern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+  transform: translateY(100%);
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: -1;
+}
+
+.button-modern:hover::before {
+  transform: translateY(0);
+}
+
+/* Shine Effect */
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  animation: shine 4s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes shine {
+  from {
+    transform: translateX(-100%) rotate(30deg);
+  }
+  to {
+    transform: translateX(100%) rotate(30deg);
+  }
+}
+
+/* 3D Hover Effect */
+.hover-3d {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-3d:hover {
+  transform: translateY(-5px) rotateX(5deg);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Floating Animation */
+.float {
+  animation: floating 3s ease-in-out infinite;
+}
+
+@keyframes floating {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
 /* Quick Filter Animation */
 .quick-filter-enter {
   opacity: 0;
@@ -260,34 +373,10 @@
   transition: opacity 200ms, transform 200ms;
 }
 
-/* Glass Effect */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Floating Button */
-.floating-button {
-  animation: float 3s ease-in-out infinite;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-/* Gradient Headings */
-.gradient-heading {
-  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent;
-  display: inline-block;
-}
-
 /* Progress Bar Animation */
 .animate-progress-bar {
   transition: width 0.5s ease;
   background-size: 200% 200%;
   background-image: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)));
   animation: gradient-shift 3s ease-in-out infinite;
-} 
+}

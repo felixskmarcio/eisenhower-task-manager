@@ -6,6 +6,7 @@ type ThemeType = 'light' | 'dark' | 'cupcake' | 'bumblebee' | 'emerald' | 'corpo
 type ThemeContextType = {
   currentTheme: ThemeType;
   setTheme: (theme: ThemeType) => void;
+  isDarkTheme: boolean;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -25,6 +26,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       : 'light'; // Usando 'light' como tema padrão para melhor visibilidade
   });
 
+  // Check if current theme is a dark theme
+  const isDarkTheme = useMemo(() => {
+    const darkThemes = [
+      'dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 
+      'night', 'coffee', 'dim', 'nord', 'abyss'
+    ];
+    return darkThemes.includes(currentTheme);
+  }, [currentTheme]);
+
   // Apply theme when it changes
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', currentTheme);
@@ -36,7 +46,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <ThemeContext.Provider value={{ currentTheme, setTheme }}>
+    <ThemeContext.Provider value={{ currentTheme, setTheme, isDarkTheme }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -49,3 +59,5 @@ export const useTheme = () => {
   }
   return context;
 };
+
+import { useMemo } from 'react';
