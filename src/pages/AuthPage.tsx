@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,6 +21,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import LoginErrorDisplay from '@/components/LoginErrorDisplay';
+import { useLocation } from 'react-router-dom';
 
 const loginSchema = z.object({
   email: z.string().email('Digite um e-mail válido'),
@@ -55,6 +57,8 @@ const AuthPage: React.FC = () => {
   const [showSignupConfirmPassword, setShowSignupConfirmPassword] = useState(false);
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [loginError, setLoginError] = useState<{email: string, code?: string} | null>(null);
+  const location = useLocation();
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -85,8 +89,26 @@ const AuthPage: React.FC = () => {
   const signupPasswordValue = signupForm.watch('password');
   const signupConfirmPasswordValue = signupForm.watch('confirmPassword');
 
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.activateSignup) {
+      setActiveTab('signup');
+      if (state.email) {
+        signupForm.setValue('email', state.email);
+      }
+    }
+  }, [location]);
+
   const onLoginSubmit = async (values: LoginFormValues) => {
-    await signIn(values.email, values.password);
+    setLoginError(null);
+    try {
+      await signIn(values.email, values.password);
+    } catch (error: any) {
+      setLoginError({
+        email: values.email,
+        code: error.code
+      });
+    }
   };
 
   const onSignupSubmit = async (values: SignupFormValues) => {
@@ -118,6 +140,17 @@ const AuthPage: React.FC = () => {
       console.error('Erro ao fazer login com Google:', error);
     } finally {
       setGoogleLoading(false);
+    }
+  };
+
+  const handleLoginTryAgain = () => {
+    setLoginError(null);
+  };
+
+  const handleResetPasswordFromError = () => {
+    if (loginError?.email) {
+      resetPasswordForm.setValue('email', loginError.email);
+      setResetPasswordOpen(true);
     }
   };
 
@@ -245,6 +278,15 @@ const AuthPage: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
+                    {loginError && (
+                      <LoginErrorDisplay 
+                        email={loginError.email}
+                        errorCode={loginError.code}
+                        onTryAgain={handleLoginTryAgain}
+                        onResetPassword={handleResetPasswordFromError}
+                      />
+                    )}
+                    
                     <Form {...loginForm}>
                       <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                         <FormField control={loginForm.control} name="email" render={({

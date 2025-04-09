@@ -1,9 +1,9 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { User } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 import { 
   signInWithGoogle,
   signInWithEmail,
@@ -13,7 +13,7 @@ import {
   subscribeToAuthChanges,
   resetPassword as authResetPassword,
   verifyCredentials,
-  checkUserExists
+  checkIfUserExists
 } from '@/services/auth';
 
 interface AuthContextType {
@@ -30,7 +30,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Credenciais para teste
 const TEST_EMAIL = 'teste@example.com';
 const TEST_PASSWORD = 'senha123';
 
@@ -40,11 +39,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Função para buscar perfil do usuário
   const fetchProfile = async (userId: string) => {
     try {
       console.log('Buscando perfil para o usuário ID:', userId);
-      // Primeiro tentamos obter do Supabase (se integrado)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -57,7 +54,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Se não encontramos no Supabase ou houver erro, usamos os dados do Firebase
       const currentUser = getCurrentUser();
       if (currentUser) {
         console.log('Usando dados do perfil do Firebase:', {
@@ -79,13 +75,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     console.log('AuthProvider: Inicializando...');
-    // Configurar listener para mudanças no estado de autenticação do Firebase
     const unsubscribe = subscribeToAuthChanges((currentUser) => {
       console.log('Estado de autenticação alterado:', currentUser ? `Usuário: ${currentUser.email}` : 'Não autenticado');
       setUser(currentUser);
       
       if (currentUser) {
-        // Use setTimeout para evitar deadlocks
         setTimeout(() => {
           fetchProfile(currentUser.uid);
         }, 0);
@@ -96,7 +90,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    // Verificar se já existe um usuário autenticado
     const currentUser = getCurrentUser();
     if (currentUser) {
       console.log('Usuário já autenticado:', currentUser.email);
@@ -119,8 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Iniciando processo de cadastro para:', email);
       setLoading(true);
       
-      // Verificar se já existe um usuário com este email
-      const userExists = await checkUserExists(email);
+      const userExists = await checkIfUserExists(email);
       if (userExists) {
         console.log('Usuário já existe:', email);
         toast({
@@ -131,7 +123,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      // Verificar se são as credenciais de teste
       if (email === TEST_EMAIL && password === TEST_PASSWORD) {
         toast({
           title: "Conta de teste",
@@ -141,13 +132,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      // Cadastrar com Firebase
-      console.log('Criando novo usuário no Firebase');
       const newUser = await createUserWithEmail(email, password);
       
       if (newUser) {
         console.log('Usuário criado com sucesso no Firebase, ID:', newUser.uid);
-        // Tentar criar perfil no Supabase se estiver integrado
         try {
           console.log('Tentando criar perfil no Supabase');
           await supabase.from('profiles').insert({
@@ -169,7 +157,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error: any) {
       console.error('Erro no cadastro:', error);
-      // Mensagem de erro já é mostrada no serviço de autenticação
     } finally {
       setLoading(false);
     }
@@ -180,10 +167,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Iniciando processo de login para:', email);
       setLoading(true);
       
-      // Verificar se são as credenciais de teste
       if (email === TEST_EMAIL && password === TEST_PASSWORD) {
         console.log('Usando credenciais de teste');
-        // Criar um usuário de teste simulado
         const testUser = {
           uid: 'test-user-id',
           email: TEST_EMAIL,
@@ -205,7 +190,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           toJSON: () => ({})
         } as unknown as User;
         
-        // Atualizar o estado da autenticação
         setUser(testUser);
         setProfile({
           id: testUser.uid,
@@ -222,8 +206,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      // Login normal com Firebase
-      console.log('Tentando login com Firebase para:', email);
+      const userExists = await checkIfUserExists(email);
+      if (!userExists) {
+        console.log('Usuário não encontrado:', email);
+        toast({
+          title: "Usuário não encontrado",
+          description: "Este email não está cadastrado. Deseja criar uma conta?",
+          variant: "destructive",
+          action: (
+            <Button variant="outline" onClick={() => navigate('/login', { state: { activateSignup: true, email } })}>
+              Criar conta
+            </Button>
+          ),
+        });
+        setLoading(false);
+        return;
+      }
+      
       const loggedUser = await signInWithEmail(email, password);
       
       if (loggedUser) {
@@ -237,7 +236,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     } catch (error: any) {
       console.error('Erro no login:', error);
-      // Mensagem de erro já é mostrada no serviço de autenticação
+      if (error.code === 'auth/invalid-credential') {
+        toast({
+          title: "Credenciais inválidas",
+          description: "Verifique seu email e senha ou crie uma nova conta se não estiver cadastrado.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -248,12 +253,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Iniciando login com Google');
       setLoading(true);
       
-      // Autenticação com o Google via Firebase
       const googleUser = await signInWithGoogle();
       
       if (googleUser) {
         console.log('Login com Google bem-sucedido para:', googleUser.email);
-        // Tentar criar/atualizar perfil no Supabase se estiver integrado
         try {
           console.log('Atualizando perfil no Supabase');
           const { data, error } = await supabase
@@ -279,7 +282,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     } catch (error: any) {
       console.error('Erro no login com Google:', error);
-      // Mensagem de erro já é mostrada no serviço de autenticação
     } finally {
       setLoading(false);
     }
@@ -290,17 +292,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Iniciando processo de logout');
       setLoading(true);
       
-      // Verificar se é usuário de teste
       if (user?.email === TEST_EMAIL) {
         console.log('Fazendo logout de usuário de teste');
-        // Limpar estado para usuário de teste
         setUser(null);
         setProfile(null);
         navigate('/login');
         return;
       }
       
-      // Logout normal do Firebase
       console.log('Fazendo logout do Firebase');
       await authSignOut();
       console.log('Logout realizado com sucesso');
@@ -327,7 +326,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Método para verificar as credenciais do usuário
   const verifyUserCredentials = async (email: string, password: string) => {
     console.log('Verificando credenciais para:', email);
     return await verifyCredentials(email, password);

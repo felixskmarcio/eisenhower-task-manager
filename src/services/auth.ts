@@ -1,4 +1,3 @@
-
 import { 
   signInWithPopup,
   GoogleAuthProvider,
@@ -9,7 +8,9 @@ import {
   AuthError,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  getAuth,
+  fetchSignInMethodsForEmail
 } from 'firebase/auth';
 import { auth, googleProvider } from '@/utils/firebase';
 import { toast } from '@/hooks/use-toast';
@@ -32,7 +33,7 @@ const errorMessages: Record<string, string> = {
   'auth/wrong-password': 'Senha incorreta para este email.',
   'auth/user-not-found': 'Não existe usuário com este email.',
   'auth/too-many-requests': 'Muitas tentativas de login. Por favor, tente novamente mais tarde.',
-  'auth/invalid-credential': 'As credenciais de autenticação fornecidas são inválidas.',
+  'auth/invalid-credential': 'Usuário não encontrado ou senha incorreta. Verifique suas credenciais ou crie uma nova conta.',
   'auth/invalid-verification-code': 'O código de verificação fornecido é inválido.',
   'auth/invalid-verification-id': 'O ID de verificação fornecido é inválido.',
   'auth/missing-verification-code': 'O código de verificação está faltando.',
@@ -106,7 +107,7 @@ export const signInWithEmail = async (email: string, password: string): Promise<
       code: authError.code,
       details: {
         provider: 'email',
-        email: email, // Adicionando o email para ajudar no diagnóstico
+        email: email,
         errorInfo: {
           name: authError.name,
           message: authError.message
@@ -277,31 +278,14 @@ export const resetPassword = async (email: string): Promise<void> => {
   }
 };
 
-// Função para verificar se um usuário existe
-export const checkUserExists = async (email: string): Promise<boolean> => {
+// Função para verificar se um usuário existe no Firebase
+export const checkIfUserExists = async (email: string): Promise<boolean> => {
   try {
-    // Firebase não possui uma API direta para verificar se um usuário existe
-    // Uma abordagem comum é tentar fazer login com uma senha inválida e capturar o erro
-    try {
-      await signInWithEmailAndPassword(auth, email, 'temporaryPassword123456');
-      // Se não lançar erro, o usuário existe e a senha estava correta (improvável com uma senha aleatória)
-      return true;
-    } catch (error) {
-      const authError = error as AuthError;
-      if (authError.code === 'auth/wrong-password') {
-        // Se o erro for senha incorreta, significa que o usuário existe
-        return true;
-      } else if (authError.code === 'auth/user-not-found') {
-        // Se o erro for usuário não encontrado, significa que o usuário não existe
-        return false;
-      } else {
-        // Para outros erros, logamos e consideramos que não conseguimos verificar
-        console.error('Erro ao verificar existência do usuário:', authError);
-        return false;
-      }
-    }
+    const auth = getAuth();
+    const methods = await fetchSignInMethodsForEmail(auth, email);
+    return methods && methods.length > 0;
   } catch (error) {
-    console.error('Erro na verificação de usuário:', error);
+    console.error('Erro ao verificar existência do usuário:', error);
     return false;
   }
 };
