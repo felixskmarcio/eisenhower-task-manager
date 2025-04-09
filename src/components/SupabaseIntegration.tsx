@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code } from "lucide-react";
 import { setupDatabase, syncTasks } from '@/lib/supabase';
+import { supabase as defaultClient } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -47,6 +48,10 @@ const createSupabaseClient = (url: string, key: string) => {
   };
 };
 
+// Obter valores das variáveis de ambiente
+const DEFAULT_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const DEFAULT_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 const SupabaseIntegration = () => {
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseKey, setSupabaseKey] = useState('');
@@ -56,6 +61,7 @@ const SupabaseIntegration = () => {
   const [connectionStatus, setConnectionStatus] = useState<'not_connected' | 'connected' | 'testing' | 'success' | 'error'>('not_connected');
   const [dbSetupResult, setDbSetupResult] = useState<{success: boolean, message: string} | null>(null);
   const [syncError, setSyncError] = useState<{title: string; message: string; details?: string} | null>(null);
+  const [usingDefaultClient, setUsingDefaultClient] = useState(false);
 
   useEffect(() => {
     // Carregar dados do localStorage ao inicializar
@@ -66,9 +72,30 @@ const SupabaseIntegration = () => {
       setSupabaseUrl(savedUrl);
       setSupabaseKey(savedKey);
       setConnectionStatus('connected');
+      setUsingDefaultClient(false);
       
       // Verificar setup do banco
       checkDatabaseSetup();
+    } else if (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_KEY) {
+      // Se não há credenciais no localStorage, usa as variáveis de ambiente
+      setSupabaseUrl(DEFAULT_SUPABASE_URL);
+      setSupabaseKey(DEFAULT_SUPABASE_KEY);
+      setConnectionStatus('connected');
+      setUsingDefaultClient(true);
+      
+      toast({
+        title: "Credenciais padrão carregadas",
+        description: "Usando configuração de Supabase das variáveis de ambiente."
+      });
+      
+      // Verificar setup do banco
+      checkDatabaseSetup();
+    } else {
+      toast({
+        title: "Credenciais não encontradas",
+        description: "Configure as credenciais do Supabase para usar este recurso.",
+        variant: "destructive"
+      });
     }
   }, []);
   
@@ -256,38 +283,24 @@ const SupabaseIntegration = () => {
   const isConnected = connectionStatus === 'connected' || connectionStatus === 'success' || connectionStatus === 'testing';
 
   const getStatusIndicator = () => {
-    switch (connectionStatus) {
-      case 'testing':
+    if (connectionStatus === 'testing') {
+      return <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />;
+    } else if (connectionStatus === 'success') {
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
+    } else if (connectionStatus === 'error') {
+      return <AlertCircle className="h-4 w-4 text-red-500" />;
+    } else if (connectionStatus === 'connected') {
+      if (usingDefaultClient) {
         return (
-          <div className="flex items-center gap-2 text-amber-500">
-            <RefreshCw size={18} className="animate-spin" />
-            <span className="font-medium">Testando conexão...</span>
+          <div className="flex items-center">
+            <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
+            <span className="text-xs text-muted-foreground">(padrão)</span>
           </div>
         );
-      case 'success':
-        return (
-          <div className="flex items-center gap-2 text-green-600">
-            <CheckCircle size={18} />
-            <span className="font-medium">Conexão verificada com sucesso!</span>
-          </div>
-        );
-      case 'error':
-        return (
-          <div className="flex items-center gap-2 text-red-600">
-            <AlertCircle size={18} />
-            <span className="font-medium">Erro na conexão</span>
-          </div>
-        );
-      case 'connected':
-        return (
-          <div className="flex items-center gap-2 text-green-600">
-            <Database size={18} />
-            <span className="font-medium">Conectado ao Supabase</span>
-          </div>
-        );
-      default:
-        return null;
+      }
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
     }
+    return null;
   };
 
   // Função para obter a classe CSS apropriada com base no status da conexão

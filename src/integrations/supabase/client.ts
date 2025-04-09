@@ -2,8 +2,14 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://xusvqzlusdxirznsyrzo.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1c3Zxemx1c2R4aXJ6bnN5cnpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2Njc5NjUsImV4cCI6MjA1ODI0Mzk2NX0._O_cA_oWIvl3OpRisddf31R7Su_ItX8uRXPKgNGs-oc";
+// Usar variáveis de ambiente para maior segurança
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Verificar se as variáveis de ambiente estão definidas
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  console.error('Erro: Variáveis de ambiente do Supabase não definidas. Verifique o arquivo .env');
+}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";

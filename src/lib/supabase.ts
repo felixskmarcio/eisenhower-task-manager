@@ -36,16 +36,33 @@ export interface LocalTask {
   [key: string]: unknown;
 }
 
-// Inicializa o cliente Supabase com as credenciais salvas no localStorage
+// Inicializa o cliente Supabase com credenciais do localStorage ou variáveis de ambiente
 export const initSupabaseClient = () => {
-  const supabaseUrl = localStorage.getItem('supabaseUrl');
-  const supabaseKey = localStorage.getItem('supabaseKey');
-  
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Credenciais do Supabase não encontradas');
+  try {
+    // Tenta usar credenciais do localStorage primeiro
+    const supabaseUrl = localStorage.getItem('supabaseUrl');
+    const supabaseKey = localStorage.getItem('supabaseKey');
+    
+    if (supabaseUrl && supabaseKey) {
+      console.log('Usando credenciais do Supabase do localStorage');
+      return createClient(supabaseUrl, supabaseKey);
+    }
+    
+    // Se não encontrar no localStorage, usa as variáveis de ambiente
+    const envUrl = import.meta.env.VITE_SUPABASE_URL;
+    const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (envUrl && envKey) {
+      console.log('Usando credenciais do Supabase das variáveis de ambiente');
+      return createClient(envUrl, envKey);
+    }
+    
+    // Se não encontrou em nenhum lugar, lança erro
+    throw new Error('Credenciais do Supabase não encontradas. Configure no .env ou na interface de usuário.');
+  } catch (error) {
+    console.error('Erro ao inicializar cliente Supabase:', error);
+    throw new Error('Não foi possível inicializar o cliente Supabase');
   }
-  
-  return createClient(supabaseUrl, supabaseKey);
 };
 
 // Cria a tabela tasks se ela não existir (observação: isso é simulado, no Supabase real
@@ -60,9 +77,28 @@ export const setupDatabase = async () => {
     
     if (error) {
       console.error('Erro ao verificar tabela tasks:', error);
+      
+      // Melhorar a mensagem de erro dependendo do tipo de erro
+      if (error.code === 'PGRST116') {
+        return {
+          success: false,
+          message: 'A tabela "tasks" não existe. Por favor, crie esta tabela no seu banco de dados Supabase.'
+        };
+      } else if (error.code === '401' || error.message.includes('Authentication')) {
+        return {
+          success: false,
+          message: 'Erro de autenticação. Verifique se a chave API (anon key) está correta e tem permissões suficientes.'
+        };
+      } else if (error.code === '404' || error.message.includes('Not Found')) {
+        return {
+          success: false,
+          message: 'URL do Supabase inválida ou projeto não encontrado. Verifique se a URL está correta.'
+        };
+      }
+      
       return {
         success: false,
-        message: 'A tabela "tasks" parece não existir no seu banco de dados Supabase.'
+        message: `Erro ao acessar o Supabase: ${error.message}`
       };
     }
     
@@ -72,9 +108,11 @@ export const setupDatabase = async () => {
     };
   } catch (error) {
     console.error('Erro ao configurar banco de dados:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    
     return {
       success: false,
-      message: 'Erro ao conectar com o Supabase.'
+      message: `Erro ao conectar com o Supabase: ${errorMessage}. Verifique suas credenciais e tente novamente.`
     };
   }
 };
