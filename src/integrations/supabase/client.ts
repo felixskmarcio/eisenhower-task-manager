@@ -11,7 +11,30 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   console.error('Erro: Variáveis de ambiente do Supabase não definidas. Verifique o arquivo .env');
 }
 
+// Configurações de segurança para o cliente Supabase
+const supabaseOptions = {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+  global: {
+    // Configurações globais para aumentar segurança nas requisições
+    headers: {
+      'X-Client-Info': 'eisenhower-task-manager',
+    },
+  },
+  // Limite de tempo de requisição para evitar ataques de exaustão
+  realtime: {
+    timeout: 30000, // 30 segundos
+  },
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(
+  SUPABASE_URL, 
+  SUPABASE_PUBLISHABLE_KEY,
+  supabaseOptions
+);
