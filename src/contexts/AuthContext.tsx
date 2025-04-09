@@ -13,7 +13,7 @@ import {
   subscribeToAuthChanges,
   resetPassword as authResetPassword,
   verifyCredentials,
-  checkIfUserExists
+  checkUserExists
 } from '@/services/auth';
 
 interface AuthContextType {
@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Iniciando processo de cadastro para:', email);
       setLoading(true);
       
-      const userExists = await checkIfUserExists(email);
+      const userExists = await checkUserExists(email);
       if (userExists) {
         console.log('Usuário já existe:', email);
         toast({
@@ -206,7 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      const userExists = await checkIfUserExists(email);
+      const userExists = await checkUserExists(email);
       if (!userExists) {
         console.log('Usuário não encontrado:', email);
         toast({

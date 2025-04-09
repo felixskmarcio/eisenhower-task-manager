@@ -15,6 +15,16 @@ import {
 import { auth, googleProvider } from '@/utils/firebase';
 import { toast } from '@/hooks/use-toast';
 import { logError, ErrorType } from '@/lib/logError';
+import { sanitizeInput } from '@/utils/security';
+import { applyRateLimit } from '@/utils/rateLimiter';
+
+// Constantes de segurança
+const MAX_LOGIN_ATTEMPTS = 5;  // Máximo de tentativas de login em 1 minuto
+const MAX_SIGNUP_ATTEMPTS = 3; // Máximo de tentativas de cadastro em 1 minuto
+const MAX_PASSWORD_RESET_ATTEMPTS = 2; // Máximo de tentativas de reset de senha em 1 minuto
+
+// Tentativas de login por IP (simulando - em produção seria controlado pelo servidor)
+const loginAttempts: Record<string, number> = {};
 
 // Códigos de erro comuns e suas mensagens amigáveis
 const errorMessages: Record<string, string> = {
@@ -45,158 +55,197 @@ const errorMessages: Record<string, string> = {
 
 // Criar um novo usuário com email e senha
 export const createUserWithEmail = async (email: string, password: string): Promise<User | null> => {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    
-    return userCredential.user;
-  } catch (error) {
-    const authError = error as AuthError;
-    
-    // Registrar no sistema de log
-    logError(authError, {
-      type: ErrorType.AUTH,
-      code: authError.code,
-      details: {
-        provider: 'email',
-        errorInfo: {
-          name: authError.name,
-          message: authError.message
+  // Sanitizar entradas
+  const sanitizedEmail = sanitizeInput(email);
+  
+  // Não sanitizamos a senha para não perder caracteres especiais válidos
+  
+  return applyRateLimit(
+    'auth:signup',
+    async () => {
+      try {
+        // Verificar se o email é válido
+        if (!isValidEmail(sanitizedEmail)) {
+          throw new Error('auth/invalid-email');
         }
-      },
-      context: {
-        action: 'createUserWithEmail',
-        timestamp: new Date().toISOString()
+        
+        // Verificar força da senha
+        if (!isStrongPassword(password)) {
+          throw new Error('auth/weak-password');
+        }
+        
+        const userCredential = await createUserWithEmailAndPassword(auth, sanitizedEmail, password);
+        
+        return userCredential.user;
+      } catch (error) {
+        const authError = error as AuthError;
+        
+        // Registrar no sistema de log
+        logError(authError, {
+          type: ErrorType.AUTH,
+          code: authError.code || 'auth/unknown',
+          details: {
+            provider: 'email',
+            errorInfo: {
+              name: authError.name || 'Error',
+              message: authError.message || 'Erro desconhecido'
+            }
+          },
+          context: {
+            action: 'createUserWithEmail',
+            timestamp: new Date().toISOString()
+          }
+        });
+        
+        // Log detalhado no console para desenvolvimento
+        console.error('Erro ao criar usuário:', {
+          code: authError.code,
+          message: authError.message,
+          details: authError
+        });
+        
+        // Mensagem amigável para o usuário
+        const friendlyMessage = errorMessages[authError.code] || 
+                                'Não foi possível criar a conta. Tente novamente.';
+        
+        toast({
+          title: "Erro no Cadastro",
+          description: friendlyMessage,
+          variant: "destructive"
+        });
+        
+        throw authError;
       }
-    });
-    
-    // Log detalhado no console para desenvolvimento
-    console.error('Erro ao criar usuário:', {
-      code: authError.code,
-      message: authError.message,
-      details: authError
-    });
-    
-    // Mensagem amigável para o usuário
-    const friendlyMessage = errorMessages[authError.code] || 
-                            'Não foi possível criar a conta. Tente novamente.';
-    
-    toast({
-      title: "Erro no Cadastro",
-      description: friendlyMessage,
-      variant: "destructive"
-    });
-    
-    throw authError;
-  }
+    },
+    MAX_SIGNUP_ATTEMPTS
+  );
 };
 
 // Fazer login com email e senha
 export const signInWithEmail = async (email: string, password: string): Promise<User | null> => {
-  try {
-    console.log('Tentando login com email:', email);
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log('Login bem-sucedido para:', email);
-    
-    return userCredential.user;
-  } catch (error) {
-    const authError = error as AuthError;
-    
-    // Registrar no sistema de log
-    logError(authError, {
-      type: ErrorType.AUTH,
-      code: authError.code,
-      details: {
-        provider: 'email',
-        email: email,
-        errorInfo: {
-          name: authError.name,
-          message: authError.message
-        }
-      },
-      context: {
-        action: 'signInWithEmail',
-        timestamp: new Date().toISOString()
+  // Sanitizar entradas
+  const sanitizedEmail = sanitizeInput(email);
+  
+  return applyRateLimit(
+    'auth:login',
+    async () => {
+      try {
+        console.log('Tentando login com email:', sanitizedEmail);
+        const userCredential = await signInWithEmailAndPassword(auth, sanitizedEmail, password);
+        console.log('Login bem-sucedido para:', sanitizedEmail);
+        
+        return userCredential.user;
+      } catch (error) {
+        const authError = error as AuthError;
+        
+        // Registrar no sistema de log
+        logError(authError, {
+          type: ErrorType.AUTH,
+          code: authError.code || 'auth/unknown',
+          details: {
+            provider: 'email',
+            email: sanitizedEmail,
+            errorInfo: {
+              name: authError.name || 'Error',
+              message: authError.message || 'Erro desconhecido'
+            }
+          },
+          context: {
+            action: 'signInWithEmail',
+            timestamp: new Date().toISOString()
+          }
+        });
+        
+        // Log detalhado no console para desenvolvimento
+        console.error('Erro ao fazer login:', {
+          email: sanitizedEmail,
+          code: authError.code,
+          message: authError.message,
+          details: authError
+        });
+        
+        // Mensagem amigável para o usuário
+        const friendlyMessage = errorMessages[authError.code] || 
+                                'Não foi possível fazer login. Verifique seu email e senha.';
+        
+        toast({
+          title: "Erro no Login",
+          description: friendlyMessage,
+          variant: "destructive"
+        });
+        
+        throw authError;
       }
-    });
-    
-    // Log detalhado no console para desenvolvimento
-    console.error('Erro ao fazer login:', {
-      email: email,
-      code: authError.code,
-      message: authError.message,
-      details: authError
-    });
-    
-    // Mensagem amigável para o usuário
-    const friendlyMessage = errorMessages[authError.code] || 
-                            'Não foi possível fazer login. Verifique seu email e senha.';
-    
-    toast({
-      title: "Erro no Login",
-      description: friendlyMessage,
-      variant: "destructive"
-    });
-    
-    throw authError;
-  }
+    },
+    MAX_LOGIN_ATTEMPTS
+  );
 };
 
 export const signInWithGoogle = async (): Promise<User | null> => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const credential = GoogleAuthProvider.credentialFromResult(result);
-    const token = credential?.accessToken;
-    
-    if (token) {
-      localStorage.setItem('googleAccessToken', token);
-    }
-    
-    return result.user;
-  } catch (error) {
-    const authError = error as AuthError;
-    
-    // Registrar no sistema de log
-    logError(authError, {
-      type: ErrorType.AUTH,
-      code: authError.code,
-      details: {
-        provider: 'google',
-        errorInfo: {
-          name: authError.name,
-          message: authError.message
+  return applyRateLimit(
+    'auth:google',
+    async () => {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential?.accessToken;
+        
+        if (token) {
+          // Armazenamos o token em sessionStorage para maior segurança (comparado a localStorage)
+          sessionStorage.setItem('googleAccessToken', token);
         }
-      },
-      context: {
-        action: 'signInWithGoogle',
-        timestamp: new Date().toISOString()
+        
+        return result.user;
+      } catch (error) {
+        const authError = error as AuthError;
+        
+        // Registrar no sistema de log
+        logError(authError, {
+          type: ErrorType.AUTH,
+          code: authError.code || 'auth/unknown',
+          details: {
+            provider: 'google',
+            errorInfo: {
+              name: authError.name || 'Error',
+              message: authError.message || 'Erro desconhecido'
+            }
+          },
+          context: {
+            action: 'signInWithGoogle',
+            timestamp: new Date().toISOString()
+          }
+        });
+        
+        // Log detalhado no console para desenvolvimento
+        console.error('Erro de autenticação Google:', {
+          code: authError.code,
+          message: authError.message,
+          details: authError
+        });
+        
+        // Mensagem amigável para o usuário
+        const friendlyMessage = errorMessages[authError.code] || 
+                                'Não foi possível fazer login com o Google.';
+        
+        toast({
+          title: "Erro na Conexão",
+          description: friendlyMessage,
+          variant: "destructive"
+        });
+        
+        throw authError;
       }
-    });
-    
-    // Log detalhado no console para desenvolvimento
-    console.error('Erro de autenticação Google:', {
-      code: authError.code,
-      message: authError.message,
-      details: authError
-    });
-    
-    // Mensagem amigável para o usuário
-    const friendlyMessage = errorMessages[authError.code] || 
-                            'Não foi possível fazer login com o Google.';
-    
-    toast({
-      title: "Erro na Conexão",
-      description: friendlyMessage,
-      variant: "destructive"
-    });
-    
-    throw authError;
-  }
+    },
+    MAX_LOGIN_ATTEMPTS
+  );
 };
 
 export const signOut = async (): Promise<void> => {
   try {
     await firebaseSignOut(auth);
-    localStorage.removeItem('googleAccessToken');
+    // Limpar dados sensíveis
+    sessionStorage.removeItem('googleAccessToken');
+    localStorage.removeItem('googleAccessToken'); // Remover também do localStorage para compatibilidade
   } catch (error) {
     const authError = error as Error;
     
@@ -220,6 +269,11 @@ export const getCurrentUser = (): User | null => {
 };
 
 export const getAccessToken = (): string | null => {
+  // Primeiro tenta no sessionStorage (mais seguro)
+  const sessionToken = sessionStorage.getItem('googleAccessToken');
+  if (sessionToken) return sessionToken;
+  
+  // Fallback para localStorage (para compatibilidade)
   return localStorage.getItem('googleAccessToken');
 };
 
@@ -229,61 +283,67 @@ export const subscribeToAuthChanges = (callback: (user: User | null) => void) =>
 };
 
 export const resetPassword = async (email: string): Promise<void> => {
-  try {
-    await sendPasswordResetEmail(auth, email);
-    
-    toast({
-      title: "E-mail enviado",
-      description: "Enviamos um link para redefinição de senha ao seu e-mail.",
-      variant: "default"
-    });
-  } catch (error) {
-    const authError = error as AuthError;
-    
-    // Registrar no sistema de log
-    logError(authError, {
-      type: ErrorType.AUTH,
-      code: authError.code,
-      details: {
-        provider: 'email',
-        errorInfo: {
-          name: authError.name,
-          message: authError.message
-        }
-      },
-      context: {
-        action: 'resetPassword',
-        timestamp: new Date().toISOString()
+  // Sanitizar entrada
+  const sanitizedEmail = sanitizeInput(email);
+  
+  return applyRateLimit(
+    'auth:reset-password',
+    async () => {
+      try {
+        await sendPasswordResetEmail(auth, sanitizedEmail);
+        
+        toast({
+          title: "E-mail enviado",
+          description: "Enviamos um link para redefinição de senha ao seu e-mail.",
+          variant: "default"
+        });
+      } catch (error) {
+        const authError = error as AuthError;
+        
+        // Registrar no sistema de log
+        logError(authError, {
+          type: ErrorType.AUTH,
+          code: authError.code || 'auth/unknown',
+          details: {
+            provider: 'email',
+            errorInfo: {
+              name: authError.name || 'Error',
+              message: authError.message || 'Erro desconhecido'
+            }
+          },
+          context: {
+            action: 'resetPassword',
+            timestamp: new Date().toISOString()
+          }
+        });
+        
+        console.error('Erro ao redefinir senha:', authError);
+        
+        // Mensagem amigável para o usuário
+        const friendlyMessage = errorMessages[authError.code] || 
+                              'Não foi possível enviar o email para redefinir a senha.';
+        
+        toast({
+          title: "Erro na Redefinição",
+          description: friendlyMessage,
+          variant: "destructive"
+        });
+        
+        throw authError;
       }
-    });
-    
-    // Log detalhado no console para desenvolvimento
-    console.error('Erro ao enviar e-mail de recuperação:', {
-      code: authError.code,
-      message: authError.message,
-      details: authError
-    });
-    
-    // Mensagem amigável para o usuário
-    const friendlyMessage = errorMessages[authError.code] || 
-                           'Não foi possível enviar o e-mail de recuperação. Verifique se o e-mail está correto.';
-    
-    toast({
-      title: "Erro ao enviar e-mail",
-      description: friendlyMessage,
-      variant: "destructive"
-    });
-    
-    throw authError;
-  }
+    },
+    MAX_PASSWORD_RESET_ATTEMPTS
+  );
 };
 
-// Função para verificar se um usuário existe no Firebase
-export const checkIfUserExists = async (email: string): Promise<boolean> => {
+// Verificar se usuário existe
+export const checkUserExists = async (email: string): Promise<boolean> => {
+  // Sanitizar entrada
+  const sanitizedEmail = sanitizeInput(email);
+  
   try {
-    const auth = getAuth();
-    const methods = await fetchSignInMethodsForEmail(auth, email);
-    return methods && methods.length > 0;
+    const methods = await fetchSignInMethodsForEmail(auth, sanitizedEmail);
+    return methods.length > 0;
   } catch (error) {
     console.error('Erro ao verificar existência do usuário:', error);
     return false;
@@ -292,25 +352,65 @@ export const checkIfUserExists = async (email: string): Promise<boolean> => {
 
 // Função auxiliar para verificação de credenciais
 export const verifyCredentials = async (email: string, password: string): Promise<{valid: boolean, message: string}> => {
-  try {
-    console.log('Verificando credenciais para:', email);
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log('Credenciais válidas para:', email);
-    return {
-      valid: true,
-      message: 'Credenciais válidas'
-    };
-  } catch (error) {
-    const authError = error as AuthError;
-    console.error('Erro na verificação de credenciais:', {
-      email: email,
-      code: authError.code,
-      message: authError.message
-    });
-    
-    return {
-      valid: false,
-      message: errorMessages[authError.code] || 'Credenciais inválidas'
-    };
-  }
+  // Sanitizar entrada
+  const sanitizedEmail = sanitizeInput(email);
+  
+  return applyRateLimit(
+    'auth:verify-credentials',
+    async () => {
+      try {
+        console.log('Verificando credenciais para:', sanitizedEmail);
+        const userCredential = await signInWithEmailAndPassword(auth, sanitizedEmail, password);
+        console.log('Credenciais válidas para:', sanitizedEmail);
+        return {
+          valid: true,
+          message: 'Credenciais válidas'
+        };
+      } catch (error) {
+        const authError = error as AuthError;
+        console.error('Erro na verificação de credenciais:', {
+          email: sanitizedEmail,
+          code: authError.code,
+          message: authError.message
+        });
+        
+        return {
+          valid: false,
+          message: errorMessages[authError.code] || 'Credenciais inválidas'
+        };
+      }
+    },
+    MAX_LOGIN_ATTEMPTS
+  );
+};
+
+/**
+ * Validar email
+ */
+const isValidEmail = (email: string): boolean => {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailPattern.test(email);
+};
+
+/**
+ * Verificar força da senha
+ * Retorna true se a senha for forte o suficiente
+ */
+const isStrongPassword = (password: string): boolean => {
+  // Mínimo de 6 caracteres (compatível com Firebase)
+  if (password.length < 6) return false;
+  
+  // Verifica se contém pelo menos 2 dos seguintes:
+  // - Letras maiúsculas
+  // - Letras minúsculas
+  // - Números
+  // - Caracteres especiais
+  let strength = 0;
+  
+  if (/[A-Z]/.test(password)) strength++; // Tem maiúsculas
+  if (/[a-z]/.test(password)) strength++; // Tem minúsculas
+  if (/[0-9]/.test(password)) strength++; // Tem números
+  if (/[^A-Za-z0-9]/.test(password)) strength++; // Tem caracteres especiais
+  
+  return strength >= 2;
 };
