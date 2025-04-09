@@ -1,3 +1,4 @@
+
 import { 
   signInWithPopup,
   GoogleAuthProvider,
@@ -30,6 +31,14 @@ const errorMessages: Record<string, string> = {
   'auth/weak-password': 'A senha é muito fraca. Use pelo menos 6 caracteres.',
   'auth/wrong-password': 'Senha incorreta para este email.',
   'auth/user-not-found': 'Não existe usuário com este email.',
+  'auth/too-many-requests': 'Muitas tentativas de login. Por favor, tente novamente mais tarde.',
+  'auth/invalid-credential': 'As credenciais de autenticação fornecidas são inválidas.',
+  'auth/invalid-verification-code': 'O código de verificação fornecido é inválido.',
+  'auth/invalid-verification-id': 'O ID de verificação fornecido é inválido.',
+  'auth/missing-verification-code': 'O código de verificação está faltando.',
+  'auth/missing-verification-id': 'O ID de verificação está faltando.',
+  'auth/credential-already-in-use': 'Esta credencial já está associada a uma conta de usuário diferente.',
+  'auth/requires-recent-login': 'Esta operação é sensível e requer autenticação recente.',
   'access_denied': 'Permissão negada. Você não autorizou o acesso ao Google Calendar.'
 };
 
@@ -83,7 +92,9 @@ export const createUserWithEmail = async (email: string, password: string): Prom
 // Fazer login com email e senha
 export const signInWithEmail = async (email: string, password: string): Promise<User | null> => {
   try {
+    console.log('Tentando login com email:', email);
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    console.log('Login bem-sucedido para:', email);
     
     return userCredential.user;
   } catch (error) {
@@ -95,6 +106,7 @@ export const signInWithEmail = async (email: string, password: string): Promise<
       code: authError.code,
       details: {
         provider: 'email',
+        email: email, // Adicionando o email para ajudar no diagnóstico
         errorInfo: {
           name: authError.name,
           message: authError.message
@@ -108,6 +120,7 @@ export const signInWithEmail = async (email: string, password: string): Promise<
     
     // Log detalhado no console para desenvolvimento
     console.error('Erro ao fazer login:', {
+      email: email,
       code: authError.code,
       message: authError.message,
       details: authError
@@ -261,5 +274,59 @@ export const resetPassword = async (email: string): Promise<void> => {
     });
     
     throw authError;
+  }
+};
+
+// Função para verificar se um usuário existe
+export const checkUserExists = async (email: string): Promise<boolean> => {
+  try {
+    // Firebase não possui uma API direta para verificar se um usuário existe
+    // Uma abordagem comum é tentar fazer login com uma senha inválida e capturar o erro
+    try {
+      await signInWithEmailAndPassword(auth, email, 'temporaryPassword123456');
+      // Se não lançar erro, o usuário existe e a senha estava correta (improvável com uma senha aleatória)
+      return true;
+    } catch (error) {
+      const authError = error as AuthError;
+      if (authError.code === 'auth/wrong-password') {
+        // Se o erro for senha incorreta, significa que o usuário existe
+        return true;
+      } else if (authError.code === 'auth/user-not-found') {
+        // Se o erro for usuário não encontrado, significa que o usuário não existe
+        return false;
+      } else {
+        // Para outros erros, logamos e consideramos que não conseguimos verificar
+        console.error('Erro ao verificar existência do usuário:', authError);
+        return false;
+      }
+    }
+  } catch (error) {
+    console.error('Erro na verificação de usuário:', error);
+    return false;
+  }
+};
+
+// Função auxiliar para verificação de credenciais
+export const verifyCredentials = async (email: string, password: string): Promise<{valid: boolean, message: string}> => {
+  try {
+    console.log('Verificando credenciais para:', email);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    console.log('Credenciais válidas para:', email);
+    return {
+      valid: true,
+      message: 'Credenciais válidas'
+    };
+  } catch (error) {
+    const authError = error as AuthError;
+    console.error('Erro na verificação de credenciais:', {
+      email: email,
+      code: authError.code,
+      message: authError.message
+    });
+    
+    return {
+      valid: false,
+      message: errorMessages[authError.code] || 'Credenciais inválidas'
+    };
   }
 };
