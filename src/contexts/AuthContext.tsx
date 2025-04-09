@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { User } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
@@ -222,6 +221,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
+      // Verificar se o usuário existe no Firebase
+      const userExists = await checkUserExists(email);
+      if (!userExists) {
+        console.log('Usuário não encontrado:', email);
+        toast({
+          title: "Usuário não encontrado",
+          description: "Este email não está cadastrado. Deseja criar uma conta?",
+          variant: "destructive",
+          action: (
+            <Button variant="outline" onClick={() => navigate('/login', { state: { activateSignup: true, email } })}>
+              Criar conta
+            </Button>
+          ),
+        });
+        setLoading(false);
+        return;
+      }
+      
       // Login normal com Firebase
       console.log('Tentando login com Firebase para:', email);
       const loggedUser = await signInWithEmail(email, password);
@@ -238,6 +255,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       console.error('Erro no login:', error);
       // Mensagem de erro já é mostrada no serviço de autenticação
+      
+      // Adicionar mensagem adicional para credenciais inválidas
+      if (error.code === 'auth/invalid-credential') {
+        toast({
+          title: "Credenciais inválidas",
+          description: "Verifique seu email e senha ou crie uma nova conta se não estiver cadastrado.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
