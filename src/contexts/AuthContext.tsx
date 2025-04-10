@@ -112,23 +112,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Iniciando processo de cadastro para:', email);
       setLoading(true);
       
-      const userExists = await checkIfUserExists(email);
-      if (userExists) {
-        console.log('Usuário já existe:', email);
+      if (email === TEST_EMAIL && password === TEST_PASSWORD) {
         toast({
-          title: "Email já cadastrado",
-          description: "Este email já está sendo usado. Tente fazer login ou recuperar sua senha.",
+          title: "Conta de teste",
+          description: "Esta é uma conta de teste e não pode ser usada para cadastro.",
           variant: "destructive"
         });
         setLoading(false);
         return;
       }
       
-      if (email === TEST_EMAIL && password === TEST_PASSWORD) {
+      const userExists = await checkIfUserExists(email);
+      if (userExists) {
+        console.log('Usuário já existe:', email);
         toast({
-          title: "Conta de teste",
-          description: "Esta é uma conta de teste e não pode ser usada para cadastro.",
-          variant: "destructive"
+          title: "Email já cadastrado",
+          description: "Este email já está sendo usado. Tente fazer login ou recuperar sua senha.",
+          variant: "destructive",
+          action: (
+            <Button variant="outline" onClick={() => navigate('/login', { state: { defaultValues: { email } } })}>
+              Ir para login
+            </Button>
+          )
         });
         setLoading(false);
         return;
@@ -164,7 +169,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: "Email já cadastrado",
           description: "Este email já está sendo usado. Tente fazer login ou recuperar sua senha.",
-          variant: "destructive"
+          variant: "destructive",
+          action: (
+            <Button variant="outline" onClick={() => navigate('/login', { state: { defaultValues: { email } } })}>
+              Ir para login
+            </Button>
+          )
         });
       } else {
         toast({
