@@ -125,8 +125,7 @@ export const createTask = async (taskData: any, userId: string): Promise<Databas
           .insert({
             ...sanitizedTask,
             user_id: sanitizedUserId,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            created_at: new Date().toISOString()
           })
           .select()
           .single();
@@ -182,13 +181,14 @@ export const updateTask = async (taskId: string, taskData: any, userId: string):
           };
         }
         
-        // Atualizar no banco
+        // Atualizar no banco - removendo campos que não existem no esquema
+        const updateData = {
+          ...sanitizedTask
+        };
+        
         const { data, error } = await supabase
           .from('tasks')
-          .update({
-            ...sanitizedTask,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', sanitizedTaskId)
           .eq('user_id', sanitizedUserId) // Garantia dupla de segurança
           .select()
