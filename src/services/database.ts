@@ -278,4 +278,4 @@ export const deleteTask = async (taskId: string, userId: string): Promise<Databa
     },
     MAX_MUTATION_REQUESTS
   );
-}; 
+};

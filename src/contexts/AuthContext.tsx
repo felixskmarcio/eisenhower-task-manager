@@ -117,7 +117,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Usuário já existe:', email);
         toast({
           title: "Email já cadastrado",
-          description: "Este email já está sendo usado. Tente fazer login ou recuperar sua senha."
+          description: "Este email já está sendo usado. Tente fazer login ou recuperar sua senha.",
+          variant: "destructive"
         });
         setLoading(false);
         return;
@@ -126,7 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (email === TEST_EMAIL && password === TEST_PASSWORD) {
         toast({
           title: "Conta de teste",
-          description: "Esta é uma conta de teste e não pode ser usada para cadastro."
+          description: "Esta é uma conta de teste e não pode ser usada para cadastro.",
+          variant: "destructive"
         });
         setLoading(false);
         return;
@@ -157,6 +159,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error: any) {
       console.error('Erro no cadastro:', error);
+      
+      if (error.code === 'auth/email-already-in-use') {
+        toast({
+          title: "Email já cadastrado",
+          description: "Este email já está sendo usado. Tente fazer login ou recuperar sua senha.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Erro no cadastro",
+          description: error.message || "Ocorreu um erro ao tentar criar sua conta.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }

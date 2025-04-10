@@ -348,21 +348,10 @@ export const checkIfUserExists = async (email: string): Promise<boolean> => {
     return methods && methods.length > 0;
   } catch (error) {
     console.error('Erro ao verificar existência do usuário:', error);
-    // Em caso de erro, vamos tentar uma abordagem alternativa
-    try {
-      // Tentar verificar enviando um reset de senha - se não der erro, o usuário existe
-      await sendPasswordResetEmail(auth, sanitizedEmail);
-      // Se chegou aqui, o usuário existe
-      return true;
-    } catch (fallbackError: any) {
-      // Se o erro for auth/user-not-found, o usuário não existe
-      if (fallbackError.code === 'auth/user-not-found') {
-        return false;
-      }
-      // Para outros erros, assumimos que não conseguimos determinar com certeza
-      console.error('Erro na verificação alternativa:', fallbackError);
-      return false;
-    }
+    
+    // Se não foi possível verificar com fetchSignInMethodsForEmail, 
+    // assumimos que o usuário não existe por segurança
+    return false;
   }
 };
 
