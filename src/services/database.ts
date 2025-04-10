@@ -1,4 +1,3 @@
-
 /**
  * Serviço para operações seguras com banco de dados
  * Encapsula as chamadas ao Supabase com validações de segurança
@@ -10,6 +9,21 @@ import { applyRateLimit } from '@/utils/rateLimiter';
 import { addCsrfHeader } from '@/utils/csrfProtection';
 import { taskSchema } from '@/lib/validationSchemas';
 import type { PostgrestError } from '@supabase/supabase-js';
+
+// Definição da interface Task
+interface Task {
+  id?: string;
+  title: string;
+  description?: string;
+  importance: number;
+  urgency: number;
+  quadrant: number;
+  completed: boolean;
+  completed_at?: string;
+  created_at?: string;
+  user_id?: string;
+  tags?: string[];
+}
 
 // Estrutura para respostas padronizadas
 interface DatabaseResponse<T> {
@@ -25,7 +39,7 @@ const MAX_QUERY_REQUESTS = 30;    // por minuto
 /**
  * Busca todas as tarefas do usuário atual
  */
-export const getTasks = async (userId: string): Promise<DatabaseResponse<any[]>> => {
+export const getTasks = async (userId: string): Promise<DatabaseResponse<Task[]>> => {
   return applyRateLimit(
     'db:get-tasks',
     async () => {
@@ -56,7 +70,7 @@ export const getTasks = async (userId: string): Promise<DatabaseResponse<any[]>>
 /**
  * Busca uma tarefa específica
  */
-export const getTaskById = async (taskId: string, userId: string): Promise<DatabaseResponse<any>> => {
+export const getTaskById = async (taskId: string, userId: string): Promise<DatabaseResponse<Task>> => {
   return applyRateLimit(
     'db:get-task',
     async () => {
@@ -88,7 +102,7 @@ export const getTaskById = async (taskId: string, userId: string): Promise<Datab
 /**
  * Cria uma nova tarefa
  */
-export const createTask = async (taskData: any, userId: string): Promise<DatabaseResponse<any>> => {
+export const createTask = async (taskData: Partial<Task>, userId: string): Promise<DatabaseResponse<Task>> => {
   return applyRateLimit(
     'db:create-task',
     async () => {
@@ -120,13 +134,13 @@ export const createTask = async (taskData: any, userId: string): Promise<Databas
         }
         
         // Criar no banco com valores padrão para campos obrigatórios
-        const taskToInsert = {
+        const taskToInsert: Task = {
           title: sanitizedTask.title || 'Sem título',
           description: sanitizedTask.description,
-          importance: sanitizedTask.importance || 5, // valor padrão médio
-          urgency: sanitizedTask.urgency || 5,      // valor padrão médio
-          quadrant: sanitizedTask.quadrant || 4,    // valor padrão quadrante 4
-          completed: sanitizedTask.completed || false,
+          importance: Number(sanitizedTask.importance) || 5, // valor padrão médio
+          urgency: Number(sanitizedTask.urgency) || 5,      // valor padrão médio
+          quadrant: Number(sanitizedTask.quadrant) || 4,    // valor padrão quadrante 4
+          completed: Boolean(sanitizedTask.completed) || false,
           created_at: new Date().toISOString(),
           user_id: sanitizedUserId
         };
@@ -153,7 +167,7 @@ export const createTask = async (taskData: any, userId: string): Promise<Databas
 /**
  * Atualiza uma tarefa existente
  */
-export const updateTask = async (taskId: string, taskData: any, userId: string): Promise<DatabaseResponse<any>> => {
+export const updateTask = async (taskId: string, taskData: Partial<Task>, userId: string): Promise<DatabaseResponse<Task>> => {
   return applyRateLimit(
     'db:update-task',
     async () => {
@@ -217,7 +231,7 @@ export const updateTask = async (taskId: string, taskData: any, userId: string):
 /**
  * Exclui uma tarefa
  */
-export const deleteTask = async (taskId: string, userId: string): Promise<DatabaseResponse<any>> => {
+export const deleteTask = async (taskId: string, userId: string): Promise<DatabaseResponse<Task>> => {
   return applyRateLimit(
     'db:delete-task',
     async () => {
