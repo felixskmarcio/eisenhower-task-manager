@@ -119,13 +119,19 @@ export const createTask = async (taskData: any, userId: string): Promise<Databas
           };
         }
         
-        // Criar no banco
+        // Criar no banco com valores padrão para campos obrigatórios
         const { data, error } = await supabase
           .from('tasks')
           .insert({
             ...sanitizedTask,
             user_id: sanitizedUserId,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            // Adicionar valores padrão para campos obrigatórios
+            title: sanitizedTask.title || 'Sem título',
+            importance: sanitizedTask.importance || 5, // valor padrão médio
+            urgency: sanitizedTask.urgency || 5,       // valor padrão médio
+            quadrant: sanitizedTask.quadrant || 4,     // valor padrão quadrante 4
+            completed: sanitizedTask.completed || false
           })
           .select()
           .single();
