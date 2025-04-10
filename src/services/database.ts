@@ -1,4 +1,8 @@
 
+import { initSupabaseClient } from '@/lib/supabase';
+import { Task, DatabaseResponse } from './types';
+import { applyRateLimit, MAX_MUTATION_REQUESTS, sanitizeInput, sanitizeTaskData, taskSchema } from './utils';
+
 /**
  * Cria uma nova tarefa
  */
@@ -7,6 +11,8 @@ export const createTask = async (taskData: Partial<Task>, userId: string): Promi
     'db:create-task',
     async () => {
       try {
+        const supabase = initSupabaseClient();
+        
         // Sanitizar e validar dados
         const sanitizedUserId = sanitizeInput(userId);
         const sanitizedTask = sanitizeTaskData(taskData);

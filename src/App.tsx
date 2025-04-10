@@ -29,7 +29,15 @@ import GlobalErrorHandler from './components/GlobalErrorHandler';
 import LoadingScreen from './components/LoadingScreen';
 import { useLoading } from './contexts/LoadingContext';
 
-const queryClient = new QueryClient();
+// Importante: criar o queryClient fora do componente para evitar problemas de renderização
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false
+    }
+  }
+});
 
 // Componente para renderizar a tela de carregamento com o conteúdo da aplicação
 const AppContent = () => {
@@ -120,15 +128,15 @@ const AppContent = () => {
 
 const App = () => (
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
       <ThemeProvider>
-        <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
           <LoadingProvider>
             <AppContent />
           </LoadingProvider>
-        </BrowserRouter>
+        </QueryClientProvider>
       </ThemeProvider>
-    </QueryClientProvider>
+    </BrowserRouter>
   </ErrorBoundary>
 );
 
