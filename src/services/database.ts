@@ -120,19 +120,20 @@ export const createTask = async (taskData: any, userId: string): Promise<Databas
         }
         
         // Criar no banco com valores padrão para campos obrigatórios
+        const taskToInsert = {
+          title: sanitizedTask.title || 'Sem título',
+          description: sanitizedTask.description,
+          importance: sanitizedTask.importance || 5, // valor padrão médio
+          urgency: sanitizedTask.urgency || 5,      // valor padrão médio
+          quadrant: sanitizedTask.quadrant || 4,    // valor padrão quadrante 4
+          completed: sanitizedTask.completed || false,
+          created_at: new Date().toISOString(),
+          user_id: sanitizedUserId
+        };
+        
         const { data, error } = await supabase
           .from('tasks')
-          .insert({
-            ...sanitizedTask,
-            user_id: sanitizedUserId,
-            created_at: new Date().toISOString(),
-            // Adicionar valores padrão para campos obrigatórios
-            title: sanitizedTask.title || 'Sem título',
-            importance: sanitizedTask.importance || 5, // valor padrão médio
-            urgency: sanitizedTask.urgency || 5,       // valor padrão médio
-            quadrant: sanitizedTask.quadrant || 4,     // valor padrão quadrante 4
-            completed: sanitizedTask.completed || false
-          })
+          .insert(taskToInsert)
           .select()
           .single();
         
