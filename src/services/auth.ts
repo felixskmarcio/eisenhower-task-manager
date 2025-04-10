@@ -344,45 +344,70 @@ export const checkIfUserExists = async (email: string): Promise<boolean> => {
   try {
     console.log('Verificando se usuário existe:', sanitizedEmail);
     
-    // Tentar buscar os métodos de login para o email
-    const methods = await fetchSignInMethodsForEmail(auth, sanitizedEmail);
-    console.log('Métodos de login disponíveis:', methods);
-    
-    // Se o array de métodos existe e tem pelo menos um método, o usuário existe
-    if (methods && Array.isArray(methods) && methods.length > 0) {
-      return true;
-    }
-    
-    // Verificação adicional: se o método do Firebase não confirmar,
-    // vamos verificar no Supabase também usando profiles
+    // Verificar no Supabase primeiro
     try {
       const { supabase } = await import('@/integrations/supabase/client');
-      const { data } = await supabase
+      
+      // Tentar verificar com o método de login (apenas para verificação)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: sanitizedEmail,
+        password: 'verificacao_temp_12345' // Senha temporária apenas para verificação
+      });
+      
+      // Se o erro inclui "Invalid login credentials", significa que o usuário existe
+      // mas a senha está errada, o que confirma que o email existe
+      if (error && error.message && error.message.includes('Invalid login credentials')) {
+        console.log('Usuário encontrado no Supabase (senha incorreta):', sanitizedEmail);
+        return true;
+      }
+      
+      // Se não houver erro e data.user existir, o usuário existe (caso improvável com senha aleatória)
+      if (data && data.user) {
+        console.log('Usuário encontrado no Supabase:', sanitizedEmail);
+        return true;
+      }
+      
+      // Verificar na tabela de perfis
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', sanitizedEmail)
         .maybeSingle();
       
-      if (data) {
-        console.log('Usuário encontrado no Supabase:', data);
+      if (profileData) {
+        console.log('Usuário encontrado na tabela de perfis do Supabase:', profileData);
         return true;
       }
     } catch (supabaseError) {
       console.error('Erro ao verificar usuário no Supabase:', supabaseError);
-      // Não propagar esse erro, apenas log
+      // Não propagar esse erro, continuar para verificação no Firebase
     }
     
+    // Verificar no Firebase
+    try {
+      // Tentar buscar os métodos de login para o email
+      const methods = await fetchSignInMethodsForEmail(auth, sanitizedEmail);
+      console.log('Métodos de login disponíveis no Firebase:', methods);
+      
+      // Se o array de métodos existe e tem pelo menos um método, o usuário existe
+      if (methods && Array.isArray(methods) && methods.length > 0) {
+        return true;
+      }
+    } catch (firebaseError) {
+      console.error('Erro ao verificar usuário no Firebase:', firebaseError);
+      // Verificar se o erro indica "email-already-in-use"
+      if (firebaseError instanceof Error && 
+          firebaseError.message.includes('auth/email-already-in-use')) {
+        return true;
+      }
+    }
+    
+    // Se nenhuma verificação encontrou o usuário, assumimos que não existe
     return false;
   } catch (error) {
-    console.error('Erro ao verificar existência do usuário:', error);
+    console.error('Erro geral ao verificar existência do usuário:', error);
     
-    if (error instanceof Error && error.message.includes('auth/email-already-in-use')) {
-      // Se o erro contiver "email-already-in-use", significa que o email existe
-      return true;
-    }
-    
-    // Se não foi possível verificar com fetchSignInMethodsForEmail e não temos erro específico, 
-    // assumimos que o usuário não existe por segurança
+    // Se não foi possível verificar com precisão, por segurança retornamos false
     return false;
   }
 };

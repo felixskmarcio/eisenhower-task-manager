@@ -57,7 +57,7 @@ const AuthPage: React.FC = () => {
   const [showSignupConfirmPassword, setShowSignupConfirmPassword] = useState(false);
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
-  const [loginError, setLoginError] = useState<{email: string, code?: string} | null>(null);
+  const [loginError, setLoginError] = useState<{email: string, code?: string, message?: string} | null>(null);
   const location = useLocation();
 
   const loginForm = useForm<LoginFormValues>({
@@ -106,7 +106,8 @@ const AuthPage: React.FC = () => {
     } catch (error: any) {
       setLoginError({
         email: values.email,
-        code: error.code
+        code: error.code,
+        message: error.message
       });
     }
   };
@@ -282,6 +283,7 @@ const AuthPage: React.FC = () => {
                       <LoginErrorDisplay 
                         email={loginError.email}
                         errorCode={loginError.code}
+                        errorMessage={loginError.message}
                         onTryAgain={handleLoginTryAgain}
                         onResetPassword={handleResetPasswordFromError}
                       />

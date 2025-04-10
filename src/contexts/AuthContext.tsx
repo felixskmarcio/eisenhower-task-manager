@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { User } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
@@ -304,7 +303,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('Erro no login com Supabase:', error);
-          // Não lançar erro aqui, tentar Firebase em seguida
+          // Se o erro for de credenciais inválidas, lance o erro para ser capturado logo abaixo
+          if (error.message?.includes('Invalid login credentials')) {
+            const customError = new Error('Credenciais inválidas');
+            customError.name = 'AuthError';
+            (customError as any).code = 'invalid_credentials';
+            (customError as any).message = 'Senha incorreta ou usuário não encontrado';
+            throw customError;
+          }
         } else if (data.user) {
           console.log('Login com Supabase bem-sucedido para:', email);
           setUser(data.user as unknown as User);
@@ -320,29 +326,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           navigate('/dashboard');
           return;
         }
-      } catch (supabaseError) {
-        console.error('Falha completa no login com Supabase:', supabaseError);
-        // Continuar para tentativa com Firebase
+      } catch (supabaseError: any) {
+        console.error('Falha no login com Supabase:', supabaseError);
+        throw supabaseError; // Relanç0a o erro para ser capturado
       }
       
-      // Fallback para Firebase
+      // Verificar se o usuário existe antes de tentar o login do Firebase
       const userExists = await checkIfUserExists(email);
       if (!userExists) {
         console.log('Usuário não encontrado em nenhum provedor:', email);
-        toast({
-          title: "Usuário não encontrado",
-          description: "Este email não está cadastrado. Deseja criar uma conta?",
-          variant: "destructive",
-          action: (
-            <Button variant="outline" onClick={() => navigate('/login', { state: { activateSignup: true, email } })}>
-              Criar conta
-            </Button>
-          ),
-        });
-        setLoading(false);
-        return;
+        const notFoundError = new Error('Usuário não encontrado');
+        (notFoundError as any).code = 'auth/user-not-found';
+        (notFoundError as any).message = 'Este email não está cadastrado em nosso sistema';
+        throw notFoundError;
       }
       
+      // Tentar com Firebase como fallback
       try {
         const loggedUser = await signInWithEmail(email, password);
         
@@ -354,30 +353,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
           navigate('/dashboard');
         }
-      } catch (error: any) {
-        console.error('Erro no login após verificação:', error);
-        if (error.code === 'auth/invalid-credential') {
-          toast({
-            title: "Credenciais inválidas",
-            description: "Senha incorreta. Verifique sua senha ou use a opção 'Esqueci a senha'.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Erro no login",
-            description: "Ocorreu um erro ao tentar fazer login. Tente novamente.",
-            variant: "destructive",
-          });
-        }
+      } catch (firebaseError: any) {
+        console.error('Erro no login com Firebase:', firebaseError);
+        throw firebaseError;
       }
       
     } catch (error: any) {
       console.error('Erro geral no login:', error);
-      toast({
-        title: "Erro no sistema",
-        description: "Ocorreu um erro inesperado. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
+      throw error; // Relançar o erro para ser capturado pelo componente
     } finally {
       setLoading(false);
     }
