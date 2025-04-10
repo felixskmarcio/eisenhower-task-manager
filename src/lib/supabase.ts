@@ -1,4 +1,6 @@
+
 import { createClient } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
 
 // Tipos para as tabelas do Supabase
 export interface Task {
@@ -308,26 +310,28 @@ export const syncTasks = async (localTasks: LocalTask[]) => {
   }
 };
 
-// Adicione esta função para gerar UUIDs válidos
+// Função para gerar UUIDs válidos
 function generateUUID(): string {
-  // Implementação baseada no RFC4122
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+  return uuidv4(); // Usamos a biblioteca uuid para maior confiabilidade
+}
+
+// Verifica se uma string é um UUID válido
+function isValidUUID(id: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(id);
 }
 
 // Modificar a função formatTasksForSupabase
 function formatTasksForSupabase(localTasks: LocalTask[]): Task[] {
   return localTasks.map(task => {
-    // Verificar se o ID é um UUID válido, senão gerar um novo
-    const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(task.id);
-    const id = isValidUUID ? task.id : generateUUID();
+    // Garantir que temos um ID de tarefa válido
+    let taskId = task.id;
     
-    // Logar para debug
-    if (!isValidUUID) {
-      console.log(`Convertendo ID inválido "${task.id}" para UUID válido: ${id}`);
+    // Verificar se o ID é um UUID válido
+    if (!isValidUUID(taskId)) {
+      // Se não for válido, gerar um novo
+      taskId = generateUUID();
+      console.log(`ID inválido "${task.id}" substituído por UUID válido: ${taskId}`);
     }
     
     // Preparar o created_at como string
@@ -352,14 +356,24 @@ function formatTasksForSupabase(localTasks: LocalTask[]): Task[] {
         : String(task.completedAt);
     }
     
+    // Garantir que os campos numéricos sejam realmente números
+    const urgency = typeof task.urgency === 'number' ? task.urgency : 
+                   (task.urgency ? Number(task.urgency) : 5);
+                   
+    const importance = typeof task.importance === 'number' ? task.importance : 
+                      (task.importance ? Number(task.importance) : 5);
+                      
+    const quadrant = typeof task.quadrant === 'number' ? task.quadrant : 
+                    (task.quadrant ? Number(task.quadrant) : 4);
+    
     // Garantir que os campos obrigatórios estão presentes
     const formattedTask: Task = {
-      id, // Usar o ID UUID válido
+      id: taskId,
       title: task.title || 'Sem título',
       description: task.description || null,
-      urgency: typeof task.urgency === 'number' ? task.urgency : 5,
-      importance: typeof task.importance === 'number' ? task.importance : 5,
-      quadrant: typeof task.quadrant === 'number' ? task.quadrant : 0,
+      urgency: urgency,
+      importance: importance,
+      quadrant: quadrant,
       completed: Boolean(task.completed),
       created_at,
       completed_at,
@@ -369,4 +383,4 @@ function formatTasksForSupabase(localTasks: LocalTask[]): Task[] {
     
     return formattedTask;
   });
-} 
+}
