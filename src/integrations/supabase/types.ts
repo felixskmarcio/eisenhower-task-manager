@@ -17,6 +17,7 @@ export type Database = {
           foto_url: string | null
           id: string
           nome: string | null
+          senha: string | null
         }
         Insert: {
           atualizado_em?: string
@@ -25,6 +26,7 @@ export type Database = {
           foto_url?: string | null
           id: string
           nome?: string | null
+          senha?: string | null
         }
         Update: {
           atualizado_em?: string
@@ -33,6 +35,7 @@ export type Database = {
           foto_url?: string | null
           id?: string
           nome?: string | null
+          senha?: string | null
         }
         Relationships: []
       }
