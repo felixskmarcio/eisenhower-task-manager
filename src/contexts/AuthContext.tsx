@@ -13,7 +13,7 @@ import {
   subscribeToAuthChanges,
   resetPassword as authResetPassword,
   verifyCredentials,
-  checkUserExists
+  checkIfUserExists
 } from '@/services/auth';
 
 interface AuthContextType {
@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Iniciando processo de cadastro para:', email);
       setLoading(true);
       
-      const userExists = await checkUserExists(email);
+      const userExists = await checkIfUserExists(email);
       if (userExists) {
         console.log('Usuário já existe:', email);
         toast({
@@ -206,7 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      const userExists = await checkUserExists(email);
+      const userExists = await checkIfUserExists(email);
       if (!userExists) {
         console.log('Usuário não encontrado:', email);
         toast({
@@ -223,26 +223,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      const loggedUser = await signInWithEmail(email, password);
-      
-      if (loggedUser) {
-        console.log('Login bem-sucedido para:', email);
-        toast({
-          title: "Login realizado",
-          description: "Bem-vindo de volta!"
-        });
-        navigate('/dashboard');
+      try {
+        const loggedUser = await signInWithEmail(email, password);
+        
+        if (loggedUser) {
+          console.log('Login bem-sucedido para:', email);
+          toast({
+            title: "Login realizado",
+            description: "Bem-vindo de volta!"
+          });
+          navigate('/dashboard');
+        }
+      } catch (error: any) {
+        console.error('Erro no login após verificação:', error);
+        if (error.code === 'auth/invalid-credential') {
+          toast({
+            title: "Credenciais inválidas",
+            description: "Senha incorreta. Verifique sua senha ou use a opção 'Esqueci a senha'.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erro no login",
+            description: "Ocorreu um erro ao tentar fazer login. Tente novamente.",
+            variant: "destructive",
+          });
+        }
       }
       
     } catch (error: any) {
-      console.error('Erro no login:', error);
-      if (error.code === 'auth/invalid-credential') {
-        toast({
-          title: "Credenciais inválidas",
-          description: "Verifique seu email e senha ou crie uma nova conta se não estiver cadastrado.",
-          variant: "destructive",
-        });
-      }
+      console.error('Erro geral no login:', error);
+      toast({
+        title: "Erro no sistema",
+        description: "Ocorreu um erro inesperado. Tente novamente mais tarde.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
