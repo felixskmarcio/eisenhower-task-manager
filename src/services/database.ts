@@ -1,3 +1,4 @@
+
 /**
  * Serviço para operações seguras com banco de dados
  * Encapsula as chamadas ao Supabase com validações de segurança
@@ -36,8 +37,8 @@ export const getTasks = async (userId: string): Promise<DatabaseResponse<any[]>>
         const { data, error } = await supabase
           .from('tasks')
           .select('*')
-          .eq('userId', sanitizedUserId)
-          .order('createdAt', { ascending: false });
+          .eq('user_id', sanitizedUserId)
+          .order('created_at', { ascending: false });
         
         return { data, error };
       } catch (error) {
@@ -68,7 +69,7 @@ export const getTaskById = async (taskId: string, userId: string): Promise<Datab
           .from('tasks')
           .select('*')
           .eq('id', sanitizedTaskId)
-          .eq('userId', sanitizedUserId)
+          .eq('user_id', sanitizedUserId)
           .single();
         
         return { data, error };
@@ -107,7 +108,7 @@ export const createTask = async (taskData: any, userId: string): Promise<Databas
         try {
           taskSchema.parse({
             ...sanitizedTask,
-            userId: sanitizedUserId
+            user_id: sanitizedUserId
           });
         } catch (validationError) {
           return { 
@@ -123,9 +124,9 @@ export const createTask = async (taskData: any, userId: string): Promise<Databas
           .from('tasks')
           .insert({
             ...sanitizedTask,
-            userId: sanitizedUserId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            user_id: sanitizedUserId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           })
           .select()
           .single();
@@ -166,7 +167,7 @@ export const updateTask = async (taskId: string, taskData: any, userId: string):
         // Verificar se o usuário é dono da tarefa
         const { data: existingTask, error: fetchError } = await supabase
           .from('tasks')
-          .select('userId')
+          .select('user_id')
           .eq('id', sanitizedTaskId)
           .single();
         
@@ -174,7 +175,7 @@ export const updateTask = async (taskId: string, taskData: any, userId: string):
           return { data: null, error: fetchError };
         }
         
-        if (!existingTask || existingTask.userId !== sanitizedUserId) {
+        if (!existingTask || existingTask.user_id !== sanitizedUserId) {
           return { 
             data: null, 
             error: new Error('Você não tem permissão para editar esta tarefa') 
@@ -186,10 +187,10 @@ export const updateTask = async (taskId: string, taskData: any, userId: string):
           .from('tasks')
           .update({
             ...sanitizedTask,
-            updatedAt: new Date().toISOString()
+            updated_at: new Date().toISOString()
           })
           .eq('id', sanitizedTaskId)
-          .eq('userId', sanitizedUserId) // Garantia dupla de segurança
+          .eq('user_id', sanitizedUserId) // Garantia dupla de segurança
           .select()
           .single();
         
@@ -221,7 +222,7 @@ export const deleteTask = async (taskId: string, userId: string): Promise<Databa
         // Verificar se o usuário é dono da tarefa
         const { data: existingTask, error: fetchError } = await supabase
           .from('tasks')
-          .select('userId')
+          .select('user_id')
           .eq('id', sanitizedTaskId)
           .single();
         
@@ -229,7 +230,7 @@ export const deleteTask = async (taskId: string, userId: string): Promise<Databa
           return { data: null, error: fetchError };
         }
         
-        if (!existingTask || existingTask.userId !== sanitizedUserId) {
+        if (!existingTask || existingTask.user_id !== sanitizedUserId) {
           return { 
             data: null, 
             error: new Error('Você não tem permissão para excluir esta tarefa') 
@@ -241,7 +242,7 @@ export const deleteTask = async (taskId: string, userId: string): Promise<Databa
           .from('tasks')
           .delete()
           .eq('id', sanitizedTaskId)
-          .eq('userId', sanitizedUserId) // Garantia dupla de segurança
+          .eq('user_id', sanitizedUserId) // Garantia dupla de segurança
           .select()
           .single();
         

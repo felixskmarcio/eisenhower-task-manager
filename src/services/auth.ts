@@ -351,7 +351,7 @@ export const checkIfUserExists = async (email: string): Promise<boolean> => {
     // Em caso de erro, vamos tentar uma abordagem alternativa
     try {
       // Tentar verificar enviando um reset de senha - se não der erro, o usuário existe
-      await auth.sendPasswordResetEmail(sanitizedEmail);
+      await sendPasswordResetEmail(auth, sanitizedEmail);
       // Se chegou aqui, o usuário existe
       return true;
     } catch (fallbackError: any) {
