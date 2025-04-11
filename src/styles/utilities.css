@@ -1,3 +1,4 @@
+
 @layer utilities {
   .glass {
     @apply backdrop-blur-lg bg-white/80 border border-white/20;
@@ -9,6 +10,26 @@
 
   .text-center {
     text-align: center;
+  }
+  
+  /* Classes de efeito visual para a matriz */
+  .glass-effect {
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+  }
+  
+  .gradient-heading {
+    background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.02em;
+  }
+  
+  .matrix-shadow {
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
   }
 }
 
