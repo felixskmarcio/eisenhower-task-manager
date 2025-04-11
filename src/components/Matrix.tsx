@@ -887,38 +887,42 @@ export const Matrix = () => {
   // Seletor de tags rápidas como chips
   const QuickTagSelector = () => {
   return (
-      <div className="flex flex-wrap gap-1.5 items-center mt-1 tag-selector">
-        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mr-1.5 whitespace-nowrap">Projeto:</span>
-        {availableTags.map(tag => (
-        <button
-            key={tag.id}
-            onClick={() => handleTagFilter('project', tagFilters.project === tag.id ? null : tag.id)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 transition-all duration-200
-              ${tagFilters.project === tag.id 
-                ? 'ring-2 ring-offset-2 dark:ring-offset-gray-900 shadow-lg scale-105' 
-                : 'opacity-90 hover:opacity-100 hover:shadow-md hover:scale-103'}`}
-            style={{ 
-              background: tagFilters.project === tag.id 
-                ? `linear-gradient(135deg, ${tag.color}30, ${tag.color}60)` 
-                : `linear-gradient(135deg, ${tag.color}15, ${tag.color}30)`,
-              color: tagFilters.project === tag.id ? `${tag.color}` : `${tag.color}`,
-              boxShadow: tagFilters.project === tag.id 
-                ? `0 4px 12px ${tag.color}30` 
-                : `0 2px 6px ${tag.color}20`,
-              borderWidth: '0',
-              backdropFilter: 'blur(8px)'
-            }}
-          >
-            <span 
-              className="w-3 h-3 rounded-full flex-shrink-0" 
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-1 tag-selector w-full">
+        <div className="flex items-center justify-center">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap bg-gray-100/50 dark:bg-gray-800/50 px-3 py-1.5 rounded-full">Projeto:</span>
+        </div>
+        <div className="flex flex-wrap justify-center gap-2 flex-1">
+          {availableTags.map(tag => (
+          <button
+              key={tag.id}
+              onClick={() => handleTagFilter('project', tagFilters.project === tag.id ? null : tag.id)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 transition-all duration-200
+                ${tagFilters.project === tag.id 
+                  ? 'ring-2 ring-offset-2 dark:ring-offset-gray-900 shadow-lg scale-105' 
+                  : 'opacity-90 hover:opacity-100 hover:shadow-md hover:scale-103'}`}
               style={{ 
-                background: `linear-gradient(135deg, ${tag.color}, ${tag.color}cc)`,
-                boxShadow: `0 2px 4px ${tag.color}40`
-              }} 
-            />
-            <span style={{ fontWeight: 500 }}>{tag.name}</span>
-        </button>
-        ))}
+                background: tagFilters.project === tag.id 
+                  ? `linear-gradient(135deg, ${tag.color}30, ${tag.color}60)` 
+                  : `linear-gradient(135deg, ${tag.color}15, ${tag.color}30)`,
+                color: tagFilters.project === tag.id ? `${tag.color}` : `${tag.color}`,
+                boxShadow: tagFilters.project === tag.id 
+                  ? `0 4px 12px ${tag.color}30` 
+                  : `0 2px 6px ${tag.color}20`,
+                borderWidth: '0',
+                backdropFilter: 'blur(8px)'
+              }}
+            >
+              <span 
+                className="w-3 h-3 rounded-full flex-shrink-0" 
+                style={{ 
+                  background: `linear-gradient(135deg, ${tag.color}, ${tag.color}cc)`,
+                  boxShadow: `0 2px 4px ${tag.color}40`
+                }} 
+              />
+              <span style={{ fontWeight: 500 }}>{tag.name}</span>
+          </button>
+          ))}
+        </div>
       </div>
     );
   };
@@ -1039,14 +1043,14 @@ export const Matrix = () => {
             </p>
             
             {/* Quick Tag Selector */}
-            <div className="md:flex items-center gap-2 hidden text-gray-700 dark:text-gray-300 backdrop-blur-md bg-white/50 dark:bg-gray-800/30 hover:bg-white/60 dark:hover:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-3 shadow-lg transition-all duration-200">
+            <div className="md:block hidden text-gray-700 dark:text-gray-300 backdrop-blur-md bg-white/50 dark:bg-gray-800/30 hover:bg-white/60 dark:hover:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-4 shadow-lg transition-all duration-200 w-full max-w-3xl mx-auto mb-4">
               <QuickTagSelector />
             </div>
       </div>
 
           <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2 md:gap-3 justify-center sm:justify-end">
-            <div className="md:hidden w-full">
-              <div className="text-gray-700 dark:text-gray-300 backdrop-blur-md bg-white/50 dark:bg-gray-800/30 hover:bg-white/60 dark:hover:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-3 shadow-lg transition-all duration-200">
+            <div className="md:hidden w-full mb-4">
+              <div className="text-gray-700 dark:text-gray-300 backdrop-blur-md bg-white/50 dark:bg-gray-800/30 hover:bg-white/60 dark:hover:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-4 shadow-lg transition-all duration-200">
                 <QuickTagSelector />
               </div>
             </div>
