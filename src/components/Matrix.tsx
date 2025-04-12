@@ -37,10 +37,8 @@ interface Task {
   start_date?: string | null;
 }
 
-// Type for new task that excludes certain properties that will be generated when created
 type NewTask = Omit<Task, 'id' | 'quadrant' | 'completed' | 'createdAt' | 'completedAt'>;
 
-// Definir a interface para o resultado de drag-and-drop
 interface DragResult {
   draggableId: string;
   type: string;
@@ -64,16 +62,14 @@ export const Matrix = () => {
   const [timerElapsed, setTimerElapsed] = useState<number>(0);
   const [taskTimeSpent, setTaskTimeSpent] = useState<{[key: string]: number}>({});
 
-  // Lista de tags disponíveis (movida para o início do componente)
   const availableTags = [
-    { id: '1', name: 'Trabalho', color: '#7c3aed' }, // Roxo violeta moderno
-    { id: '2', name: 'Pessoal', color: '#0ea5e9' }, // Azul vibrante
-    { id: '3', name: 'Saúde', color: '#10b981' }, // Verde esmeralda
-    { id: '4', name: 'Escritório', color: '#8b5cf6' }, // Roxo lavanda
-    { id: '5', name: 'Casa', color: '#f59e0b' } // Âmbar
+    { id: '1', name: 'Trabalho', color: '#7c3aed' },
+    { id: '2', name: 'Pessoal', color: '#0ea5e9' },
+    { id: '3', name: 'Saúde', color: '#10b981' },
+    { id: '4', name: 'Escritório', color: '#8b5cf6' },
+    { id: '5', name: 'Casa', color: '#f59e0b' }
   ];
 
-  // Limpar o intervalo quando o componente for desmontado
   useEffect(() => {
     return () => {
       if (intervalId) {
@@ -92,7 +88,6 @@ export const Matrix = () => {
     setTimeLeft(25 * 60);
     setTimerElapsed(0);
     
-    // Inicializar ou recuperar o tempo já gasto na tarefa
     const currentTask = tasks.find(t => t.id === taskId);
     setTaskTimeSpent(prev => ({
       ...prev,
@@ -104,7 +99,7 @@ export const Matrix = () => {
         if (prevTime <= 1) {
           if (!isBreak) {
             setIsBreak(true);
-            return 5 * 60; // 5 minutes break
+            return 5 * 60;
           } else {
             stopTimer();
             return 25 * 60;
@@ -113,10 +108,8 @@ export const Matrix = () => {
         return prevTime - 1;
       });
 
-      // Atualizar apenas o tempo decorrido sem modificar o estado das tarefas a cada segundo
       setTimerElapsed(prev => prev + 1);
       
-      // Atualiza o tempo gasto na tarefa atual em um objeto separado
       setTaskTimeSpent(prev => ({
         ...prev,
         [taskId]: (prev[taskId] || 0) + 1
@@ -142,7 +135,6 @@ export const Matrix = () => {
     }
     
     if (activeTimer && timerElapsed > 0) {
-      // Atualizar o tempo total gasto na tarefa quando o timer parar
       const totalTimeSpent = taskTimeSpent[activeTimer] || 0;
       
       const updatedTasks = tasks.map((task) =>
@@ -152,7 +144,6 @@ export const Matrix = () => {
       );
       
       setTasks(updatedTasks);
-      // Salvar as tarefas atualizadas no localStorage
       saveTasksToLocalStorage(updatedTasks);
     } else {
       const updatedTasks = tasks.map((task) =>
@@ -160,7 +151,6 @@ export const Matrix = () => {
       );
       
       setTasks(updatedTasks);
-      // Salvar as tarefas atualizadas no localStorage
       saveTasksToLocalStorage(updatedTasks);
     }
     
@@ -188,9 +178,9 @@ export const Matrix = () => {
       importance: 9,
       quadrant: 0,
       completed: false,
-      createdAt: new Date(Date.now() - 86400000), // 1 dia atrás
+      createdAt: new Date(Date.now() - 86400000),
       completedAt: null,
-      tags: ['1', '4'] // Work, Office
+      tags: ['1', '4']
     },
     {
       id: '2',
@@ -200,9 +190,9 @@ export const Matrix = () => {
       importance: 9,
       quadrant: 1,
       completed: false,
-      createdAt: new Date(Date.now() - 172800000), // 2 dias atrás
+      createdAt: new Date(Date.now() - 172800000),
       completedAt: null,
-      tags: ['1'] // Work
+      tags: ['1']
     },
     {
       id: '3',
@@ -212,9 +202,9 @@ export const Matrix = () => {
       importance: 4,
       quadrant: 2,
       completed: false,
-      createdAt: new Date(Date.now() - 43200000), // 12 horas atrás
+      createdAt: new Date(Date.now() - 43200000),
       completedAt: null,
-      tags: ['1', '4'] // Work, Office
+      tags: ['1', '4']
     },
     {
       id: '4',
@@ -224,9 +214,9 @@ export const Matrix = () => {
       importance: 2,
       quadrant: 3,
       completed: false,
-      createdAt: new Date(Date.now() - 21600000), // 6 horas atrás
+      createdAt: new Date(Date.now() - 21600000),
       completedAt: null,
-      tags: ['2'] // Personal
+      tags: ['2']
     }
   ]);
 
@@ -234,7 +224,7 @@ export const Matrix = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [activeView, setActiveView] = useState<'matrix' | 'tasks' | 'completed'>('matrix');
-  const [newTask, setNewTask] = useState<NewTask>({    
+  const [newTask, setNewTask] = useState<NewTask>({
     title: '',
     description: undefined,
     urgency: 5,
@@ -253,8 +243,7 @@ export const Matrix = () => {
     lifearea: null,
   });
 
-  // Determinar modo escuro (para os modais)
-  const [isDarkMode] = useState(true); // Fixado como dark mode
+  const [isDarkMode] = useState(true);
 
   const handleEditTask = (task: Task) => {
     setSelectedTask(task);
@@ -271,7 +260,6 @@ export const Matrix = () => {
     start_date?: string | Date | null;
     tags?: string[];
   }) => {
-    // Converter para o tipo Task
     const updatedTask: Task = {
       ...editedTask,
       quadrant: calculateQuadrant(editedTask.urgency, editedTask.importance),
@@ -293,7 +281,7 @@ export const Matrix = () => {
     });
   };
 
-  const [selectedDate, setSelectedDate] = useState<number>(14); // Default to day 14
+  const [selectedDate, setSelectedDate] = useState<number>(14);
   const [salesData, setSalesData] = useState<number[]>([4, 6, 8, 10, 5, 7, 9, 12, 14, 16, 13, 15, 18, 20, 17, 19]);
   const [pageScore, setPageScore] = useState<number>(91);
   const [recentOrders, setRecentOrders] = useState([
@@ -303,7 +291,7 @@ export const Matrix = () => {
     { name: 'Nick Nelson', status: 'completed' },
     { name: 'Amanda Anderson', status: 'completed' },
   ]);
-  
+
   const quadrants = [
     { 
       title: 'Fazer', 
@@ -337,11 +325,8 @@ export const Matrix = () => {
 
   const handleDragStart = (e: React.DragEvent, task: Task) => {
     e.dataTransfer.setData('text/plain', JSON.stringify(task));
-    // Adicionar classe para efeito visual
     const element = e.currentTarget as HTMLElement;
     element.classList.add('dragging');
-    
-    // Adicionar ghost element para feedback visual
     const rect = element.getBoundingClientRect();
     const ghostElement = document.createElement('div');
     ghostElement.classList.add('drag-ghost');
@@ -350,32 +335,22 @@ export const Matrix = () => {
     ghostElement.style.left = `${rect.left}px`;
     ghostElement.style.top = `${rect.top}px`;
     document.body.appendChild(ghostElement);
-    
-    // Customizar imagem de arrasto para melhor experiência
     const dragImage = document.createElement('div');
     dragImage.style.width = '1px';
     dragImage.style.height = '1px';
     dragImage.style.opacity = '0';
     document.body.appendChild(dragImage);
     e.dataTransfer.setDragImage(dragImage, 0, 0);
-    
-    // Adicionar efeito visual à tarefa
     element.style.transform = 'scale(1.05) rotate(1deg)';
-    
-    // Limpar elementos temporários após o próximo ciclo de renderização
     setTimeout(() => {
       document.body.removeChild(dragImage);
-      // Não remover o ghost element ainda, será removido no dragEnd
+      ghostElement.parentNode && ghostElement.parentNode.removeChild(ghostElement);
     }, 0);
-    
-    // Armazenar referência ao ghost element para remoção posterior
     (e.currentTarget as any)._ghostElement = ghostElement;
-    // Armazenar a tarefa que está sendo arrastada
     (document as any)._draggedTask = task;
   };
 
   const handleDragEnd = (e: React.DragEvent) => {
-    // Remover ghost element
     const elements = document.querySelectorAll('.dragging');
     elements.forEach(element => {
       element.classList.remove('dragging');
@@ -385,47 +360,35 @@ export const Matrix = () => {
       }
       (element as HTMLElement).style.transform = '';
     });
-    
-    // Limpar a tarefa arrastada
     (document as any)._draggedTask = null;
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    // Adicionar efeito visual na zona de soltar
     const element = e.currentTarget as HTMLElement;
     element.classList.add('dropzone-hover');
     element.classList.add('quadrant-highlight');
     element.classList.add('active');
-    
-    // Atualizar posição do ghost element
     const draggingElements = document.querySelectorAll('.dragging');
     draggingElements.forEach(draggingElement => {
       const ghostElement = (draggingElement as any)._ghostElement;
       if (ghostElement) {
-        // Calcular posição dentro do quadrante para o ghost element
         const rect = element.getBoundingClientRect();
         const offsetX = e.clientX - rect.left;
         const offsetY = e.clientY - rect.top;
-        
-        // Limitar ao tamanho do quadrante
         const maxX = rect.width - ghostElement.offsetWidth;
         const maxY = rect.height - ghostElement.offsetHeight;
         const limitedX = Math.max(0, Math.min(offsetX, maxX));
         const limitedY = Math.max(0, Math.min(offsetY, maxY));
-        
         ghostElement.style.top = `${limitedY + rect.top}px`;
         ghostElement.style.left = `${limitedX + rect.left}px`;
         ghostElement.style.opacity = '0.2';
       }
     });
-    
-    // Indicar que o drop é permitido
     e.dataTransfer.dropEffect = 'move';
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
-    // Remover efeito visual quando o cursor sair da zona
     const element = e.currentTarget as HTMLElement;
     element.classList.remove('dropzone-hover');
     element.classList.remove('active');
@@ -433,53 +396,37 @@ export const Matrix = () => {
 
   const handleDrop = (e: React.DragEvent, quadrantIndex: number) => {
     e.preventDefault();
-    // Remover efeito visual da zona de soltar
     const element = e.currentTarget as HTMLElement;
     element.classList.remove('dropzone-hover');
     element.classList.remove('active');
-    
     const taskData = e.dataTransfer.getData('text/plain');
     if (taskData) {
       try {
         const droppedTask = JSON.parse(taskData);
-        
-        // Verificar se o quadrante mudou
         if (droppedTask.quadrant !== quadrantIndex) {
-          // Animação de destaque na tarefa sendo movida
           const taskElement = document.getElementById(`task-${droppedTask.id}`);
           if (taskElement) {
-            // Adicionar classe para animar a transição
             taskElement.style.transition = 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
             taskElement.style.transform = 'scale(1.08)';
             taskElement.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.2)';
-            
-            // Restaurar após a animação
             setTimeout(() => {
               taskElement.style.transform = '';
               taskElement.style.boxShadow = '';
             }, 600);
           }
-          
           const updatedTasks = tasks.map(task => 
             task.id === droppedTask.id 
               ? { ...task, quadrant: quadrantIndex } 
               : task
           );
-          
-          // Atualizar as tarefas e salvar no localStorage
           updateTasks(updatedTasks);
-          
-          // Adicionar efeito visual de destaque temporário ao quadrante de destino
           element.style.transition = 'box-shadow 0.4s ease, background-color 0.4s ease';
           element.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.7)';
           element.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
-          
           setTimeout(() => {
             element.style.boxShadow = '';
             element.style.backgroundColor = '';
           }, 800);
-          
-          // Mostrar notificação com ícone relevante
           toast({
             title: 'Tarefa movida',
             description: `Tarefa "${droppedTask.title}" movida para ${
@@ -500,7 +447,6 @@ export const Matrix = () => {
     }
   };
 
-  // Função para gerar UUIDs válidos
   const generateUUID = (): string => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       const r = Math.random() * 16 | 0;
@@ -509,7 +455,6 @@ export const Matrix = () => {
     });
   };
 
-  // Modificar a função handleAddTask para usar UUIDs
   const handleAddTask = () => {
     const newTaskQuadrant = calculateQuadrant(newTask.urgency, newTask.importance);
     const createdTask: Task = {
@@ -572,17 +517,14 @@ export const Matrix = () => {
     });
   };
 
-  // Estado para o diálogo de confirmação de exclusão
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
-  
-  // Função para confirmar a exclusão
+
   const confirmDeleteTask = (taskId: string) => {
     setTaskToDelete(taskId);
     setIsDeleteDialogOpen(true);
   };
-  
-  // Função para realizar a exclusão após confirmação
+
   const handleConfirmDelete = () => {
     if (taskToDelete) {
       deleteTask(taskToDelete);
@@ -590,19 +532,16 @@ export const Matrix = () => {
     }
     setIsDeleteDialogOpen(false);
   };
-  
-  // Função para cancelar a exclusão
+
   const handleCancelDelete = () => {
     setTaskToDelete(null);
     setIsDeleteDialogOpen(false);
   };
-  
-  // Prevenir que o diálogo feche ao clicar fora dele
+
   const preventDialogClose = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
-  // Componente simplificado para a tarefa
   const TaskCard = ({ task }: { task: Task }) => {
     return (
       <div 
@@ -613,10 +552,8 @@ export const Matrix = () => {
         id={`task-${task.id}`}
       >
         <div className="p-2 bg-base-200 rounded-md hover:bg-base-300 transition-all duration-300">
-          {/* Cabeçalho da tarefa */}
           <div className="flex items-start justify-between">
             <div className="flex items-start flex-1 min-w-0">
-              {/* Botão de completar */}
               <div className="flex-shrink-0 mt-0.5">
                 <button
                   onClick={() => toggleTaskCompletion(task.id)}
@@ -630,8 +567,6 @@ export const Matrix = () => {
                   )}
                 </button>
               </div>
-              
-              {/* Conteúdo principal */}
               <div className="flex-1 min-w-0">
                 <motion.h4 
                   className={`task-title ${
@@ -671,10 +606,7 @@ export const Matrix = () => {
               </div>
             </div>
           </div>
-
-          {/* Ações e timer */}
           <div className="card-actions flex items-center justify-between mt-2 pt-2 border-t border-base-content border-opacity-10">
-            {/* Botões de ação */}
             <div className="flex items-center space-x-1">
               <button
                 onClick={() => handleEditTask(task)}
@@ -693,8 +625,6 @@ export const Matrix = () => {
                 <Trash2 className="h-3.5 w-3.5 text-error" />
               </button>
             </div>
-            
-            {/* Timer */}
             <div className="flex items-center">
               {(task.timeSpent || (activeTimer === task.id && taskTimeSpent[task.id])) && (
                 <span className="text-xs mr-2 flex items-center">
@@ -790,7 +720,6 @@ export const Matrix = () => {
     );
   };
 
-  // Componente de quadrante responsivo
   const QuadrantContainer = ({ title, description, children, urgentLabel, importantLabel, colorClass, quadrantIndex }: {
     title: string;
     description: string;
@@ -811,7 +740,6 @@ export const Matrix = () => {
     };
     
     const handleDragLeaveQuadrant = (e: React.DragEvent) => {
-      // Verificar se o cursor realmente saiu do elemento e não entrou em um filho
       const relatedTarget = e.relatedTarget as HTMLElement;
       if (!e.currentTarget.contains(relatedTarget)) {
         setIsDragOver(false);
@@ -870,7 +798,6 @@ export const Matrix = () => {
     );
   };
 
-  // Botão de ação flutuante para criar novas tarefas em dispositivos móveis
   const FloatingActionButton = ({ onClick }: { onClick: () => void }) => (
     <button
       onClick={onClick}
@@ -883,9 +810,9 @@ export const Matrix = () => {
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  
-  // Seletor de tags rápidas como chips
+
   const QuickTagSelector = () => {
+<<<<<<< HEAD
   return (
       <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-1 tag-selector w-full">
         <div className="flex items-center justify-center">
@@ -923,19 +850,52 @@ export const Matrix = () => {
           </button>
           ))}
         </div>
+=======
+    return (
+      <div className="flex flex-wrap gap-1.5 items-center mt-1 tag-selector">
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mr-1.5 whitespace-nowrap">Projeto:</span>
+        {availableTags.map(tag => (
+          <button
+            key={tag.id}
+            onClick={() => handleTagFilter('project', tagFilters.project === tag.id ? null : tag.id)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 transition-all duration-200
+              ${tagFilters.project === tag.id 
+                ? 'ring-2 ring-offset-2 dark:ring-offset-gray-900 shadow-lg scale-105' 
+                : 'opacity-90 hover:opacity-100 hover:shadow-md hover:scale-103'}`}
+            style={{ 
+              background: tagFilters.project === tag.id 
+                ? `linear-gradient(135deg, ${tag.color}30, ${tag.color}60)` 
+                : `linear-gradient(135deg, ${tag.color}15, ${tag.color}30)`,
+              color: tagFilters.project === tag.id ? `${tag.color}` : `${tag.color}`,
+              boxShadow: tagFilters.project === tag.id 
+                ? `0 4px 12px ${tag.color}30` 
+                : `0 2px 6px ${tag.color}20`,
+              borderWidth: '0',
+              backdropFilter: 'blur(8px)'
+            }}
+          >
+            <span 
+              className="w-3 h-3 rounded-full flex-shrink-0" 
+              style={{ 
+                background: `linear-gradient(135deg, ${tag.color}, ${tag.color}cc)`,
+                boxShadow: `0 2px 4px ${tag.color}40`
+              }} 
+            />
+            <span style={{ fontWeight: 500 }}>{tag.name}</span>
+          </button>
+        ))}
+>>>>>>> bb003152efd4aae35ab4ddb45570c775c40b1f13
       </div>
     );
   };
-  
-  // Função para filtrar tarefas por tags
+
   const handleTagFilter = (type: 'project' | 'context' | 'lifearea', value: string | null) => {
     setTagFilters(prev => ({
       ...prev,
       [type]: value
     }));
   };
-  
-  // Função para adicionar nova tarefa
+
   const handleNewTaskAdded = (task: Omit<Task, 'id' | 'quadrant' | 'completed' | 'createdAt' | 'completedAt'>) => {
     const newTaskQuadrant = calculateQuadrant(task.urgency, task.importance);
     const createdTask: Task = {
@@ -952,26 +912,19 @@ export const Matrix = () => {
       description: 'Nova tarefa criada com sucesso!'
     });
   };
-  
-  // Função para renderizar tarefas em cada quadrante
+
   const renderTasks = (quadrantNumber: number) => {
     const filteredTasks = tasks.filter(task => {
-      // Filtrar por quadrante e se não está concluída
       const matchesQuadrant = task.quadrant === quadrantNumber - 1;
       const matchesCompletion = !task.completed;
-      
-      // Filtrar por tags se houver tags selecionadas
       const matchesTags = selectedTags.length === 0 || 
                            (task.tags && task.tags.some(tag => selectedTags.includes(tag)));
-      
-      // Filtrar por tipo de tag (projeto, contexto, área de vida)
       const matchesProjectFilter = !tagFilters.project || 
                                    (task.tags && task.tags.includes(tagFilters.project));
       const matchesContextFilter = !tagFilters.context || 
                                    (task.tags && task.tags.includes(tagFilters.context));
       const matchesLifeareaFilter = !tagFilters.lifearea || 
                                    (task.tags && task.tags.includes(tagFilters.lifearea));
-      
       return matchesQuadrant && matchesCompletion && matchesTags && 
              matchesProjectFilter && matchesContextFilter && matchesLifeareaFilter;
     });
@@ -991,7 +944,6 @@ export const Matrix = () => {
     );
   };
 
-  // Função auxiliar para salvar tarefas no localStorage
   const saveTasksToLocalStorage = (tasks) => {
     try {
       localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -1001,24 +953,20 @@ export const Matrix = () => {
     }
   };
 
-  // Função para atualizar o estado de tarefas e salvá-las no localStorage
   const updateTasks = (newTasks) => {
     setTasks(newTasks);
     saveTasksToLocalStorage(newTasks);
   };
 
-  // Carregar tarefas do localStorage ao inicializar
   useEffect(() => {
     try {
       const savedTasks = localStorage.getItem('tasks');
       if (savedTasks) {
         const parsedTasks = JSON.parse(savedTasks);
-        // Converter strings de data para objetos Date
         const formattedTasks = parsedTasks.map(task => ({
           ...task,
           createdAt: task.createdAt ? new Date(task.createdAt) : new Date(),
           completedAt: task.completedAt ? new Date(task.completedAt) : null,
-          // Manter start_date como string ISO para compatibilidade com o restante do código
           start_date: task.start_date || null
         }));
         setTasks(formattedTasks);
@@ -1031,7 +979,6 @@ export const Matrix = () => {
 
   return (
     <div className="w-full mx-auto relative">
-      {/* Wrapper para aplicar o efeito de blur quando o modal estiver aberto */}
       <div className={isDeleteDialogOpen ? 'blur-sm pointer-events-none transition-all duration-300' : ''}>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
@@ -1042,11 +989,15 @@ export const Matrix = () => {
               Organize suas tarefas baseado em importância e urgência para maximizar sua produtividade
             </p>
             
+<<<<<<< HEAD
             {/* Quick Tag Selector */}
             <div className="md:block hidden text-gray-700 dark:text-gray-300 backdrop-blur-md bg-white/50 dark:bg-gray-800/30 hover:bg-white/60 dark:hover:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-4 shadow-lg transition-all duration-200 w-full max-w-3xl mx-auto mb-4">
+=======
+            <div className="md:flex items-center gap-2 hidden text-gray-700 dark:text-gray-300 backdrop-blur-md bg-white/50 dark:bg-gray-800/30 hover:bg-white/60 dark:hover:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-3 shadow-lg transition-all duration-200">
+>>>>>>> bb003152efd4aae35ab4ddb45570c775c40b1f13
               <QuickTagSelector />
             </div>
-      </div>
+          </div>
 
           <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2 md:gap-3 justify-center sm:justify-end">
             <div className="md:hidden w-full mb-4">
@@ -1074,8 +1025,8 @@ export const Matrix = () => {
                 </Tooltip>
               </TooltipProvider>
             </div>
-                  </div>
-                </div>
+          </div>
+        </div>
 
         <Tabs defaultValue="matriz" className="w-full">
           <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-8 border rounded-lg p-1 bg-muted/20 backdrop-blur-sm shadow-sm">
@@ -1089,7 +1040,7 @@ export const Matrix = () => {
               <div className="flex items-center gap-1.5">
                 <CheckCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Concluídas</span>
-                </div>
+              </div>
             </TabsTrigger>
             <TabsTrigger value="todas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
               <div className="flex items-center gap-1.5">
@@ -1100,7 +1051,6 @@ export const Matrix = () => {
           </TabsList>
 
           <TabsContent value="matriz" className="space-y-4">
-            {/* Mobile layout - Vertical stacking */}
             <div className="grid grid-cols-1 gap-5 md:hidden">
               <QuadrantContainer
                 title="Urgente e Importante"
@@ -1147,8 +1097,7 @@ export const Matrix = () => {
               </QuadrantContainer>
             </div>
             
-            {/* Desktop layout - 2x2 grid */}
-            <div className="hidden md:grid md:grid-cols-2 gap-6">
+            <div className="hidden md:grid md:grid-cols-2 gap-6 md:gap-8 matrix-grid matrix-animation-container rounded-2xl border border-white/5 p-4 bg-black/20 backdrop-blur-sm shadow-xl">
               <QuadrantContainer
                 title="Urgente e Importante"
                 description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
@@ -1192,47 +1141,47 @@ export const Matrix = () => {
               >
                 {renderTasks(4)}
               </QuadrantContainer>
-          </div>
-        </TabsContent>
+            </div>
+          </TabsContent>
 
           <TabsContent value="concluidas">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Tarefas Concluídas</h2>
-            <div className="grid gap-3">
-              {tasks
-                .filter(task => task.completed)
-                .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
-                .map(task => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Tarefas Concluídas</h2>
+              <div className="grid gap-3">
+                {tasks
+                  .filter(task => task.completed)
+                  .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
+                  .map(task => (
+                    <TaskCard key={task.id} task={task} />
+                  ))}
+              </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
           <TabsContent value="todas">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Todas as Tarefas</h2>
-            <div className="grid gap-3">
-              {tasks
-                .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
-                .map(task => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Todas as Tarefas</h2>
+              <div className="grid gap-3">
+                {tasks
+                  .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
+                  .map(task => (
+                    <TaskCard key={task.id} task={task} />
+                  ))}
+              </div>
             </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {isAddModalOpen && (
-      <AddTaskModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        <AddTaskModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
           onAddTask={handleAddTask}
-        newTask={newTask}
-        setNewTask={setNewTask}
+          newTask={newTask}
+          setNewTask={setNewTask}
           isDarkMode={isDarkMode}
-      />
+        />
       )}
 
       {isEditModalOpen && selectedTask && (
@@ -1254,15 +1203,12 @@ export const Matrix = () => {
         />
       )}
 
-      {/* Botão de ação flutuante para dispositivos móveis */}
       <FloatingActionButton onClick={() => setIsAddModalOpen(true)} />
-      
-      {/* Modal de confirmação de exclusão personalizado */}
+
       {isDeleteDialogOpen && taskToDelete && (
         <div 
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center" 
           onClick={(e) => {
-            // Fechar o modal quando clicar no backdrop (fora do modal)
             if (e.target === e.currentTarget) {
               handleCancelDelete();
             }
@@ -1290,7 +1236,6 @@ export const Matrix = () => {
                 Confirmar exclusão
               </h2>
               
-              {/* Informações da tarefa que será excluída */}
               <div className="mt-4 mb-3 p-3 border border-gray-700/60 rounded-md bg-gray-800/20">
                 <p className="font-medium mb-1 text-base">
                   {tasks.find(t => t.id === taskToDelete)?.title || "Tarefa"}

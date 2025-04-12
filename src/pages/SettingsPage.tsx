@@ -1,7 +1,8 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Moon, Sun, Palette, Calendar as CalendarIcon, Database, Save, FileText, User, Key, Bell, ChevronRight, Eye, EyeOff } from "lucide-react";
+import { Settings, Moon, Sun, Palette, Calendar as CalendarIcon, Database, Save, FileText, User, Key, Bell, ChevronRight, Eye, EyeOff, Bot } from "lucide-react";
 import MarkdownImport from '@/components/MarkdownImport';
 import SupabaseIntegration from '@/components/SupabaseIntegration';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import GoogleCalendarErrorDisplay from '@/components/GoogleCalendarErrorDisplay'
 import { AuthError } from 'firebase/auth';
 import GoogleCalendarSyncButton from '@/components/GoogleCalendarSyncButton';
 import GoogleCalendarSync from '@/components/GoogleCalendarSync/GoogleCalendarSync';
+import AIIntegration from '@/components/AIIntegration';
 
 interface Task {
   id: string;
@@ -125,6 +127,20 @@ const SettingsPage = () => {
         
         <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
           <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
+            <Bot className="h-5 w-5 text-primary" />
+            Integração com IA
+          </h2>
+          <Separator className="my-4" />
+          
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+            Configure e use inteligência artificial para ajudar no gerenciamento das suas tarefas, sugerir melhorias e fornecer insights.
+          </p>
+          
+          <AIIntegration />
+        </Card>
+        
+        <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
+          <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
             <Database className="h-5 w-5 text-primary" />
             Integração com Supabase
           </h2>
@@ -215,17 +231,6 @@ const SettingsPage = () => {
               </div>
             )}
           </div>
-        </Card>
-        
-        <Card className="p-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
-          <h2 className="text-xl font-semibold mb-2 text-primary/90">Sobre</h2>
-          <Separator className="my-4" />
-          <p className="text-sm font-medium mb-3 text-primary/80">
-            Gerenciador de Tarefas - Versão 1.0.0
-          </p>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Um aplicativo de gerenciamento de tarefas que utiliza a Matriz de Eisenhower para ajudar você a priorizar suas atividades de forma eficiente.
-          </p>
         </Card>
       </div>
     </div>
