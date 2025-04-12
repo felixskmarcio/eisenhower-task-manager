@@ -57,6 +57,19 @@
   .date-picker-selected {
     @apply ring-2 ring-offset-1 !bg-indigo-600 text-white;
   }
+  
+  /* Estilos para botões de ação */
+  .cancel-button {
+    @apply transition-all duration-300 hover:shadow-md hover:-translate-y-0.5;
+  }
+  
+  .cancel-button-light {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 border-gray-300 hover:border-gray-400;
+  }
+  
+  .cancel-button-dark {
+    @apply bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border-gray-700 hover:border-gray-600;
+  }
 }
 
 #root {

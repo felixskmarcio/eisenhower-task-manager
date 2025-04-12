@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Tag, AlertTriangle, Calendar as CalendarIcon } from 'lucide-react';
@@ -374,7 +375,11 @@ const AddTaskModal = ({
             <Button 
               variant="outline" 
               onClick={onClose}
-              className={isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}
+              className={`transition-all duration-300 ${
+                isDarkMode 
+                  ? 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border-gray-700 hover:border-gray-600' 
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 border-gray-300 hover:border-gray-400'
+              } hover:shadow-md hover:-translate-y-0.5`}
             >
               Cancelar
             </Button>
