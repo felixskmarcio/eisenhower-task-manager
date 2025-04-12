@@ -88,3 +88,17 @@
   margin: 0 auto;
   padding: 2rem;
 } 
+
+/* Efeito de desfoque para elementos de fundo quando um modal está aberto */
+.blur-backdrop {
+  @apply blur-sm transition-all duration-300 pointer-events-none;
+}
+
+/* Estilos específicos para o diálogo de confirmação de exclusão */
+.alert-dialog-overlay {
+  @apply fixed inset-0 bg-black/50 backdrop-blur-[2px] z-50;
+}
+
+.alert-dialog-content {
+  @apply z-[51] relative shadow-xl;
+}

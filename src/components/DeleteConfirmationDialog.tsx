@@ -31,7 +31,7 @@ const DeleteConfirmationDialog = ({
 }: DeleteConfirmationDialogProps) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent className={`${isDarkMode ? 'bg-gray-900 text-gray-100 border-gray-700' : 'bg-white text-black border-gray-200'} max-w-md backdrop-blur-lg`}>
+      <AlertDialogContent className={`${isDarkMode ? 'bg-gray-900 text-gray-100 border-gray-700' : 'bg-white text-black border-gray-200'} max-w-md backdrop-blur-lg z-50`}>
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl font-bold flex items-center gap-2">
             <div className="p-2 rounded-full bg-red-500/10">

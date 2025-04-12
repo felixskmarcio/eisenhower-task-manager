@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, X, Save, AlertTriangle, Calendar as CalendarIcon } from 'lucide-react';
@@ -85,7 +86,7 @@ const EditTaskModal = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className={`sm:max-w-[500px] ${isDarkMode ? 'bg-gray-900 text-gray-100 border-gray-700' : 'bg-white text-black border-gray-200'}`}>
+        <DialogContent className={`sm:max-w-[500px] ${isDarkMode ? 'bg-gray-900 text-gray-100 border-gray-700' : 'bg-white text-black border-gray-200'} ${isDeleteDialogOpen ? 'blur-sm pointer-events-none transition-all duration-300' : ''}`}>
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
