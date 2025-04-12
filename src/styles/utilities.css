@@ -119,3 +119,27 @@
 .ai-sparkles {
   @apply absolute -top-1 -right-1 text-yellow-400 animate-pulse;
 }
+
+/* Estilos para mensagens de erro de conexão */
+.connection-error {
+  @apply bg-red-50 border border-red-200 text-red-700 p-3 rounded-md flex items-start gap-2;
+}
+
+.retry-button {
+  @apply text-xs bg-white px-2 py-1 rounded border border-red-100 text-red-600 
+         hover:bg-red-50 transition-colors inline-flex items-center gap-1.5 mt-2;
+}
+
+/* Animação de pulsar para alertas */
+@keyframes pulse-error {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.pulse-error {
+  animation: pulse-error 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

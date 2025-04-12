@@ -1,11 +1,13 @@
 
-import React, { useState } from 'react';
-import { Bot, Send, Sparkles, X } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Bot, Send, Sparkles, X, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
+import ErrorDisplay from '@/components/ErrorDisplay';
+import { logError, ErrorType } from '@/lib/logError';
 
 interface AIResponse {
   text: string;
@@ -18,6 +20,74 @@ const AIIntegration = () => {
   const [responses, setResponses] = useState<AIResponse[]>([]);
   const [apiKey, setApiKey] = useState('');
   const [isConfigured, setIsConfigured] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  // Verificar se a chave da API está armazenada localmente
+  useEffect(() => {
+    try {
+      const storedApiKey = localStorage.getItem('ai_api_key');
+      if (storedApiKey) {
+        setApiKey(storedApiKey);
+        setIsConfigured(true);
+        
+        // Carregar histórico de respostas salvas
+        const storedResponses = localStorage.getItem('ai_responses');
+        if (storedResponses) {
+          try {
+            setResponses(JSON.parse(storedResponses));
+          } catch (error) {
+            console.error('Erro ao carregar histórico de respostas:', error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar configurações da IA:', error);
+    }
+  }, []);
+
+  // Salvar respostas quando houver mudanças
+  useEffect(() => {
+    if (responses.length > 0) {
+      try {
+        localStorage.setItem('ai_responses', JSON.stringify(responses));
+      } catch (error) {
+        console.error('Erro ao salvar histórico de respostas:', error);
+      }
+    }
+  }, [responses]);
+
+  const checkInternetConnection = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      // Usar um endpoint confiável para verificar a conexão
+      fetch('https://www.google.com', { 
+        mode: 'no-cors',
+        cache: 'no-cache',
+        method: 'HEAD'
+      })
+        .then(() => {
+          setConnectionError(null);
+          resolve(true);
+        })
+        .catch(() => {
+          setConnectionError('Falha na conexão de rede. Verifique sua internet.');
+          resolve(false);
+        });
+    });
+  };
+
+  const handleRetryConnection = async () => {
+    setIsRetrying(true);
+    const isConnected = await checkInternetConnection();
+    setIsRetrying(false);
+    
+    if (isConnected) {
+      toast({
+        title: "Conexão restabelecida",
+        description: "Sua conexão com a internet está funcionando novamente.",
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +110,12 @@ const AIIntegration = () => {
       return;
     }
     
+    // Verificar conexão com a internet antes de prosseguir
+    const isConnected = await checkInternetConnection();
+    if (!isConnected) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
       
@@ -55,13 +131,26 @@ const AIIntegration = () => {
       
       setResponses(prev => [mockResponse, ...prev]);
       setPrompt('');
+      setConnectionError(null); // Limpar erro de conexão se tudo der certo
     } catch (error) {
       console.error('Erro ao processar solicitação de IA:', error);
-      toast({
-        title: "Erro ao processar",
-        description: "Ocorreu um erro ao processar sua solicitação.",
-        variant: "destructive"
-      });
+      
+      // Verificar se é um erro de conexão
+      await checkInternetConnection();
+      
+      if (!connectionError) {
+        // Se não for problema de conexão, mostrar erro genérico
+        toast({
+          title: "Erro ao processar",
+          description: "Ocorreu um erro ao processar sua solicitação.",
+          variant: "destructive"
+        });
+        
+        logError(error instanceof Error ? error : new Error(String(error)), {
+          type: ErrorType.API,
+          context: { component: 'AIIntegration', action: 'handleSubmit' }
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -77,23 +166,83 @@ const AIIntegration = () => {
       return;
     }
     
-    setIsConfigured(true);
-    toast({
-      title: "API configurada",
-      description: "Sua API key foi configurada com sucesso!",
-    });
+    try {
+      // Salvar a chave da API localmente
+      localStorage.setItem('ai_api_key', apiKey);
+      
+      setIsConfigured(true);
+      toast({
+        title: "API configurada",
+        description: "Sua API key foi configurada com sucesso!",
+      });
+    } catch (error) {
+      console.error('Erro ao salvar API key:', error);
+      toast({
+        title: "Erro de armazenamento",
+        description: "Não foi possível salvar sua API key. Verifique as permissões do navegador.",
+        variant: "destructive"
+      });
+    }
   };
   
   const clearResponses = () => {
     setResponses([]);
+    localStorage.removeItem('ai_responses');
     toast({
       title: "Histórico limpo",
       description: "Todas as respostas foram removidas.",
     });
   };
 
+  const resetConfiguration = () => {
+    if (window.confirm("Tem certeza que deseja remover sua API key? Você precisará configurá-la novamente para usar a IA.")) {
+      localStorage.removeItem('ai_api_key');
+      setApiKey('');
+      setIsConfigured(false);
+      toast({
+        title: "Configuração removida",
+        description: "Sua API key foi removida com sucesso.",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {connectionError && (
+        <Card className="p-4 bg-red-500/10 border border-red-500/30 shadow">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-red-700 dark:text-red-400">
+                Problema de conexão
+              </h3>
+              <p className="text-sm mt-1 text-red-600/90 dark:text-red-300/90">
+                {connectionError}
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-2 bg-white/50 text-red-600 border-red-200 hover:bg-white"
+                onClick={handleRetryConnection}
+                disabled={isRetrying}
+              >
+                {isRetrying ? (
+                  <>
+                    <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                    Verificando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-3 w-3 mr-2" />
+                    Tentar novamente
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+      
       {!isConfigured ? (
         <Card className="p-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -148,6 +297,15 @@ const AIIntegration = () => {
                   <X className="h-4 w-4 mr-1" />
                   Limpar
                 </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetConfiguration}
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                >
+                  Resetar API
+                </Button>
               </div>
             </div>
             
@@ -156,10 +314,13 @@ const AIIntegration = () => {
                 placeholder="O que você gostaria de perguntar?"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                disabled={isLoading}
+                disabled={isLoading || !!connectionError}
                 className="flex-1"
               />
-              <Button type="submit" disabled={isLoading || !prompt.trim()}>
+              <Button 
+                type="submit" 
+                disabled={isLoading || !prompt.trim() || !!connectionError}
+              >
                 {isLoading ? (
                   <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
                 ) : (
