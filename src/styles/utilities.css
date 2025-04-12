@@ -102,3 +102,20 @@
 .alert-dialog-content {
   @apply z-[51] relative shadow-xl;
 }
+
+/* Estilos para a integração com IA */
+.ai-message {
+  @apply p-4 rounded-lg bg-background/80 border border-primary/10 mb-3 animate-in slide-in-from-bottom duration-300;
+}
+
+.ai-response {
+  @apply bg-primary/5 p-4 rounded-lg text-sm whitespace-pre-line;
+}
+
+.ai-input-container {
+  @apply flex gap-2 mt-4 relative;
+}
+
+.ai-sparkles {
+  @apply absolute -top-1 -right-1 text-yellow-400 animate-pulse;
+}
