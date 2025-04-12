@@ -189,77 +189,48 @@ const AddTaskModal = ({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="start-date" className="text-sm font-medium flex items-center gap-1.5">
-                <CalendarIcon className="h-4 w-4 text-indigo-400" />
-                <span>Data de Início</span>
-                <span className="text-xs text-muted-foreground">(Opcional)</span>
+              <Label htmlFor="start-date" className="text-sm font-medium">
+                Data de Início (Opcional)
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     id="start-date"
                     variant="outline"
-                    className={`w-full justify-start text-left font-normal date-button group transition-all duration-300
-                      ${!newTask.start_date && "text-muted-foreground"}
-                      ${isDarkMode 
-                        ? 'bg-gray-800/70 border-indigo-500/30 hover:border-indigo-500/50 focus:ring-indigo-500/30 hover:bg-gray-700/80' 
-                        : 'bg-gray-50/80 border-indigo-300/50 hover:border-indigo-400 focus:ring-indigo-300/30 hover:bg-gray-100/80'
-                      }
-                      ${newTask.start_date ? 'border-indigo-500/50 shadow-sm shadow-indigo-500/10' : ''}
-                    `}
+                    className={`w-full justify-start text-left font-normal ${
+                      !newTask.start_date && "text-muted-foreground"
+                    } ${isDarkMode 
+                      ? 'bg-gray-800/70 border-gray-600 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-700' 
+                      : 'bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-100'}`}
                   >
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-indigo-600/5 via-purple-500/5 to-pink-500/5 transition-opacity duration-500 rounded-md"></div>
-                    <CalendarIcon className={`mr-2 h-4 w-4 ${newTask.start_date ? 'text-indigo-500' : 'text-gray-400'}`} />
+                    <CalendarIcon className="mr-2 h-4 w-4" />
                     {newTask.start_date ? (
-                      <span className="text-indigo-500 dark:text-indigo-400 font-medium">
-                        {format(new Date(newTask.start_date), "PPP", { locale: ptBR })}
-                      </span>
+                      format(new Date(newTask.start_date), "PPP", { locale: ptBR })
                     ) : (
-                      <span className="flex items-center gap-1">
-                        <span>Selecione uma data</span>
-                        <span className="text-xs text-muted-foreground ml-1 opacity-70">clique aqui</span>
-                      </span>
+                      <span>Selecione uma data</span>
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent 
-                  className={`w-auto p-0 border-none ${isDarkMode ? 'bg-gray-800 shadow-lg shadow-black/20' : 'bg-white shadow-lg shadow-gray-200/50'}`} 
-                  align="start"
-                >
+                <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={newTask.start_date ? new Date(newTask.start_date) : undefined}
                     onSelect={(date) => setNewTask({...newTask, start_date: date ? date.toISOString() : null})}
                     initialFocus
-                    className={`rounded-md ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white'}`}
                   />
-                  <div className="p-2 border-t border-gray-200 dark:border-gray-700">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs h-7 px-2 w-full flex justify-center items-center gap-1 text-muted-foreground"
-                      onClick={() => setNewTask({...newTask, start_date: null})}
-                    >
-                      <X className="h-3 w-3" />
-                      <span>Limpar seleção</span>
-                    </Button>
-                  </div>
                 </PopoverContent>
               </Popover>
               {newTask.start_date && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className={`mt-1 px-3 py-1 rounded-md text-xs flex items-center gap-1 ${
-                    isDarkMode 
-                      ? 'bg-indigo-900/20 text-indigo-300 border border-indigo-800/40' 
-                      : 'bg-indigo-50 text-indigo-700 border border-indigo-100'
-                  }`}
-                >
-                  <CalendarIcon className="h-3 w-3" />
-                  <span>Data selecionada: {format(new Date(newTask.start_date), "d 'de' MMMM, yyyy", { locale: ptBR })}</span>
-                </motion.div>
+                <div className="flex justify-end mt-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs h-7 px-2"
+                    onClick={() => setNewTask({...newTask, start_date: null})}
+                  >
+                    Limpar data
+                  </Button>
+                </div>
               )}
             </div>
 
@@ -375,11 +346,7 @@ const AddTaskModal = ({
             <Button 
               variant="outline" 
               onClick={onClose}
-              className={`transition-all duration-300 ${
-                isDarkMode 
-                  ? 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border-gray-700 hover:border-gray-600' 
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 border-gray-300 hover:border-gray-400'
-              } hover:shadow-md hover:-translate-y-0.5`}
+              className={isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}
             >
               Cancelar
             </Button>
