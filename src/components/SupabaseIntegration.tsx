@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -215,6 +216,8 @@ const SupabaseIntegration = () => {
 
   const handleSyncData = async () => {
     setIsSyncing(true);
+    setSyncError(null);
+    
     try {
       const { data: authData } = await supabase.auth.getSession();
       if (!authData.session) {
@@ -343,6 +346,13 @@ CREATE INDEX idx_tasks_user_id ON tasks(user_id);
 CREATE INDEX idx_tasks_quadrant ON tasks(quadrant);
 CREATE INDEX idx_tasks_completed ON tasks(completed);
   `;
+
+  // Função para tentar novamente a sincronização após um erro
+  const handleRetrySyncAfterError = () => {
+    setSyncError(null);
+    // Usamos o supabase importado, não o supabase não definido
+    handleSyncData();
+  };
 
   return (
     <div>
@@ -494,10 +504,7 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
             path: "/tasks",
             timestamp: new Date().toISOString()
           }}
-          onRetry={() => {
-            setSyncError(null);
-            handleSyncData();
-          }}
+          onRetry={handleRetrySyncAfterError}
           className="mb-4"
         />
       )}
