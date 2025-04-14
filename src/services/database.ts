@@ -38,6 +38,15 @@ export const createTask = async (taskData: Partial<Task>, userId: string): Promi
           };
         }
         
+        // Verificar autenticação do usuário atual
+        const { data: authData } = await supabase.auth.getSession();
+        if (!authData.session) {
+          return {
+            data: null,
+            error: new Error('Usuário não autenticado')
+          };
+        }
+        
         // Criar no banco com valores padrão para campos obrigatórios
         const taskToInsert: Task = {
           title: sanitizedTask.title || 'Sem título',
@@ -50,12 +59,18 @@ export const createTask = async (taskData: Partial<Task>, userId: string): Promi
           user_id: sanitizedUserId
         };
         
+        console.log('Inserindo tarefa para usuário:', sanitizedUserId);
+        
         // Usar o cliente supabase otimizado
         const { data, error } = await supabase
           .from('tasks')
           .insert(taskToInsert)
           .select()
           .single();
+        
+        if (error) {
+          console.error('Erro detalhado ao criar tarefa:', error);
+        }
         
         return { 
           data, 

@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -232,11 +231,25 @@ export const syncTasks = async (localTasks: LocalTask[]) => {
     
     console.log("Iniciando sincronização de", localTasks.length, "tarefas");
     
-    // Verificar formato das tarefas e fazer adaptação se necessário
-    const formattedTasks = formatTasksForSupabase(localTasks);
-    console.log("Tarefas formatadas para o Supabase:", formattedTasks);
-    
+    // Obter o usuário atual
     const supabase = initSupabaseClient();
+    const { data: authData } = await supabase.auth.getSession();
+    const userId = authData?.session?.user?.id;
+    
+    if (!userId) {
+      console.error("Usuário não autenticado para sincronização de tarefas");
+      return {
+        success: false,
+        syncedCount: 0,
+        message: 'Você precisa estar autenticado para sincronizar tarefas.'
+      };
+    }
+    
+    console.log("ID do usuário para sincronização:", userId);
+    
+    // Verificar formato das tarefas e fazer adaptação se necessário
+    const formattedTasks = formatTasksForSupabase(localTasks, userId);
+    console.log("Tarefas formatadas para o Supabase:", formattedTasks);
     
     // Verificar a tabela tasks antes de prosseguir
     const { data: tableCheck, error: tableError } = await supabase
@@ -321,8 +334,8 @@ function isValidUUID(id: string): boolean {
   return uuidRegex.test(id);
 }
 
-// Modificar a função formatTasksForSupabase
-function formatTasksForSupabase(localTasks: LocalTask[]): Task[] {
+// Modificar a função formatTasksForSupabase para incluir o ID do usuário
+function formatTasksForSupabase(localTasks: LocalTask[], userId: string): Task[] {
   return localTasks.map(task => {
     // Garantir que temos um ID de tarefa válido
     let taskId = task.id;
@@ -378,7 +391,7 @@ function formatTasksForSupabase(localTasks: LocalTask[]): Task[] {
       created_at,
       completed_at,
       tags: Array.isArray(task.tags) ? task.tags : [],
-      user_id: task.user_id || null
+      user_id: userId // Usar o ID do usuário atual
     };
     
     return formattedTask;

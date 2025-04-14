@@ -16,24 +16,16 @@ import {
 import ErrorDisplay from './ErrorDisplay';
 import ApiErrorDisplay from './ApiErrorDisplay';
 
-// Interface para simular a resposta do Supabase
 interface SupabaseResponse {
   data: Record<string, unknown>[] | null;
   error: Error | null;
 }
 
-// Mock para simular a criação de um cliente Supabase
 const createSupabaseClient = (url: string, key: string) => {
-  // Em uma implementação real, isso usaria:
-  // import { createClient } from '@supabase/supabase-js'
-  // return createClient(url, key)
-  
-  // Esta é apenas uma simulação
   return {
     from: (table: string) => ({
       select: () => ({
         then: (callback: (response: SupabaseResponse) => void) => {
-          // Simula uma resposta bem-sucedida após 1s
           setTimeout(() => {
             callback({ data: [], error: null });
           }, 1000);
@@ -41,14 +33,12 @@ const createSupabaseClient = (url: string, key: string) => {
         }
       })
     }),
-    // Simula autenticação
     auth: {
       getSession: () => Promise.resolve({ data: {}, error: null })
     }
   };
 };
 
-// Obter valores das variáveis de ambiente
 const DEFAULT_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const DEFAULT_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -64,7 +54,6 @@ const SupabaseIntegration = () => {
   const [usingDefaultClient, setUsingDefaultClient] = useState(false);
 
   useEffect(() => {
-    // Carregar dados do localStorage ao inicializar
     const savedUrl = localStorage.getItem('supabaseUrl');
     const savedKey = localStorage.getItem('supabaseKey');
     
@@ -74,10 +63,8 @@ const SupabaseIntegration = () => {
       setConnectionStatus('connected');
       setUsingDefaultClient(false);
       
-      // Verificar setup do banco
       checkDatabaseSetup();
     } else if (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_KEY) {
-      // Se não há credenciais no localStorage, usa as variáveis de ambiente
       setSupabaseUrl(DEFAULT_SUPABASE_URL);
       setSupabaseKey(DEFAULT_SUPABASE_KEY);
       setConnectionStatus('connected');
@@ -88,7 +75,6 @@ const SupabaseIntegration = () => {
         description: "Usando configuração de Supabase das variáveis de ambiente."
       });
       
-      // Verificar setup do banco
       checkDatabaseSetup();
     } else {
       toast({
@@ -97,8 +83,24 @@ const SupabaseIntegration = () => {
         variant: "destructive"
       });
     }
+    
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        console.log("Usuário não autenticado para sincronização");
+        toast({
+          title: "Autenticação necessária",
+          description: "Faça login para sincronizar tarefas com o Supabase",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    if (connectionStatus === 'connected') {
+      checkAuth();
+    }
   }, []);
-  
+
   const checkDatabaseSetup = async () => {
     try {
       const result = await setupDatabase();
@@ -136,19 +138,15 @@ const SupabaseIntegration = () => {
     setConnectionStatus('testing');
     
     try {
-      // Simular criação do cliente e teste de conexão
       const supabase = createSupabaseClient(supabaseUrl, supabaseKey);
       
-      // Simular uma verificação de conexão
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Salvar no localStorage
       localStorage.setItem('supabaseUrl', supabaseUrl);
       localStorage.setItem('supabaseKey', supabaseKey);
       
       setConnectionStatus('connected');
       
-      // Verificar setup do banco
       await checkDatabaseSetup();
       
       toast({
@@ -174,16 +172,12 @@ const SupabaseIntegration = () => {
     setConnectionStatus('testing');
     
     try {
-      // Simulação de teste de conexão
       const supabase = createSupabaseClient(supabaseUrl, supabaseKey);
       
-      // Verificar setup do banco
       await checkDatabaseSetup();
       
-      // Simulação de consulta para verificar conexão
       await new Promise<boolean>((resolve, reject) => {
         setTimeout(() => {
-          // Simulamos 90% de chance de sucesso
           if (Math.random() > 0.1) {
             resolve(true);
           } else {
@@ -218,6 +212,17 @@ const SupabaseIntegration = () => {
   const handleSyncData = async () => {
     setIsSyncing(true);
     try {
+      const { data: authData } = await supabase.auth.getSession();
+      if (!authData.session) {
+        toast({
+          title: "Autenticação necessária",
+          description: "Você precisa estar autenticado para sincronizar tarefas.",
+          variant: "destructive",
+        });
+        setIsSyncing(false);
+        return;
+      }
+      
       const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
       
       toast({
@@ -225,7 +230,6 @@ const SupabaseIntegration = () => {
         description: `Iniciando sincronização de ${localTasks.length} tarefas com o Supabase.`,
       });
       
-      // Se não houver tarefas, mostrar mensagem e retornar
       if (localTasks.length === 0) {
         toast({
           title: "Nenhuma tarefa para sincronizar",
@@ -236,10 +240,9 @@ const SupabaseIntegration = () => {
         return;
       }
       
-      // Logar as tarefas para debug
       console.log("Tarefas locais para sincronizar:", localTasks);
+      console.log("ID do usuário autenticado:", authData.session.user.id);
       
-      // Simular sincronização com Supabase
       const result = await syncTasks(localTasks);
 
       if (result.success) {
@@ -303,7 +306,6 @@ const SupabaseIntegration = () => {
     return null;
   };
 
-  // Função para obter a classe CSS apropriada com base no status da conexão
   const getConnectionStatusClass = () => {
     if (connectionStatus === 'success') {
       return 'bg-green-500/10 border-green-500/30';
@@ -316,7 +318,6 @@ const SupabaseIntegration = () => {
     }
   };
 
-  // SQL para criar a tabela tasks
   const createTableSQL = `
 -- Criar tabela de tarefas
 CREATE TABLE tasks (
@@ -484,7 +485,7 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
           error={{
             message: syncError.message,
             details: { details: syncError.details },
-            status: 500, // Assumindo erro interno do servidor
+            status: 500,
             method: "SYNC",
             path: "/tasks",
             timestamp: new Date().toISOString()
