@@ -231,19 +231,12 @@ export const syncTasks = async (localTasks: LocalTask[]) => {
     
     console.log("Iniciando sincronização de", localTasks.length, "tarefas");
     
-    // Obter o usuário atual
+    // Obter o cliente Supabase
     const supabase = initSupabaseClient();
-    const { data: authData } = await supabase.auth.getSession();
-    const userId = authData?.session?.user?.id;
     
-    if (!userId) {
-      console.error("Usuário não autenticado para sincronização de tarefas");
-      return {
-        success: false,
-        syncedCount: 0,
-        message: 'Você precisa estar autenticado para sincronizar tarefas.'
-      };
-    }
+    // Obter o usuário atual (opcional agora)
+    const { data: authData } = await supabase.auth.getSession();
+    const userId = authData?.session?.user?.id || 'anonymous-user';
     
     console.log("ID do usuário para sincronização:", userId);
     

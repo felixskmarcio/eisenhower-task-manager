@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn, LogOut } from "lucide-react";
+import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn } from "lucide-react";
 import { setupDatabase, syncTasks } from '@/lib/supabase';
 import { supabase, clearSupabaseStorage, isSupabaseConnected, resetToDefaultCredentials } from '@/integrations/supabase/client';
 import {
@@ -338,18 +338,6 @@ const SupabaseIntegration = () => {
     setSyncError(null);
     
     try {
-      const { data: authData } = await supabase.auth.getSession();
-      
-      if (!authData.session && !user) {
-        toast({
-          title: "Autenticação necessária",
-          description: "Você precisa estar autenticado para sincronizar tarefas.",
-          variant: "destructive",
-        });
-        setIsSyncing(false);
-        return;
-      }
-      
       const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
       
       toast({
@@ -368,7 +356,6 @@ const SupabaseIntegration = () => {
       }
       
       console.log("Tarefas locais para sincronizar:", localTasks);
-      console.log("Usuário autenticado:", user?.uid || authData.session?.user.id);
       
       const result = await syncTasks(localTasks);
 
@@ -590,26 +577,6 @@ const SupabaseIntegration = () => {
             Sua conta Supabase está conectada. Agora você pode sincronizar seus dados e utilizar autenticação.
           </p>
           
-          {!user && (
-            <div className="mb-4 p-3 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600">
-              <div className="flex items-start gap-2">
-                <Info size={16} className="mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">Autenticação necessária</p>
-                  <p className="text-xs mt-1">Para sincronizar tarefas, você precisa estar autenticado.</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-2 text-xs"
-                    onClick={handleLogin}
-                  >
-                    <LogIn className="mr-1 h-3 w-3" /> Fazer login com Google
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-          
           {dbSetupResult && !dbSetupResult.success && (
             <div className="mb-4 p-3 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600">
               <div className="flex items-start gap-2">
@@ -665,7 +632,7 @@ const SupabaseIntegration = () => {
                 </>
               ) : (
                 <>
-                  <LogOut size={14} className="mr-1" /> Desconectar
+                  Desconectar
                 </>
               )}
             </Button>
@@ -688,7 +655,7 @@ const SupabaseIntegration = () => {
               size="sm"
               className="flex items-center gap-1"
               onClick={handleSyncData}
-              disabled={isSyncing || isDisconnecting || (dbSetupResult && !dbSetupResult.success) || !user}
+              disabled={isSyncing || isDisconnecting || (dbSetupResult && !dbSetupResult.success)}
             >
               {isSyncing ? (
                 <>
