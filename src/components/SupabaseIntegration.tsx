@@ -50,6 +50,7 @@ const SupabaseIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'not_connected' | 'connected' | 'testing' | 'success' | 'error'>('not_connected');
   const [dbSetupResult, setDbSetupResult] = useState<{success: boolean, message: string} | null>(null);
   const [syncError, setSyncError] = useState<{title: string; message: string; details?: string} | null>(null);
@@ -280,32 +281,48 @@ const SupabaseIntegration = () => {
     }
   };
 
-  const handleDisconnect = () => {
+  const handleDisconnect = async () => {
     try {
+      setIsDisconnecting(true);
+      
       // Remover configurações do localStorage
       localStorage.removeItem('supabaseUrl');
       localStorage.removeItem('supabaseKey');
       
-      // Fazer clear das variáveis de estado
-      setSupabaseUrl('');
-      setSupabaseKey('');
-      setConnectionStatus('not_connected');
-      setDbSetupResult(null);
-      setUsingDefaultClient(false);
-      setSyncError(null);
+      // Forçar limpeza de qualquer sessão existente do Supabase
+      try {
+        // Tentativa de signOut para limpar completamente qualquer estado da sessão
+        await supabase.auth.signOut();
+      } catch (signOutError) {
+        console.error("Erro no signOut do Supabase:", signOutError);
+        // Continuar mesmo se falhar o signOut
+      }
       
-      // Notificar usuário
-      toast({
-        title: "Desconectado",
-        description: "Integração com Supabase removida",
-      });
+      // Fazer clear das variáveis de estado
+      setTimeout(() => {
+        setSupabaseUrl('');
+        setSupabaseKey('');
+        setConnectionStatus('not_connected');
+        setDbSetupResult(null);
+        setUsingDefaultClient(false);
+        setSyncError(null);
+        
+        // Notificar usuário
+        toast({
+          title: "Desconectado",
+          description: "Integração com Supabase removida com sucesso",
+        });
+        
+        setIsDisconnecting(false);
+      }, 500);
     } catch (error) {
       console.error("Erro ao desconectar:", error);
       toast({
         title: "Erro ao desconectar",
-        description: "Não foi possível remover a integração com Supabase",
+        description: "Não foi possível remover a integração com Supabase. Tente novamente.",
         variant: "destructive"
       });
+      setIsDisconnecting(false);
     }
   };
 
@@ -465,15 +482,22 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
               variant="outline"
               size="sm"
               onClick={handleDisconnect}
+              disabled={isDisconnecting}
               className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
             >
-              Desconectar
+              {isDisconnecting ? (
+                <>
+                  <RefreshCw size={14} className="mr-1 animate-spin" /> Desconectando...
+                </>
+              ) : (
+                <>Desconectar</>
+              )}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={handleTestConnection}
-              disabled={isTesting}
+              disabled={isTesting || isDisconnecting}
               className="text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
             >
               {isTesting ? (
@@ -488,7 +512,7 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
               size="sm"
               className="flex items-center gap-1"
               onClick={handleSyncData}
-              disabled={isSyncing || (dbSetupResult && !dbSetupResult.success) || !user}
+              disabled={isSyncing || isDisconnecting || (dbSetupResult && !dbSetupResult.success) || !user}
             >
               {isSyncing ? (
                 <>
