@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code } from "lucide-react";
 import { setupDatabase, syncTasks } from '@/lib/supabase';
-import { supabase as defaultClient } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -85,21 +85,25 @@ const SupabaseIntegration = () => {
     }
     
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        console.log("Usuário não autenticado para sincronização");
-        toast({
-          title: "Autenticação necessária",
-          description: "Faça login para sincronizar tarefas com o Supabase",
-          variant: "destructive"
-        });
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) {
+          console.log("Usuário não autenticado para sincronização");
+          toast({
+            title: "Autenticação necessária",
+            description: "Faça login para sincronizar tarefas com o Supabase",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao verificar autenticação:", error);
       }
     };
     
     if (connectionStatus === 'connected') {
       checkAuth();
     }
-  }, []);
+  }, [connectionStatus]);
 
   const checkDatabaseSetup = async () => {
     try {
