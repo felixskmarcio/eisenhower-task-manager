@@ -1,11 +1,10 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn, LogOut } from "lucide-react";
 import { setupDatabase, syncTasks } from '@/lib/supabase';
-import { supabase, clearSupabaseStorage, isSupabaseConnected } from '@/integrations/supabase/client';
+import { supabase, clearSupabaseStorage, isSupabaseConnected, resetToDefaultCredentials } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -44,6 +43,10 @@ const createSupabaseClient = (url: string, key: string) => {
 const DEFAULT_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const DEFAULT_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+const DISCONNECTION_FLAG = 'supabaseDisconnected';
+const LAST_DISCONNECTION_TIME = 'lastSupabaseDisconnectionTime';
+const DISCONNECT_RETRIES = 'supabaseDisconnectRetries';
+
 const SupabaseIntegration = () => {
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseKey, setSupabaseKey] = useState('');
@@ -57,32 +60,86 @@ const SupabaseIntegration = () => {
   const [usingDefaultClient, setUsingDefaultClient] = useState(false);
   const { user, signInWithGoogle } = useAuth();
   const [isUserChecked, setIsUserChecked] = useState(false);
+  const [disconnectionAttempts, setDisconnectionAttempts] = useState(0);
+  const disconnectTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Verificar se há um parâmetro de desconexão na URL
+    const checkDisconnectionState = () => {
+      const disconnected = sessionStorage.getItem(DISCONNECTION_FLAG);
+      const lastDisconnectionTime = sessionStorage.getItem(LAST_DISCONNECTION_TIME);
+      const disconnectRetries = Number(sessionStorage.getItem(DISCONNECT_RETRIES) || '0');
+      
+      console.log('Estado de desconexão:', { disconnected, lastDisconnectionTime, disconnectRetries });
+      
+      if (disconnected === 'true') {
+        const now = Date.now();
+        const lastTime = lastDisconnectionTime ? parseInt(lastDisconnectionTime) : 0;
+        const timeDiff = now - lastTime;
+        
+        if (timeDiff > 10000) {
+          console.log('O processo de desconexão está demorando muito, tentando novamente');
+          sessionStorage.removeItem(DISCONNECTION_FLAG);
+          sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
+          
+          if (isSupabaseConnected()) {
+            sessionStorage.setItem(DISCONNECT_RETRIES, String(disconnectRetries + 1));
+            
+            if (disconnectRetries < 3) {
+              console.log('Tentando desconexão forçada novamente...');
+              executeDisconnect(true);
+            } else {
+              console.log('Muitas tentativas de desconexão. Resetando para estado limpo...');
+              sessionStorage.removeItem(DISCONNECT_RETRIES);
+              forceCleanDisconnect();
+            }
+          }
+        }
+      } else if (disconnected === 'completed') {
+        console.log('Desconexão concluída com sucesso, limpando flags');
+        sessionStorage.removeItem(DISCONNECTION_FLAG);
+        sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
+        sessionStorage.removeItem(DISCONNECT_RETRIES);
+        
+        if (isSupabaseConnected()) {
+          console.log('ALERTA: Ainda conectado após desconexão "concluída"!');
+          forceCleanDisconnect();
+        }
+      }
+    };
+    
     const url = new URL(window.location.href);
     const disconnected = url.searchParams.get('disconnected');
     
     if (disconnected === 'true') {
-      // Remover o parâmetro da URL para não repetir este processo
+      console.log('Redirecionado após desconexão, verificando status...');
       url.searchParams.delete('disconnected');
       window.history.replaceState({}, document.title, url.toString());
       
-      // Verificar se o Supabase ainda está conectado
+      sessionStorage.setItem(DISCONNECTION_FLAG, 'completed');
+      
       if (isSupabaseConnected()) {
         console.warn('Ainda há dados de conexão do Supabase após a desconexão. Limpando novamente...');
-        // Limpar novamente e forçar recarga total da página
         clearSupabaseStorage();
-        // Usar um pequeno delay para permitir que a limpeza seja concluída
-        setTimeout(() => {
-          window.location.href = '/config';
-        }, 100);
-        return;
+        
+        if (isSupabaseConnected()) {
+          forceCleanDisconnect();
+        } else {
+          setConnectionStatus('not_connected');
+        }
       }
     }
+    
+    checkDisconnectionState();
 
-    // Verificar conexão normal
     const checkConnection = async () => {
+      console.log('Verificando conexão do Supabase...');
+      
+      if (sessionStorage.getItem(DISCONNECTION_FLAG) === 'true') {
+        console.log('Em processo de desconexão, pulando verificação de conexão');
+        setConnectionStatus('not_connected');
+        return;
+      }
+      
       const savedUrl = localStorage.getItem('supabaseUrl');
       const savedKey = localStorage.getItem('supabaseKey');
       
@@ -121,25 +178,46 @@ const SupabaseIntegration = () => {
       setIsUserChecked(true);
     };
     
-    checkConnection();
+    if (!sessionStorage.getItem(DISCONNECTION_FLAG)) {
+      checkConnection();
+    }
+    
+    return () => {
+      if (disconnectTimeoutRef.current) {
+        clearTimeout(disconnectTimeoutRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
-    if (connectionStatus === 'connected' && isUserChecked) {
-      const checkAuth = async () => {
-        try {
-          const { data } = await supabase.auth.getSession();
-          if (!data.session) {
-            console.log("Usuário não autenticado para sincronização");
-          }
-        } catch (error) {
-          console.error("Erro ao verificar autenticação:", error);
-        }
-      };
+    const url = new URL(window.location.href);
+    const disconnected = url.searchParams.get('disconnected');
+    
+    if (disconnected === 'true') {
+      url.searchParams.delete('disconnected');
+      window.history.replaceState({}, document.title, url.toString());
       
-      checkAuth();
+      if (isSupabaseConnected()) {
+        console.warn("Ainda existem dados do Supabase após a desconexão. Tentando limpar novamente.");
+        clearSupabaseStorage();
+        
+        if (isSupabaseConnected()) {
+          forceCleanDisconnect();
+        } else {
+          setConnectionStatus('not_connected');
+        }
+      }
+    } else {
+      const shouldBeConnected = isSupabaseConnected();
+      console.log("Estado atual de conexão (pela verificação):", shouldBeConnected);
+      
+      if (shouldBeConnected && connectionStatus === 'not_connected') {
+        setConnectionStatus('connected');
+      } else if (!shouldBeConnected && connectionStatus === 'connected') {
+        setConnectionStatus('not_connected');
+      }
     }
-  }, [connectionStatus, isUserChecked]);
+  }, [connectionStatus]);
 
   const checkDatabaseSetup = async () => {
     try {
@@ -318,16 +396,33 @@ const SupabaseIntegration = () => {
     }
   };
 
-  const handleDisconnect = async () => {
+  const forceCleanDisconnect = () => {
+    clearSupabaseStorage();
+    
+    sessionStorage.removeItem(DISCONNECTION_FLAG);
+    sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
+    sessionStorage.removeItem(DISCONNECT_RETRIES);
+    
+    const cacheBuster = new Date().getTime();
+    window.location.href = `/config?cache=${cacheBuster}`;
+  };
+
+  const executeDisconnect = async (force = false) => {
     try {
-      setIsDisconnecting(true);
+      if (!force) {
+        setIsDisconnecting(true);
+      }
       
-      toast({
-        title: "Desconectando...",
-        description: "Aguarde enquanto finalizamos o processo de desconexão."
-      });
+      sessionStorage.setItem(DISCONNECTION_FLAG, 'true');
+      sessionStorage.setItem(LAST_DISCONNECTION_TIME, Date.now().toString());
       
-      // 1. Forçar logout do Supabase
+      if (!force) {
+        toast({
+          title: "Desconectando...",
+          description: "Aguarde enquanto finalizamos o processo de desconexão."
+        });
+      }
+      
       try {
         await supabase.auth.signOut({
           scope: 'global'
@@ -337,11 +432,9 @@ const SupabaseIntegration = () => {
         console.error("Erro no signOut do Supabase:", signOutError);
       }
       
-      // 2. Limpar totalmente o armazenamento
       const cleanupSuccess = clearSupabaseStorage();
       console.log("Resultado da limpeza:", cleanupSuccess ? "Sucesso" : "Falha");
       
-      // 3. Redefinir o estado do componente
       setSupabaseUrl('');
       setSupabaseKey('');
       setConnectionStatus('not_connected');
@@ -349,50 +442,65 @@ const SupabaseIntegration = () => {
       setUsingDefaultClient(false);
       setSyncError(null);
       
-      toast({
-        title: "Desconectado com sucesso",
-        description: "Integração com Supabase removida completamente."
-      });
+      if (!force) {
+        toast({
+          title: "Desconectado com sucesso",
+          description: "Integração com Supabase removida completamente."
+        });
+      }
       
-      // 4. Força um reload completo com um parâmetro na URL para garantir
+      const stillConnected = isSupabaseConnected();
+      console.log("Ainda conectado após limpeza?", stillConnected);
+      
+      if (stillConnected) {
+        console.warn("Ainda detectados vestígios de conexão. Realizando limpeza forçada...");
+        
+        clearSupabaseStorage();
+        setDisconnectionAttempts(prev => prev + 1);
+        
+        if (disconnectionAttempts >= 2) {
+          console.warn("Múltiplas tentativas de desconexão falharam. Forçando recarga completa...");
+          forceCleanDisconnect();
+          return;
+        }
+      }
+      
       const url = new URL(window.location.href);
       url.searchParams.set('disconnected', 'true');
+      
+      url.searchParams.delete('cache');
       url.pathname = '/config';
       
+      url.searchParams.set('t', Date.now().toString());
+      
       console.log("Redirecionando para:", url.toString());
-      window.location.href = url.toString();
+      
+      disconnectTimeoutRef.current = window.setTimeout(() => {
+        window.location.href = url.toString();
+      }, 500);
       
     } catch (error) {
       console.error("Erro ao desconectar:", error);
-      toast({
-        title: "Erro ao desconectar",
-        description: "Não foi possível remover a integração com Supabase. Erro: " + (error instanceof Error ? error.message : String(error)),
-        variant: "destructive"
-      });
+      
+      if (!force) {
+        toast({
+          title: "Erro ao desconectar",
+          description: "Não foi possível remover a integração com Supabase. Erro: " + (error instanceof Error ? error.message : String(error)),
+          variant: "destructive"
+        });
+      }
+      
+      sessionStorage.removeItem(DISCONNECTION_FLAG);
+      sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
+      
     } finally {
-      setIsDisconnecting(false);
+      if (!force) {
+        setIsDisconnecting(false);
+      }
     }
   };
 
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const disconnected = url.searchParams.get('disconnected');
-    
-    if (disconnected === 'true') {
-      url.searchParams.delete('disconnected');
-      window.history.replaceState({}, document.title, url.toString());
-      
-      const savedUrl = localStorage.getItem('supabaseUrl');
-      const savedKey = localStorage.getItem('supabaseKey');
-      const supabaseToken = localStorage.getItem('sb-xusvqzlusdxirznsyrzo-auth-token');
-      
-      if (savedUrl || savedKey || supabaseToken) {
-        console.warn("Ainda existem dados do Supabase após a desconexão. Tentando limpar novamente.");
-        clearSupabaseStorage();
-        window.location.reload();
-      }
-    }
-  }, []);
+  const handleDisconnect = () => executeDisconnect();
 
   const isConnected = connectionStatus === 'connected' || connectionStatus === 'success' || connectionStatus === 'testing';
 
@@ -430,25 +538,23 @@ const SupabaseIntegration = () => {
   };
 
   const createTableSQL = `
--- Criar tabela de tarefas
-CREATE TABLE tasks (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  title TEXT NOT NULL,
-  description TEXT,
-  urgency INTEGER NOT NULL,
-  importance INTEGER NOT NULL,
-  quadrant INTEGER NOT NULL,
-  completed BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  completed_at TIMESTAMP WITH TIME ZONE,
-  tags TEXT[],
-  user_id UUID
-);
+  CREATE TABLE tasks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    description TEXT,
+    urgency INTEGER NOT NULL,
+    importance INTEGER NOT NULL,
+    quadrant INTEGER NOT NULL,
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    completed_at TIMESTAMP WITH TIME ZONE,
+    tags TEXT[],
+    user_id UUID
+  );
 
--- Opcional: criar índices para melhorar performance de consultas
-CREATE INDEX idx_tasks_user_id ON tasks(user_id);
-CREATE INDEX idx_tasks_quadrant ON tasks(quadrant);
-CREATE INDEX idx_tasks_completed ON tasks(completed);
+  CREATE INDEX idx_tasks_user_id ON tasks(user_id);
+  CREATE INDEX idx_tasks_quadrant ON tasks(quadrant);
+  CREATE INDEX idx_tasks_completed ON tasks(completed);
   `;
 
   const handleRetrySyncAfterError = () => {

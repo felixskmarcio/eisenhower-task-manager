@@ -33,36 +33,48 @@ const supabaseOptions = {
   },
 };
 
+// Criamos um objeto genérico para armazenar credenciais personalizadas
+let supabaseCustomCredentials = {
+  url: localStorage.getItem('supabaseUrl') || SUPABASE_URL,
+  key: localStorage.getItem('supabaseKey') || SUPABASE_PUBLISHABLE_KEY,
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(
-  SUPABASE_URL, 
-  SUPABASE_PUBLISHABLE_KEY,
+  supabaseCustomCredentials.url, 
+  supabaseCustomCredentials.key,
   supabaseOptions
 );
 
 // Função auxiliar para limpar completamente o armazenamento do Supabase
 export const clearSupabaseStorage = () => {
   try {
+    console.log('Iniciando limpeza completa de dados do Supabase...');
+    
     // Forçar logout do Supabase
     supabase.auth.signOut({ scope: 'global' })
       .then(() => console.log('Supabase signout executado'))
       .catch(e => console.error('Erro ao executar signout do Supabase:', e));
     
-    // Remover token específico do Supabase
+    // Limpar credenciais customizadas
+    supabaseCustomCredentials = {
+      url: SUPABASE_URL || '',
+      key: SUPABASE_PUBLISHABLE_KEY || '',
+    };
+    
+    // Remover token específico do Supabase e credenciais personalizadas
+    console.log('Removendo tokens do Supabase...');
     localStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
     sessionStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
-    
-    // Remover as credenciais personalizadas
     localStorage.removeItem('supabaseUrl');
     localStorage.removeItem('supabaseKey');
     
-    // Remover outros tokens possíveis - abordagem mais agressiva
+    // Abordagem agressiva - remover todos os tokens possíveis relacionados ao Supabase
     const allLocalStorageKeys = Object.keys(localStorage);
     const allSessionStorageKeys = Object.keys(sessionStorage);
     
-    // Limpar TODOS os tokens que possam estar relacionados ao Supabase
     allLocalStorageKeys.forEach(key => {
       if (key.includes('supabase') || 
           key.startsWith('sb-') || 
@@ -85,11 +97,21 @@ export const clearSupabaseStorage = () => {
       }
     });
     
-    // Limpar quaisquer dados relacionados com autenticação
+    // Limpar quaisquer dados relacionados a usuários
     localStorage.removeItem('gotrue.user');
     sessionStorage.removeItem('gotrue.user');
     
-    console.log('Limpeza do armazenamento do Supabase concluída');
+    // Invalidar qualquer cache de API
+    caches.keys().then(names => {
+      names.forEach(name => {
+        if (name.includes('supabase') || name.includes('auth')) {
+          console.log('Limpando cache:', name);
+          caches.delete(name);
+        }
+      });
+    }).catch(e => console.error('Erro ao limpar caches:', e));
+    
+    console.log('Limpeza completa dos dados do Supabase concluída');
     return true;
   } catch (error) {
     console.error('Erro ao limpar armazenamento do Supabase:', error);
@@ -97,15 +119,58 @@ export const clearSupabaseStorage = () => {
   }
 };
 
-// Verificar se o cliente Supabase está conectado
+// Verificar se o cliente Supabase está conectado de forma mais robusta
 export const isSupabaseConnected = () => {
   try {
-    return Boolean(
-      (localStorage.getItem('supabaseUrl') && localStorage.getItem('supabaseKey')) || 
-      (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY)
+    // Verificar se há URLs/chaves customizadas no localStorage
+    const hasCustomCredentials = Boolean(
+      localStorage.getItem('supabaseUrl') && 
+      localStorage.getItem('supabaseKey')
     );
+    
+    // Verificar se há token de autenticação do Supabase
+    const hasAuthToken = Boolean(
+      localStorage.getItem('sb-xusvqzlusdxirznsyrzo-auth-token') ||
+      sessionStorage.getItem('sb-xusvqzlusdxirznsyrzo-auth-token')
+    );
+    
+    // Verificar outros indicadores de conexão
+    const hasOtherIndicators = (() => {
+      const allStorageKeys = [
+        ...Object.keys(localStorage), 
+        ...Object.keys(sessionStorage)
+      ];
+      
+      return allStorageKeys.some(key => 
+        key.startsWith('sb-') || 
+        (key.includes('supabase') && key !== 'supabaseDisconnected')
+      );
+    })();
+    
+    // Para ser considerado conectado, ou temos credenciais customizadas,
+    // ou temos credenciais de ambiente E algum token de autenticação
+    const isConnected = hasCustomCredentials || 
+      ((SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY) && (hasAuthToken || hasOtherIndicators));
+    
+    return isConnected;
   } catch (error) {
     console.error('Erro ao verificar conexão do Supabase:', error);
+    return false;
+  }
+};
+
+// Função explícita para reconectar o cliente com as credenciais padrão
+export const resetToDefaultCredentials = () => {
+  try {
+    // Limpar credenciais customizadas
+    localStorage.removeItem('supabaseUrl');
+    localStorage.removeItem('supabaseKey');
+    
+    // Forçar um reload da página para reinicializar o cliente
+    window.location.href = '/config';
+    return true;
+  } catch (error) {
+    console.error('Erro ao resetar para credenciais padrão:', error);
     return false;
   }
 };
