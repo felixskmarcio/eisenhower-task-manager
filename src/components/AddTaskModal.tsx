@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Tag, AlertTriangle, Calendar as CalendarIcon } from 'lucide-react';
@@ -58,7 +57,6 @@ const AddTaskModal = ({
     
     setIsSubmitting(true);
     
-    // Simulando um pequeno atraso para feedback visual
     setTimeout(() => {
       onAddTask();
       setIsSubmitting(false);
@@ -66,12 +64,10 @@ const AddTaskModal = ({
   };
 
   const handleDateSelect = (date: Date | undefined) => {
-    // Garantir que o valor seja salvo corretamente
     setNewTask({
       ...newTask, 
       start_date: date ? date.toISOString() : null
     });
-    // Fechamos o calendário após a seleção
     setTimeout(() => setCalendarOpen(false), 100);
   };
 
@@ -353,7 +349,12 @@ const AddTaskModal = ({
             <Button 
               variant="outline" 
               onClick={onClose}
-              className={isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}
+              className={`
+                ${isDarkMode 
+                  ? 'hover:bg-gray-800 bg-gray-700 text-gray-300' 
+                  : 'hover:bg-gray-100 bg-gray-200 text-gray-700'}
+                border-transparent
+              `}
             >
               Cancelar
             </Button>
