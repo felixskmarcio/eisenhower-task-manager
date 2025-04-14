@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn, LogOut } from "lucide-react";
 import { setupDatabase, syncTasks } from '@/lib/supabase';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, clearSupabaseStorage } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -60,7 +59,6 @@ const SupabaseIntegration = () => {
 
   useEffect(() => {
     const checkConnection = async () => {
-      // Verificar se há credenciais salvas no localStorage
       const savedUrl = localStorage.getItem('supabaseUrl');
       const savedKey = localStorage.getItem('supabaseKey');
       
@@ -91,19 +89,16 @@ const SupabaseIntegration = () => {
         });
       }
       
-      // Marcar verificação como concluída
       setIsUserChecked(true);
     };
     
     checkConnection();
   }, []);
 
-  // Verificar autenticação separadamente
   useEffect(() => {
     if (connectionStatus === 'connected' && isUserChecked) {
       const checkAuth = async () => {
         try {
-          // Verificar sessão diretamente no Supabase
           const { data } = await supabase.auth.getSession();
           if (!data.session) {
             console.log("Usuário não autenticado para sincronização");
@@ -236,7 +231,6 @@ const SupabaseIntegration = () => {
     setSyncError(null);
     
     try {
-      // Verificar se o usuário está autenticado usando supabase
       const { data: authData } = await supabase.auth.getSession();
       
       if (!authData.session && !user) {
@@ -297,61 +291,33 @@ const SupabaseIntegration = () => {
 
   const handleDisconnect = async () => {
     try {
-      // Indicar que estamos no processo de desconexão
       setIsDisconnecting(true);
       
-      // Notificar usuário que a desconexão está em andamento
       toast({
         title: "Desconectando...",
         description: "Aguarde enquanto finalizamos o processo de desconexão."
       });
       
-      // Forçar signOut do Supabase
       try {
         await supabase.auth.signOut({
-          scope: 'global' // Isso limpa todas as sessões, não apenas a local
+          scope: 'global'
         });
         console.log("Usuário desconectado do Supabase com sucesso");
       } catch (signOutError) {
         console.error("Erro no signOut do Supabase:", signOutError);
       }
       
-      // Limpeza completa de todos os tokens possíveis
-      const allStorageKeys = Object.keys(localStorage);
-      const allSessionKeys = Object.keys(sessionStorage);
+      const cleanupSuccess = clearSupabaseStorage();
       
-      // Remover todas as chaves relacionadas ao Supabase
-      const supabaseKeys = allStorageKeys.filter(key => 
-        key.includes('supabase') || 
-        key.startsWith('sb-') || 
-        key.includes('auth')
-      );
+      if (!cleanupSuccess) {
+        console.warn("Limpeza automática falhou, tentando limpeza manual");
+        
+        localStorage.removeItem('supabaseUrl');
+        localStorage.removeItem('supabaseKey');
+        localStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
+        sessionStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
+      }
       
-      console.log("Removendo as seguintes chaves do localStorage:", supabaseKeys);
-      
-      // Limpar localStorage
-      supabaseKeys.forEach(key => {
-        localStorage.removeItem(key);
-      });
-      
-      // Explicitamente remover configurações do Supabase
-      localStorage.removeItem('supabaseUrl');
-      localStorage.removeItem('supabaseKey');
-      
-      // Limpar sessionStorage
-      const supabaseSessionKeys = allSessionKeys.filter(key => 
-        key.includes('supabase') || 
-        key.startsWith('sb-') || 
-        key.includes('auth')
-      );
-      
-      console.log("Removendo as seguintes chaves do sessionStorage:", supabaseSessionKeys);
-      
-      supabaseSessionKeys.forEach(key => {
-        sessionStorage.removeItem(key);
-      });
-      
-      // Atualizar todos os estados relacionados
       setSupabaseUrl('');
       setSupabaseKey('');
       setConnectionStatus('not_connected');
@@ -359,17 +325,17 @@ const SupabaseIntegration = () => {
       setUsingDefaultClient(false);
       setSyncError(null);
       
-      // Notificar sucesso
       toast({
         title: "Desconectado com sucesso",
         description: "Integração com Supabase removida completamente."
       });
       
-      // Força recarregamento da página para limpar todos os estados
-      console.log("Recarregando a página...");
-      setTimeout(() => {
-        window.location.href = '/config'; // Redireciona de volta para a mesma página
-      }, 1000);
+      const url = new URL(window.location.href);
+      url.searchParams.set('disconnected', 'true');
+      url.pathname = '/config';
+      
+      console.log("Redirecionando para:", url.toString());
+      window.location.href = url.toString();
       
     } catch (error) {
       console.error("Erro ao desconectar:", error);
@@ -379,10 +345,29 @@ const SupabaseIntegration = () => {
         variant: "destructive"
       });
     } finally {
-      // Garantir que o estado de desconexão é finalizado
       setIsDisconnecting(false);
     }
   };
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const disconnected = url.searchParams.get('disconnected');
+    
+    if (disconnected === 'true') {
+      url.searchParams.delete('disconnected');
+      window.history.replaceState({}, document.title, url.toString());
+      
+      const savedUrl = localStorage.getItem('supabaseUrl');
+      const savedKey = localStorage.getItem('supabaseKey');
+      const supabaseToken = localStorage.getItem('sb-xusvqzlusdxirznsyrzo-auth-token');
+      
+      if (savedUrl || savedKey || supabaseToken) {
+        console.warn("Ainda existem dados do Supabase após a desconexão. Tentando limpar novamente.");
+        clearSupabaseStorage();
+        window.location.reload();
+      }
+    }
+  }, []);
 
   const isConnected = connectionStatus === 'connected' || connectionStatus === 'success' || connectionStatus === 'testing';
 

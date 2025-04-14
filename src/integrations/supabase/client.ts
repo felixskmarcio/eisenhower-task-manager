@@ -61,6 +61,22 @@ export const clearSupabaseStorage = () => {
       localStorage.removeItem(key);
     });
     
+    // Remover explicitamente as configurações
+    localStorage.removeItem('supabaseUrl');
+    localStorage.removeItem('supabaseKey');
+    
+    // Remover tokens de sessão
+    const sessionKeys = Object.keys(sessionStorage);
+    const supabaseSessionKeys = sessionKeys.filter(key => 
+      key.includes('supabase') || 
+      key.startsWith('sb-') || 
+      key.includes('auth')
+    );
+    
+    supabaseSessionKeys.forEach(key => {
+      sessionStorage.removeItem(key);
+    });
+    
     return true;
   } catch (error) {
     console.error('Erro ao limpar armazenamento do Supabase:', error);
