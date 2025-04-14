@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -277,17 +276,28 @@ const SupabaseIntegration = () => {
   };
 
   const handleDisconnect = () => {
-    localStorage.removeItem('supabaseUrl');
-    localStorage.removeItem('supabaseKey');
-    setSupabaseUrl('');
-    setSupabaseKey('');
-    setConnectionStatus('not_connected');
-    setDbSetupResult(null);
-    
-    toast({
-      title: "Desconectado",
-      description: "Integração com Supabase removida",
-    });
+    try {
+      localStorage.removeItem('supabaseUrl');
+      localStorage.removeItem('supabaseKey');
+      
+      setSupabaseUrl('');
+      setSupabaseKey('');
+      setConnectionStatus('not_connected');
+      setDbSetupResult(null);
+      setUsingDefaultClient(false);
+      
+      toast({
+        title: "Desconectado",
+        description: "Integração com Supabase removida",
+      });
+    } catch (error) {
+      console.error("Erro ao desconectar:", error);
+      toast({
+        title: "Erro ao desconectar",
+        description: "Não foi possível remover a integração com Supabase",
+        variant: "destructive"
+      });
+    }
   };
 
   const isConnected = connectionStatus === 'connected' || connectionStatus === 'success' || connectionStatus === 'testing';
@@ -347,10 +357,8 @@ CREATE INDEX idx_tasks_quadrant ON tasks(quadrant);
 CREATE INDEX idx_tasks_completed ON tasks(completed);
   `;
 
-  // Função para tentar novamente a sincronização após um erro
   const handleRetrySyncAfterError = () => {
     setSyncError(null);
-    // Usamos o supabase importado, não o supabase não definido
     handleSyncData();
   };
 

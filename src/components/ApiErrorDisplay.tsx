@@ -125,4 +125,4 @@ const ApiErrorDisplay: React.FC<ApiErrorDisplayProps> = ({
   );
 };
 
-export default ApiErrorDisplay; 
+export default ApiErrorDisplay;
