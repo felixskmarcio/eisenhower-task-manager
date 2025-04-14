@@ -340,42 +340,41 @@ const SupabaseIntegration = () => {
     try {
       const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
       
-      toast({
-        title: `${localTasks.length} tarefas encontradas`,
-        description: `Iniciando sincronização de ${localTasks.length} tarefas com o Supabase.`,
-      });
-      
       if (localTasks.length === 0) {
         toast({
           title: "Nenhuma tarefa para sincronizar",
-          description: "Não foram encontradas tarefas no armazenamento local. Adicione tarefas primeiro.",
+          description: "Adicione algumas tarefas primeiro.",
           variant: "destructive",
         });
         setIsSyncing(false);
         return;
       }
       
-      console.log("Tarefas locais para sincronizar:", localTasks);
+      console.log("Iniciando sincronização de", localTasks.length, "tarefas");
       
       const result = await syncTasks(localTasks);
-
+      
       if (result.success) {
         toast({
           title: "Sincronização concluída",
-          description: result.message,
+          description: `${result.syncedCount} tarefas sincronizadas com sucesso.`
         });
+        
+        if (result.syncedCount > 0) {
+          localStorage.removeItem('tasks');
+        }
       } else {
         setSyncError({
           title: "Erro na sincronização",
-          message: result.message || "Falha ao sincronizar tarefas com o Supabase.",
+          message: result.message,
           details: undefined
         });
       }
     } catch (error) {
-      console.error("Erro ao sincronizar dados:", error);
+      console.error("Erro ao sincronizar:", error);
       setSyncError({
         title: "Erro na sincronização",
-        message: error instanceof Error ? error.message : "Erro desconhecido durante a sincronização.",
+        message: error instanceof Error ? error.message : "Erro desconhecido",
         details: error instanceof Error ? error.stack : undefined
       });
     } finally {

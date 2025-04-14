@@ -158,6 +158,63 @@ export const addTask = async (task: Omit<Task, 'id' | 'created_at'>) => {
   }
 };
 
+// Sincronizar tarefas locais com o Supabase
+export const syncTasks = async (localTasks: LocalTask[]) => {
+  try {
+    if (!localTasks || localTasks.length === 0) {
+      console.log("Nenhuma tarefa local para sincronizar");
+      return { 
+        success: true, 
+        syncedCount: 0,
+        message: 'Nenhuma tarefa local para sincronizar.' 
+      };
+    }
+
+    console.log("Iniciando sincronização de", localTasks.length, "tarefas");
+    const supabase = initSupabaseClient();
+    
+    // Buscar tarefas existentes do Supabase
+    const { data: existingTasks, error: fetchError } = await supabase
+      .from('tasks')
+      .select('*');
+      
+    if (fetchError) throw fetchError;
+
+    const formattedTasks = formatTasksForSupabase(localTasks);
+    console.log("Tarefas formatadas para sincronização:", formattedTasks);
+
+    // Inserir todas as tarefas
+    const { data: insertedData, error: insertError } = await supabase
+      .from('tasks')
+      .upsert(
+        formattedTasks.map(task => ({
+          ...task,
+          id: task.id || generateUUID(), // Garante um UUID válido
+          created_at: task.created_at || new Date().toISOString()
+        })),
+        { onConflict: 'id' } // Atualiza se já existir
+      )
+      .select();
+      
+    if (insertError) throw insertError;
+    
+    console.log("Sincronização concluída:", insertedData?.length || 0, "tarefas sincronizadas");
+    
+    return { 
+      success: true, 
+      syncedCount: insertedData?.length || 0,
+      message: `${insertedData?.length || 0} tarefas sincronizadas com sucesso.`
+    };
+  } catch (error) {
+    console.error('Erro ao sincronizar tarefas:', error);
+    return { 
+      success: false, 
+      syncedCount: 0,
+      message: error instanceof Error ? error.message : 'Erro ao sincronizar tarefas.'
+    };
+  }
+};
+
 // Atualizar uma tarefa
 export const updateTask = async (id: string, updates: Partial<Task>) => {
   try {
@@ -216,106 +273,6 @@ export const deleteTask = async (id: string) => {
   }
 };
 
-// Sincronizar tarefas locais com o Supabase
-export const syncTasks = async (localTasks: LocalTask[]) => {
-  try {
-    // Se não houver tarefas, retornar imediatamente
-    if (!localTasks || localTasks.length === 0) {
-      console.log("Nenhuma tarefa local para sincronizar");
-      return { 
-        success: true, 
-        syncedCount: 0,
-        message: 'Nenhuma tarefa local para sincronizar.' 
-      };
-    }
-    
-    console.log("Iniciando sincronização de", localTasks.length, "tarefas");
-    
-    // Obter o cliente Supabase
-    const supabase = initSupabaseClient();
-    
-    // Obter o usuário atual (opcional agora)
-    const { data: authData } = await supabase.auth.getSession();
-    const userId = authData?.session?.user?.id || 'anonymous-user';
-    
-    console.log("ID do usuário para sincronização:", userId);
-    
-    // Verificar formato das tarefas e fazer adaptação se necessário
-    const formattedTasks = formatTasksForSupabase(localTasks, userId);
-    console.log("Tarefas formatadas para o Supabase:", formattedTasks);
-    
-    // Verificar a tabela tasks antes de prosseguir
-    const { data: tableCheck, error: tableError } = await supabase
-      .from('tasks')
-      .select('*')
-      .limit(1);
-      
-    if (tableError) {
-      console.error("Erro ao verificar tabela tasks:", tableError);
-      return { 
-        success: false, 
-        syncedCount: 0,
-        message: `Erro na tabela: ${tableError.message}. Verifique se a tabela 'tasks' existe.` 
-      };
-    }
-    
-    console.log("Tabela tasks verificada com sucesso");
-    
-    // Primeiro, busca as tarefas existentes no Supabase
-    const { data: remoteTasks, error: fetchError } = await supabase
-      .from('tasks')
-      .select('*');
-      
-    if (fetchError) {
-      console.error("Erro ao buscar tarefas remotas:", fetchError);
-      throw fetchError;
-    }
-    
-    console.log("Tarefas encontradas no Supabase:", remoteTasks?.length || 0);
-    
-    // Mapeia os IDs das tarefas remotas para fácil comparação
-    const remoteTaskIds = new Set((remoteTasks || []).map(task => task.id));
-    
-    // Tarefas para adicionar (existem localmente mas não remotamente)
-    const tasksToAdd = formattedTasks.filter(task => !remoteTaskIds.has(task.id));
-    
-    console.log("Tarefas a serem adicionadas:", tasksToAdd.length);
-    
-    // Adiciona as tarefas faltantes
-    if (tasksToAdd.length > 0) {
-      console.log("Inserindo tarefas no Supabase...");
-      const { data: insertedData, error: insertError } = await supabase
-        .from('tasks')
-        .insert(tasksToAdd)
-        .select();
-        
-      if (insertError) {
-        console.error("Erro ao inserir tarefas:", insertError);
-        return { 
-          success: false, 
-          syncedCount: 0,
-          message: `Erro ao inserir: ${insertError.message}. Verifique o formato das tarefas.` 
-        };
-      }
-      
-      console.log("Tarefas inseridas com sucesso:", insertedData?.length);
-    }
-    
-    return { 
-      success: true, 
-      syncedCount: tasksToAdd.length,
-      message: `${tasksToAdd.length} tarefas sincronizadas com sucesso.`
-    };
-  } catch (error) {
-    console.error('Erro ao sincronizar tarefas:', error);
-    return { 
-      success: false, 
-      syncedCount: 0,
-      message: error instanceof Error ? `Erro: ${error.message}` : 'Erro ao sincronizar tarefas.'
-    };
-  }
-};
-
 // Função para gerar UUIDs válidos
 function generateUUID(): string {
   return uuidv4(); // Usamos a biblioteca uuid para maior confiabilidade
@@ -328,7 +285,7 @@ function isValidUUID(id: string): boolean {
 }
 
 // Modificar a função formatTasksForSupabase para incluir o ID do usuário
-function formatTasksForSupabase(localTasks: LocalTask[], userId: string): Task[] {
+function formatTasksForSupabase(localTasks: LocalTask[]): Task[] {
   return localTasks.map(task => {
     // Garantir que temos um ID de tarefa válido
     let taskId = task.id;
@@ -384,7 +341,7 @@ function formatTasksForSupabase(localTasks: LocalTask[], userId: string): Task[]
       created_at,
       completed_at,
       tags: Array.isArray(task.tags) ? task.tags : [],
-      user_id: userId // Usar o ID do usuário atual
+      user_id: task.user_id
     };
     
     return formattedTask;
