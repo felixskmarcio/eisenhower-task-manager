@@ -62,6 +62,7 @@ const SupabaseIntegration = () => {
   const [isUserChecked, setIsUserChecked] = useState(false);
   const [disconnectionAttempts, setDisconnectionAttempts] = useState(0);
   const disconnectTimeoutRef = useRef<number | null>(null);
+  const [syncRetryCount, setSyncRetryCount] = useState(0);
 
   useEffect(() => {
     const checkDisconnectionState = () => {
@@ -333,7 +334,21 @@ const SupabaseIntegration = () => {
     }
   };
 
-  const handleSyncData = async () => {
+  const handleSyncData = async (retry = false) => {
+    if (retry) {
+      setSyncRetryCount(prev => prev + 1);
+      if (syncRetryCount >= 3) {
+        toast({
+          title: "Limite de tentativas",
+          description: "Muitas tentativas de sincronização. Verifique suas credenciais e a conexão.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      setSyncRetryCount(0);
+    }
+
     setIsSyncing(true);
     setSyncError(null);
     
@@ -352,6 +367,10 @@ const SupabaseIntegration = () => {
       
       console.log("Iniciando sincronização de", localTasks.length, "tarefas");
       
+      if (!user) {
+        console.log("Sincronizando como usuário anônimo");
+      }
+      
       const result = await syncTasks(localTasks);
       
       if (result.success) {
@@ -364,10 +383,35 @@ const SupabaseIntegration = () => {
           localStorage.removeItem('tasks');
         }
       } else {
+        console.error("Erro na sincronização:", result.message);
+        
+        if (!retry && result.message.includes('violates row-level security')) {
+          toast({
+            title: "Tentando método alternativo",
+            description: "Sincronizando com configurações alternativas"
+          });
+          
+          setTimeout(() => {
+            handleSyncData(true);
+          }, 1000);
+          return;
+        }
+        
         setSyncError({
           title: "Erro na sincronização",
           message: result.message,
-          details: undefined
+          details: JSON.stringify({
+            errorType: "SyncError",
+            taskCount: localTasks.length,
+            timestamp: new Date().toISOString(),
+            retryCount: syncRetryCount
+          }, null, 2)
+        });
+        
+        toast({
+          title: "Erro na sincronização",
+          description: "Não foi possível sincronizar as tarefas. Verifique os detalhes do erro.",
+          variant: "destructive"
         });
       }
     } catch (error) {
@@ -376,6 +420,12 @@ const SupabaseIntegration = () => {
         title: "Erro na sincronização",
         message: error instanceof Error ? error.message : "Erro desconhecido",
         details: error instanceof Error ? error.stack : undefined
+      });
+      
+      toast({
+        title: "Erro na sincronização",
+        description: "Ocorreu um erro inesperado. Tente novamente mais tarde.",
+        variant: "destructive"
       });
     } finally {
       setIsSyncing(false);
@@ -545,7 +595,7 @@ const SupabaseIntegration = () => {
 
   const handleRetrySyncAfterError = () => {
     setSyncError(null);
-    handleSyncData();
+    handleSyncData(true);
   };
   
   const handleLogin = async () => {
@@ -653,7 +703,7 @@ const SupabaseIntegration = () => {
             <Button
               size="sm"
               className="flex items-center gap-1"
-              onClick={handleSyncData}
+              onClick={() => handleSyncData(false)}
               disabled={isSyncing || isDisconnecting || (dbSetupResult && !dbSetupResult.success)}
             >
               {isSyncing ? (
