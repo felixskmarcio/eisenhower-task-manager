@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn } from "lucide-react";
+import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn, LogOut } from "lucide-react";
 import { setupDatabase, syncTasks } from '@/lib/supabase';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -56,58 +56,66 @@ const SupabaseIntegration = () => {
   const [syncError, setSyncError] = useState<{title: string; message: string; details?: string} | null>(null);
   const [usingDefaultClient, setUsingDefaultClient] = useState(false);
   const { user, signInWithGoogle } = useAuth();
+  const [isUserChecked, setIsUserChecked] = useState(false);
 
   useEffect(() => {
-    const savedUrl = localStorage.getItem('supabaseUrl');
-    const savedKey = localStorage.getItem('supabaseKey');
-    
-    if (savedUrl && savedKey) {
-      setSupabaseUrl(savedUrl);
-      setSupabaseKey(savedKey);
-      setConnectionStatus('connected');
-      setUsingDefaultClient(false);
+    const checkConnection = async () => {
+      // Verificar se há credenciais salvas no localStorage
+      const savedUrl = localStorage.getItem('supabaseUrl');
+      const savedKey = localStorage.getItem('supabaseKey');
       
-      checkDatabaseSetup();
-    } else if (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_KEY) {
-      setSupabaseUrl(DEFAULT_SUPABASE_URL);
-      setSupabaseKey(DEFAULT_SUPABASE_KEY);
-      setConnectionStatus('connected');
-      setUsingDefaultClient(true);
-      
-      toast({
-        title: "Credenciais padrão carregadas",
-        description: "Usando configuração de Supabase das variáveis de ambiente."
-      });
-      
-      checkDatabaseSetup();
-    } else {
-      toast({
-        title: "Credenciais não encontradas",
-        description: "Configure as credenciais do Supabase para usar este recurso.",
-        variant: "destructive"
-      });
-    }
-    
-    const checkAuth = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (!data.session) {
-          console.log("Usuário não autenticado para sincronização");
-          toast({
-            title: "Autenticação necessária",
-            description: "Faça login para sincronizar tarefas com o Supabase",
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        console.error("Erro ao verificar autenticação:", error);
+      if (savedUrl && savedKey) {
+        setSupabaseUrl(savedUrl);
+        setSupabaseKey(savedKey);
+        setConnectionStatus('connected');
+        setUsingDefaultClient(false);
+        
+        await checkDatabaseSetup();
+      } else if (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_KEY) {
+        setSupabaseUrl(DEFAULT_SUPABASE_URL);
+        setSupabaseKey(DEFAULT_SUPABASE_KEY);
+        setConnectionStatus('connected');
+        setUsingDefaultClient(true);
+        
+        toast({
+          title: "Credenciais padrão carregadas",
+          description: "Usando configuração de Supabase das variáveis de ambiente."
+        });
+        
+        await checkDatabaseSetup();
+      } else {
+        toast({
+          title: "Credenciais não encontradas",
+          description: "Configure as credenciais do Supabase para usar este recurso.",
+          variant: "destructive"
+        });
       }
+      
+      // Marcar verificação como concluída
+      setIsUserChecked(true);
     };
     
-    if (connectionStatus === 'connected') {
+    checkConnection();
+  }, []);
+
+  // Verificar autenticação separadamente
+  useEffect(() => {
+    if (connectionStatus === 'connected' && isUserChecked) {
+      const checkAuth = async () => {
+        try {
+          // Verificar sessão diretamente no Supabase
+          const { data } = await supabase.auth.getSession();
+          if (!data.session) {
+            console.log("Usuário não autenticado para sincronização");
+          }
+        } catch (error) {
+          console.error("Erro ao verificar autenticação:", error);
+        }
+      };
+      
       checkAuth();
     }
-  }, [connectionStatus]);
+  }, [connectionStatus, isUserChecked]);
 
   const checkDatabaseSetup = async () => {
     try {
@@ -121,12 +129,18 @@ const SupabaseIntegration = () => {
           variant: "destructive",
         });
       }
+      
+      return result;
     } catch (error) {
       console.error("Erro ao verificar banco de dados:", error);
       setDbSetupResult({
         success: false,
         message: "Não foi possível verificar o banco de dados. Verifique as credenciais."
       });
+      return {
+        success: false,
+        message: "Não foi possível verificar o banco de dados. Verifique as credenciais."
+      };
     }
   };
 
@@ -283,38 +297,48 @@ const SupabaseIntegration = () => {
 
   const handleDisconnect = async () => {
     try {
+      // Indicar que estamos no processo de desconexão
       setIsDisconnecting(true);
       
       // Remover configurações do localStorage
       localStorage.removeItem('supabaseUrl');
       localStorage.removeItem('supabaseKey');
       
-      // Forçar limpeza de qualquer sessão existente do Supabase
+      // Limpar todas as sessões (Firebase e Supabase)
       try {
-        // Tentativa de signOut para limpar completamente qualquer estado da sessão
-        await supabase.auth.signOut();
+        // Adicionar mais limpeza de cache
+        localStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
+        sessionStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
+        
+        // Forçar signOut do Supabase
+        await supabase.auth.signOut({
+          scope: 'local' // Garantir que apenas a sessão local é limpa
+        });
+        
+        // Aguardar um momento para garantir que a signOut tenha efeito
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
       } catch (signOutError) {
         console.error("Erro no signOut do Supabase:", signOutError);
         // Continuar mesmo se falhar o signOut
       }
       
-      // Fazer clear das variáveis de estado
-      setTimeout(() => {
-        setSupabaseUrl('');
-        setSupabaseKey('');
-        setConnectionStatus('not_connected');
-        setDbSetupResult(null);
-        setUsingDefaultClient(false);
-        setSyncError(null);
-        
-        // Notificar usuário
-        toast({
-          title: "Desconectado",
-          description: "Integração com Supabase removida com sucesso",
-        });
-        
-        setIsDisconnecting(false);
-      }, 500);
+      // Forçar recarregamento da página para limpar estados
+      window.location.reload();
+      
+      // Atualizar todos os estados relacionados
+      setSupabaseUrl('');
+      setSupabaseKey('');
+      setConnectionStatus('not_connected');
+      setDbSetupResult(null);
+      setUsingDefaultClient(false);
+      setSyncError(null);
+      
+      // Notificar usuário
+      toast({
+        title: "Desconectado",
+        description: "Integração com Supabase removida com sucesso",
+      });
     } catch (error) {
       console.error("Erro ao desconectar:", error);
       toast({
@@ -322,6 +346,8 @@ const SupabaseIntegration = () => {
         description: "Não foi possível remover a integração com Supabase. Tente novamente.",
         variant: "destructive"
       });
+    } finally {
+      // Garantir que o estado de desconexão é finalizado
       setIsDisconnecting(false);
     }
   };
@@ -490,7 +516,9 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
                   <RefreshCw size={14} className="mr-1 animate-spin" /> Desconectando...
                 </>
               ) : (
-                <>Desconectar</>
+                <>
+                  <LogOut size={14} className="mr-1" /> Desconectar
+                </>
               )}
             </Button>
             <Button
