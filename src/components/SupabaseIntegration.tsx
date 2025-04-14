@@ -300,31 +300,56 @@ const SupabaseIntegration = () => {
       // Indicar que estamos no processo de desconexão
       setIsDisconnecting(true);
       
-      // Remover configurações do localStorage
+      // Notificar usuário que a desconexão está em andamento
+      toast({
+        title: "Desconectando...",
+        description: "Aguarde enquanto finalizamos o processo de desconexão."
+      });
+      
+      // Forçar signOut do Supabase
+      try {
+        await supabase.auth.signOut({
+          scope: 'global' // Isso limpa todas as sessões, não apenas a local
+        });
+        console.log("Usuário desconectado do Supabase com sucesso");
+      } catch (signOutError) {
+        console.error("Erro no signOut do Supabase:", signOutError);
+      }
+      
+      // Limpeza completa de todos os tokens possíveis
+      const allStorageKeys = Object.keys(localStorage);
+      const allSessionKeys = Object.keys(sessionStorage);
+      
+      // Remover todas as chaves relacionadas ao Supabase
+      const supabaseKeys = allStorageKeys.filter(key => 
+        key.includes('supabase') || 
+        key.startsWith('sb-') || 
+        key.includes('auth')
+      );
+      
+      console.log("Removendo as seguintes chaves do localStorage:", supabaseKeys);
+      
+      // Limpar localStorage
+      supabaseKeys.forEach(key => {
+        localStorage.removeItem(key);
+      });
+      
+      // Explicitamente remover configurações do Supabase
       localStorage.removeItem('supabaseUrl');
       localStorage.removeItem('supabaseKey');
       
-      // Limpar todas as sessões (Firebase e Supabase)
-      try {
-        // Adicionar mais limpeza de cache
-        localStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
-        sessionStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
-        
-        // Forçar signOut do Supabase
-        await supabase.auth.signOut({
-          scope: 'local' // Garantir que apenas a sessão local é limpa
-        });
-        
-        // Aguardar um momento para garantir que a signOut tenha efeito
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-      } catch (signOutError) {
-        console.error("Erro no signOut do Supabase:", signOutError);
-        // Continuar mesmo se falhar o signOut
-      }
+      // Limpar sessionStorage
+      const supabaseSessionKeys = allSessionKeys.filter(key => 
+        key.includes('supabase') || 
+        key.startsWith('sb-') || 
+        key.includes('auth')
+      );
       
-      // Forçar recarregamento da página para limpar estados
-      window.location.reload();
+      console.log("Removendo as seguintes chaves do sessionStorage:", supabaseSessionKeys);
+      
+      supabaseSessionKeys.forEach(key => {
+        sessionStorage.removeItem(key);
+      });
       
       // Atualizar todos os estados relacionados
       setSupabaseUrl('');
@@ -334,16 +359,23 @@ const SupabaseIntegration = () => {
       setUsingDefaultClient(false);
       setSyncError(null);
       
-      // Notificar usuário
+      // Notificar sucesso
       toast({
-        title: "Desconectado",
-        description: "Integração com Supabase removida com sucesso",
+        title: "Desconectado com sucesso",
+        description: "Integração com Supabase removida completamente."
       });
+      
+      // Força recarregamento da página para limpar todos os estados
+      console.log("Recarregando a página...");
+      setTimeout(() => {
+        window.location.href = '/config'; // Redireciona de volta para a mesma página
+      }, 1000);
+      
     } catch (error) {
       console.error("Erro ao desconectar:", error);
       toast({
         title: "Erro ao desconectar",
-        description: "Não foi possível remover a integração com Supabase. Tente novamente.",
+        description: "Não foi possível remover a integração com Supabase. Erro: " + (error instanceof Error ? error.message : String(error)),
         variant: "destructive"
       });
     } finally {
