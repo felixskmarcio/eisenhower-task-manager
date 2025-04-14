@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code } from "lucide-react";
+import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn } from "lucide-react";
 import { setupDatabase, syncTasks } from '@/lib/supabase';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import ErrorDisplay from './ErrorDisplay';
 import ApiErrorDisplay from './ApiErrorDisplay';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SupabaseResponse {
   data: Record<string, unknown>[] | null;
@@ -52,6 +54,7 @@ const SupabaseIntegration = () => {
   const [dbSetupResult, setDbSetupResult] = useState<{success: boolean, message: string} | null>(null);
   const [syncError, setSyncError] = useState<{title: string; message: string; details?: string} | null>(null);
   const [usingDefaultClient, setUsingDefaultClient] = useState(false);
+  const { user, signInWithGoogle } = useAuth();
 
   useEffect(() => {
     const savedUrl = localStorage.getItem('supabaseUrl');
@@ -218,8 +221,10 @@ const SupabaseIntegration = () => {
     setSyncError(null);
     
     try {
+      // Verificar se o usuário está autenticado usando supabase
       const { data: authData } = await supabase.auth.getSession();
-      if (!authData.session) {
+      
+      if (!authData.session && !user) {
         toast({
           title: "Autenticação necessária",
           description: "Você precisa estar autenticado para sincronizar tarefas.",
@@ -247,7 +252,7 @@ const SupabaseIntegration = () => {
       }
       
       console.log("Tarefas locais para sincronizar:", localTasks);
-      console.log("ID do usuário autenticado:", authData.session.user.id);
+      console.log("Usuário autenticado:", user?.uid || authData.session?.user.id);
       
       const result = await syncTasks(localTasks);
 
@@ -277,15 +282,19 @@ const SupabaseIntegration = () => {
 
   const handleDisconnect = () => {
     try {
+      // Remover configurações do localStorage
       localStorage.removeItem('supabaseUrl');
       localStorage.removeItem('supabaseKey');
       
+      // Fazer clear das variáveis de estado
       setSupabaseUrl('');
       setSupabaseKey('');
       setConnectionStatus('not_connected');
       setDbSetupResult(null);
       setUsingDefaultClient(false);
+      setSyncError(null);
       
+      // Notificar usuário
       toast({
         title: "Desconectado",
         description: "Integração com Supabase removida",
@@ -361,6 +370,25 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
     setSyncError(null);
     handleSyncData();
   };
+  
+  const handleLogin = async () => {
+    try {
+      if (signInWithGoogle) {
+        await signInWithGoogle();
+        toast({
+          title: "Login realizado",
+          description: "Agora você pode sincronizar suas tarefas."
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      toast({
+        title: "Erro no login",
+        description: "Não foi possível fazer login. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <div>
@@ -370,6 +398,26 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
           <p className="text-sm text-muted-foreground my-3">
             Sua conta Supabase está conectada. Agora você pode sincronizar seus dados e utilizar autenticação.
           </p>
+          
+          {!user && (
+            <div className="mb-4 p-3 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600">
+              <div className="flex items-start gap-2">
+                <Info size={16} className="mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Autenticação necessária</p>
+                  <p className="text-xs mt-1">Para sincronizar tarefas, você precisa estar autenticado.</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2 text-xs"
+                    onClick={handleLogin}
+                  >
+                    <LogIn className="mr-1 h-3 w-3" /> Fazer login com Google
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
           
           {dbSetupResult && !dbSetupResult.success && (
             <div className="mb-4 p-3 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600">
@@ -440,7 +488,7 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
               size="sm"
               className="flex items-center gap-1"
               onClick={handleSyncData}
-              disabled={isSyncing || (dbSetupResult && !dbSetupResult.success)}
+              disabled={isSyncing || (dbSetupResult && !dbSetupResult.success) || !user}
             >
               {isSyncing ? (
                 <>
