@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Tag, AlertTriangle, Calendar as CalendarIcon } from 'lucide-react';
@@ -48,6 +49,7 @@ const AddTaskModal = ({
 }: AddTaskModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTitleFocused, setIsTitleFocused] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -61,6 +63,16 @@ const AddTaskModal = ({
       onAddTask();
       setIsSubmitting(false);
     }, 300);
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    // Garantir que o valor seja salvo corretamente
+    setNewTask({
+      ...newTask, 
+      start_date: date ? date.toISOString() : null
+    });
+    // Fechamos o calendário após a seleção
+    setTimeout(() => setCalendarOpen(false), 100);
   };
 
   const getUrgencyColor = (value: number) => {
@@ -194,7 +206,7 @@ const AddTaskModal = ({
               <Label htmlFor="start-date" className="text-sm font-medium">
                 Data de Início (Opcional)
               </Label>
-              <Popover>
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     id="start-date"
@@ -213,12 +225,13 @@ const AddTaskModal = ({
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
                   <Calendar
                     mode="single"
                     selected={newTask.start_date ? new Date(newTask.start_date) : undefined}
-                    onSelect={(date) => setNewTask({...newTask, start_date: date ? date.toISOString() : null})}
+                    onSelect={handleDateSelect}
                     initialFocus
+                    className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
