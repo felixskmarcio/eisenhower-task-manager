@@ -45,41 +45,67 @@ export const supabase = createClient<Database>(
 // Função auxiliar para limpar completamente o armazenamento do Supabase
 export const clearSupabaseStorage = () => {
   try {
+    // Forçar logout do Supabase
+    supabase.auth.signOut({ scope: 'global' })
+      .then(() => console.log('Supabase signout executado'))
+      .catch(e => console.error('Erro ao executar signout do Supabase:', e));
+    
     // Remover token específico do Supabase
     localStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
     sessionStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
     
-    // Remover outros tokens possíveis
-    const allStorageKeys = Object.keys(localStorage);
-    const supabaseKeys = allStorageKeys.filter(key => 
-      key.includes('supabase') || 
-      key.startsWith('sb-') || 
-      key.includes('auth')
-    );
-    
-    supabaseKeys.forEach(key => {
-      localStorage.removeItem(key);
-    });
-    
-    // Remover explicitamente as configurações
+    // Remover as credenciais personalizadas
     localStorage.removeItem('supabaseUrl');
     localStorage.removeItem('supabaseKey');
     
-    // Remover tokens de sessão
-    const sessionKeys = Object.keys(sessionStorage);
-    const supabaseSessionKeys = sessionKeys.filter(key => 
-      key.includes('supabase') || 
-      key.startsWith('sb-') || 
-      key.includes('auth')
-    );
+    // Remover outros tokens possíveis - abordagem mais agressiva
+    const allLocalStorageKeys = Object.keys(localStorage);
+    const allSessionStorageKeys = Object.keys(sessionStorage);
     
-    supabaseSessionKeys.forEach(key => {
-      sessionStorage.removeItem(key);
+    // Limpar TODOS os tokens que possam estar relacionados ao Supabase
+    allLocalStorageKeys.forEach(key => {
+      if (key.includes('supabase') || 
+          key.startsWith('sb-') || 
+          key.includes('auth') ||
+          key.includes('token') ||
+          key.includes('session')) {
+        console.log('Removendo do localStorage:', key);
+        localStorage.removeItem(key);
+      }
     });
     
+    allSessionStorageKeys.forEach(key => {
+      if (key.includes('supabase') || 
+          key.startsWith('sb-') || 
+          key.includes('auth') ||
+          key.includes('token') ||
+          key.includes('session')) {
+        console.log('Removendo do sessionStorage:', key);
+        sessionStorage.removeItem(key);
+      }
+    });
+    
+    // Limpar quaisquer dados relacionados com autenticação
+    localStorage.removeItem('gotrue.user');
+    sessionStorage.removeItem('gotrue.user');
+    
+    console.log('Limpeza do armazenamento do Supabase concluída');
     return true;
   } catch (error) {
     console.error('Erro ao limpar armazenamento do Supabase:', error);
+    return false;
+  }
+};
+
+// Verificar se o cliente Supabase está conectado
+export const isSupabaseConnected = () => {
+  try {
+    return Boolean(
+      (localStorage.getItem('supabaseUrl') && localStorage.getItem('supabaseKey')) || 
+      (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY)
+    );
+  } catch (error) {
+    console.error('Erro ao verificar conexão do Supabase:', error);
     return false;
   }
 };

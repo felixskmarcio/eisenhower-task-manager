@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn, LogOut } from "lucide-react";
 import { setupDatabase, syncTasks } from '@/lib/supabase';
-import { supabase, clearSupabaseStorage } from '@/integrations/supabase/client';
+import { supabase, clearSupabaseStorage, isSupabaseConnected } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -58,11 +59,35 @@ const SupabaseIntegration = () => {
   const [isUserChecked, setIsUserChecked] = useState(false);
 
   useEffect(() => {
+    // Verificar se há um parâmetro de desconexão na URL
+    const url = new URL(window.location.href);
+    const disconnected = url.searchParams.get('disconnected');
+    
+    if (disconnected === 'true') {
+      // Remover o parâmetro da URL para não repetir este processo
+      url.searchParams.delete('disconnected');
+      window.history.replaceState({}, document.title, url.toString());
+      
+      // Verificar se o Supabase ainda está conectado
+      if (isSupabaseConnected()) {
+        console.warn('Ainda há dados de conexão do Supabase após a desconexão. Limpando novamente...');
+        // Limpar novamente e forçar recarga total da página
+        clearSupabaseStorage();
+        // Usar um pequeno delay para permitir que a limpeza seja concluída
+        setTimeout(() => {
+          window.location.href = '/config';
+        }, 100);
+        return;
+      }
+    }
+
+    // Verificar conexão normal
     const checkConnection = async () => {
       const savedUrl = localStorage.getItem('supabaseUrl');
       const savedKey = localStorage.getItem('supabaseKey');
       
       if (savedUrl && savedKey) {
+        console.log('Credenciais encontradas no localStorage, configurando cliente...');
         setSupabaseUrl(savedUrl);
         setSupabaseKey(savedKey);
         setConnectionStatus('connected');
@@ -70,6 +95,7 @@ const SupabaseIntegration = () => {
         
         await checkDatabaseSetup();
       } else if (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_KEY) {
+        console.log('Usando credenciais padrão das variáveis de ambiente...');
         setSupabaseUrl(DEFAULT_SUPABASE_URL);
         setSupabaseKey(DEFAULT_SUPABASE_KEY);
         setConnectionStatus('connected');
@@ -82,6 +108,9 @@ const SupabaseIntegration = () => {
         
         await checkDatabaseSetup();
       } else {
+        console.log('Nenhuma credencial encontrada.');
+        setConnectionStatus('not_connected');
+        
         toast({
           title: "Credenciais não encontradas",
           description: "Configure as credenciais do Supabase para usar este recurso.",
@@ -298,6 +327,7 @@ const SupabaseIntegration = () => {
         description: "Aguarde enquanto finalizamos o processo de desconexão."
       });
       
+      // 1. Forçar logout do Supabase
       try {
         await supabase.auth.signOut({
           scope: 'global'
@@ -307,17 +337,11 @@ const SupabaseIntegration = () => {
         console.error("Erro no signOut do Supabase:", signOutError);
       }
       
+      // 2. Limpar totalmente o armazenamento
       const cleanupSuccess = clearSupabaseStorage();
+      console.log("Resultado da limpeza:", cleanupSuccess ? "Sucesso" : "Falha");
       
-      if (!cleanupSuccess) {
-        console.warn("Limpeza automática falhou, tentando limpeza manual");
-        
-        localStorage.removeItem('supabaseUrl');
-        localStorage.removeItem('supabaseKey');
-        localStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
-        sessionStorage.removeItem('sb-xusvqzlusdxirznsyrzo-auth-token');
-      }
-      
+      // 3. Redefinir o estado do componente
       setSupabaseUrl('');
       setSupabaseKey('');
       setConnectionStatus('not_connected');
@@ -330,6 +354,7 @@ const SupabaseIntegration = () => {
         description: "Integração com Supabase removida completamente."
       });
       
+      // 4. Força um reload completo com um parâmetro na URL para garantir
       const url = new URL(window.location.href);
       url.searchParams.set('disconnected', 'true');
       url.pathname = '/config';
