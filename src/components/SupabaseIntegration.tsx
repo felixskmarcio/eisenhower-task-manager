@@ -58,8 +58,6 @@ const SupabaseIntegration = () => {
   const [dbSetupResult, setDbSetupResult] = useState<{success: boolean, message: string} | null>(null);
   const [syncError, setSyncError] = useState<{title: string; message: string; details?: string} | null>(null);
   const [usingDefaultClient, setUsingDefaultClient] = useState(false);
-  const [savedTasksCount, setSavedTasksCount] = useState<number>(0);
-  const [isCheckingTasks, setIsCheckingTasks] = useState(false);
   const { user, signInWithGoogle } = useAuth();
   const [isUserChecked, setIsUserChecked] = useState(false);
   const [disconnectionAttempts, setDisconnectionAttempts] = useState(0);
@@ -619,43 +617,6 @@ const SupabaseIntegration = () => {
     }
   };
 
-  const checkSavedTasks = async () => {
-    setIsCheckingTasks(true);
-    
-    try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*', { count: 'exact' });
-        
-      if (error) {
-        console.error('Erro ao verificar tarefas:', error);
-        toast({
-          title: "Erro ao verificar tarefas",
-          description: "Não foi possível verificar as tarefas salvas.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      setSavedTasksCount(data?.length || 0);
-      
-      toast({
-        title: "Verificação concluída",
-        description: `Você tem ${data?.length || 0} tarefa(s) salva(s) no Supabase.`
-      });
-      
-    } catch (error) {
-      console.error('Erro ao verificar tarefas:', error);
-      toast({
-        title: "Erro na verificação",
-        description: "Ocorreu um erro ao verificar as tarefas.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCheckingTasks(false);
-    }
-  };
-
   return (
     <div>
       {isConnected ? (
@@ -755,30 +716,7 @@ const SupabaseIntegration = () => {
                 </>
               )}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={checkSavedTasks}
-              disabled={isCheckingTasks || !isConnected}
-              className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
-            >
-              {isCheckingTasks ? (
-                <>
-                  <RefreshCw size={14} className="mr-1 animate-spin" /> Verificando...
-                </>
-              ) : (
-                <>
-                  <Database className="h-4 w-4 mr-1" /> Verificar Tarefas Salvas
-                </>
-              )}
-            </Button>
           </div>
-          
-          {savedTasksCount > 0 && (
-            <p className="text-sm text-muted-foreground mt-3">
-              Você tem {savedTasksCount} tarefa(s) salva(s) no Supabase.
-            </p>
-          )}
         </div>
       ) : (
         <form onSubmit={handleConnect} className="space-y-4">
