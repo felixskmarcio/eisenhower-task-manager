@@ -3,6 +3,7 @@ import { User } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 import { 
   signInWithGoogle,
   signInWithEmail,
@@ -10,7 +11,9 @@ import {
   signOut as authSignOut,
   getCurrentUser,
   subscribeToAuthChanges,
-  resetPassword as authResetPassword
+  resetPassword as authResetPassword,
+  verifyCredentials,
+  checkIfUserExists
 } from '@/services/auth';
 
 interface AuthContextType {
@@ -21,12 +24,12 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  verifyUserCredentials: (email: string, password: string) => Promise<{valid: boolean, message: string}>;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Credenciais para teste
 const TEST_EMAIL = 'teste@example.com';
 const TEST_PASSWORD = 'senha123';
 
@@ -36,10 +39,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Função para buscar perfil do usuário
   const fetchProfile = async (userId: string) => {
     try {
-      // Primeiro tentamos obter do Supabase (se integrado)
+      console.log('Buscando perfil para o usuário ID:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -47,13 +49,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (data && !error) {
+        console.log('Perfil encontrado no Supabase:', data);
         setProfile(data);
         return;
       }
 
-      // Se não encontramos no Supabase ou houver erro, usamos os dados do Firebase
       const currentUser = getCurrentUser();
       if (currentUser) {
+        console.log('Usando dados do perfil do Firebase:', {
+          id: currentUser.uid,
+          displayName: currentUser.displayName,
+          email: currentUser.email
+        });
         setProfile({
           id: currentUser.uid,
           nome: currentUser.displayName || 'Usuário',
@@ -67,12 +74,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Configurar listener para mudanças no estado de autenticação do Firebase
+    console.log('AuthProvider: Inicializando...');
+    
+    // Verificar se há sessão do Supabase
+    const checkSupabaseSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          console.log('Sessão do Supabase encontrada:', session);
+          // Aqui você pode definir o usuário a partir da sessão do Supabase
+          const supabaseUser = session.user;
+          if (supabaseUser) {
+            console.log('Usuário do Supabase:', supabaseUser);
+            // Se necessário, adapte o formato do usuário do Supabase para o formato do seu User
+            fetchProfile(supabaseUser.id);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao verificar sessão do Supabase:', error);
+      }
+    };
+    
+    // Configurar observador de alteração no estado de autenticação do Firebase
     const unsubscribe = subscribeToAuthChanges((currentUser) => {
+      console.log('Estado de autenticação alterado:', currentUser ? `Usuário: ${currentUser.email}` : 'Não autenticado');
       setUser(currentUser);
       
       if (currentUser) {
-        // Use setTimeout para evitar deadlocks
         setTimeout(() => {
           fetchProfile(currentUser.uid);
         }, 0);
@@ -83,46 +111,109 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    // Verificar se já existe um usuário autenticado
+    // Verificar usuário atual do Firebase
     const currentUser = getCurrentUser();
     if (currentUser) {
+      console.log('Usuário já autenticado no Firebase:', currentUser.email);
       setUser(currentUser);
       fetchProfile(currentUser.uid);
+    } else {
+      console.log('Nenhum usuário autenticado no Firebase, verificando Supabase...');
+      checkSupabaseSession();
     }
     
     setLoading(false);
 
     return () => {
+      console.log('AuthProvider: Cancelando subscrição de autenticação');
       unsubscribe();
     };
   }, []);
 
   const signUp = async (email: string, password: string, nome: string) => {
     try {
+      console.log('Iniciando processo de cadastro para:', email);
       setLoading(true);
       
-      // Verificar se são as credenciais de teste
       if (email === TEST_EMAIL && password === TEST_PASSWORD) {
         toast({
           title: "Conta de teste",
-          description: "Esta é uma conta de teste e não pode ser usada para cadastro."
+          description: "Esta é uma conta de teste e não pode ser usada para cadastro.",
+          variant: "destructive"
         });
+        setLoading(false);
         return;
       }
       
-      // Cadastrar com Firebase
+      const userExists = await checkIfUserExists(email);
+      if (userExists) {
+        console.log('Usuário já existe:', email);
+        toast({
+          title: "Email já cadastrado",
+          description: "Este email já está sendo usado. Tente fazer login ou recuperar sua senha.",
+          variant: "destructive",
+          action: (
+            <Button variant="outline" onClick={() => navigate('/login', { state: { defaultValues: { email } } })}>
+              Ir para login
+            </Button>
+          )
+        });
+        setLoading(false);
+        return;
+      }
+      
+      // Tentar primeiro no Supabase
+      try {
+        console.log('Tentando criar usuário no Supabase para:', email);
+        const { data: supabaseUser, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              nome: nome
+            }
+          }
+        });
+        
+        if (error) {
+          console.error('Erro ao criar usuário no Supabase:', error);
+          throw error;
+        }
+        
+        if (supabaseUser.user) {
+          console.log('Usuário criado com sucesso no Supabase, ID:', supabaseUser.user.id);
+          setUser(supabaseUser.user as unknown as User);
+          
+          // O perfil deve ser criado automaticamente pelo trigger
+          console.log('Aguardando criação do perfil pelo trigger...');
+          
+          toast({
+            title: "Cadastro realizado",
+            description: "Sua conta foi criada com sucesso. Você já está conectado."
+          });
+          
+          navigate('/dashboard');
+          return;
+        }
+      } catch (supabaseError) {
+        console.error('Falha ao criar usuário no Supabase, tentando Firebase:', supabaseError);
+      }
+      
+      // Fallback para Firebase se Supabase falhar
       const newUser = await createUserWithEmail(email, password);
       
       if (newUser) {
-        // Tentar criar perfil no Supabase se estiver integrado
+        console.log('Usuário criado com sucesso no Firebase, ID:', newUser.uid);
         try {
+          console.log('Criando perfil no Supabase para usuário do Firebase');
           await supabase.from('profiles').insert({
             id: newUser.uid,
             nome: nome,
             email: email
           });
+          console.log('Perfil criado com sucesso no Supabase');
         } catch (error) {
-          console.log('Supabase não configurado ou erro ao criar perfil:', error);
+          console.log('Erro ao criar perfil no Supabase:', error);
         }
         
         toast({
@@ -134,7 +225,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error: any) {
       console.error('Erro no cadastro:', error);
-      // Mensagem de erro já é mostrada no serviço de autenticação
+      
+      if (error.code === 'auth/email-already-in-use') {
+        toast({
+          title: "Email já cadastrado",
+          description: "Este email já está sendo usado. Tente fazer login ou recuperar sua senha.",
+          variant: "destructive",
+          action: (
+            <Button variant="outline" onClick={() => navigate('/login', { state: { defaultValues: { email } } })}>
+              Ir para login
+            </Button>
+          )
+        });
+      } else {
+        toast({
+          title: "Erro no cadastro",
+          description: error.message || "Ocorreu um erro ao tentar criar sua conta.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -142,11 +251,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Iniciando processo de login para:', email);
       setLoading(true);
       
-      // Verificar se são as credenciais de teste
       if (email === TEST_EMAIL && password === TEST_PASSWORD) {
-        // Criar um usuário de teste simulado
+        console.log('Usando credenciais de teste');
         const testUser = {
           uid: 'test-user-id',
           email: TEST_EMAIL,
@@ -168,7 +277,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           toJSON: () => ({})
         } as unknown as User;
         
-        // Atualizar o estado da autenticação
         setUser(testUser);
         setProfile({
           id: testUser.uid,
@@ -185,16 +293,74 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      // Login normal com Firebase
-      const loggedUser = await signInWithEmail(email, password);
+      // Tentar login no Supabase primeiro
+      try {
+        console.log('Tentando login no Supabase para:', email);
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        
+        if (error) {
+          console.error('Erro no login com Supabase:', error);
+          // Se o erro for de credenciais inválidas, lance o erro para ser capturado logo abaixo
+          if (error.message?.includes('Invalid login credentials')) {
+            const customError = new Error('Credenciais inválidas');
+            customError.name = 'AuthError';
+            (customError as any).code = 'invalid_credentials';
+            (customError as any).message = 'Senha incorreta ou usuário não encontrado';
+            throw customError;
+          }
+        } else if (data.user) {
+          console.log('Login com Supabase bem-sucedido para:', email);
+          setUser(data.user as unknown as User);
+          
+          // Buscar perfil
+          fetchProfile(data.user.id);
+          
+          toast({
+            title: "Login realizado",
+            description: "Bem-vindo de volta!"
+          });
+          
+          navigate('/dashboard');
+          return;
+        }
+      } catch (supabaseError: any) {
+        console.error('Falha no login com Supabase:', supabaseError);
+        throw supabaseError; // Relanç0a o erro para ser capturado
+      }
       
-      if (loggedUser) {
-        navigate('/dashboard');
+      // Verificar se o usuário existe antes de tentar o login do Firebase
+      const userExists = await checkIfUserExists(email);
+      if (!userExists) {
+        console.log('Usuário não encontrado em nenhum provedor:', email);
+        const notFoundError = new Error('Usuário não encontrado');
+        (notFoundError as any).code = 'auth/user-not-found';
+        (notFoundError as any).message = 'Este email não está cadastrado em nosso sistema';
+        throw notFoundError;
+      }
+      
+      // Tentar com Firebase como fallback
+      try {
+        const loggedUser = await signInWithEmail(email, password);
+        
+        if (loggedUser) {
+          console.log('Login com Firebase bem-sucedido para:', email);
+          toast({
+            title: "Login realizado",
+            description: "Bem-vindo de volta!"
+          });
+          navigate('/dashboard');
+        }
+      } catch (firebaseError: any) {
+        console.error('Erro no login com Firebase:', firebaseError);
+        throw firebaseError;
       }
       
     } catch (error: any) {
-      console.error('Erro no login:', error);
-      // Mensagem de erro já é mostrada no serviço de autenticação
+      console.error('Erro geral no login:', error);
+      throw error; // Relançar o erro para ser capturado pelo componente
     } finally {
       setLoading(false);
     }
@@ -202,14 +368,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleGoogleSignIn = async () => {
     try {
+      console.log('Iniciando login com Google');
       setLoading(true);
       
-      // Autenticação com o Google via Firebase
+      // Tentar usar Supabase para login Google primeiro
+      try {
+        console.log('Tentando login com Google via Supabase');
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin + '/dashboard'
+          }
+        });
+        
+        if (error) {
+          console.error('Erro no login Google com Supabase:', error);
+          // Continuar para tentativa com Firebase
+        } else if (data) {
+          console.log('Login com Google via Supabase iniciado:', data);
+          // O redirecionamento deve ocorrer automaticamente
+          return;
+        }
+      } catch (supabaseError) {
+        console.error('Falha completa no login Google com Supabase:', supabaseError);
+        // Continuar para tentativa com Firebase
+      }
+      
+      // Fallback para Firebase
       const googleUser = await signInWithGoogle();
       
       if (googleUser) {
-        // Tentar criar/atualizar perfil no Supabase se estiver integrado
+        console.log('Login com Google via Firebase bem-sucedido para:', googleUser.email);
         try {
+          console.log('Atualizando perfil no Supabase');
           const { data, error } = await supabase
             .from('profiles')
             .upsert({
@@ -218,8 +409,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               email: googleUser.email,
               foto_url: googleUser.photoURL
             });
+          console.log('Perfil atualizado com sucesso no Supabase');
         } catch (error) {
-          console.log('Supabase não configurado ou erro ao atualizar perfil:', error);
+          console.log('Erro ao atualizar perfil no Supabase:', error);
         }
         
         toast({
@@ -232,7 +424,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     } catch (error: any) {
       console.error('Erro no login com Google:', error);
-      // Mensagem de erro já é mostrada no serviço de autenticação
+      toast({
+        title: "Erro no login",
+        description: "Não foi possível fazer login com o Google. Tente novamente.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -240,19 +436,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleSignOut = async () => {
     try {
+      console.log('Iniciando processo de logout');
       setLoading(true);
       
-      // Verificar se é usuário de teste
       if (user?.email === TEST_EMAIL) {
-        // Limpar estado para usuário de teste
+        console.log('Fazendo logout de usuário de teste');
         setUser(null);
         setProfile(null);
         navigate('/login');
         return;
       }
       
-      // Logout normal do Firebase
+      // Tentar logout do Supabase primeiro
+      try {
+        console.log('Fazendo logout do Supabase');
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('Erro ao fazer logout do Supabase:', error);
+          // Continuar para logout do Firebase
+        } else {
+          console.log('Logout do Supabase realizado com sucesso');
+        }
+      } catch (supabaseError) {
+        console.error('Falha completa no logout do Supabase:', supabaseError);
+        // Continuar para logout do Firebase
+      }
+      
+      // Sempre fazer logout do Firebase também
+      console.log('Fazendo logout do Firebase');
       await authSignOut();
+      console.log('Logout realizado com sucesso');
       navigate('/login');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
@@ -268,10 +481,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleResetPassword = async (email: string) => {
     try {
+      console.log('Solicitando redefinição de senha para:', email);
+      
+      // Tentar com Supabase primeiro
+      try {
+        console.log('Tentando redefinir senha com Supabase para:', email);
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/reset-password'
+        });
+        
+        if (error) {
+          console.error('Erro ao redefinir senha com Supabase:', error);
+          // Continuar para tentativa com Firebase
+        } else {
+          console.log('Email de redefinição enviado com sucesso via Supabase');
+          toast({
+            title: "Email enviado",
+            description: "Instruções para redefinir sua senha foram enviadas para seu email."
+          });
+          return;
+        }
+      } catch (supabaseError) {
+        console.error('Falha completa na redefinição de senha com Supabase:', supabaseError);
+        // Continuar para tentativa com Firebase
+      }
+      
+      // Fallback para Firebase
       await authResetPassword(email);
+      console.log('Email de redefinição enviado com sucesso via Firebase');
+      toast({
+        title: "Email enviado",
+        description: "Instruções para redefinir sua senha foram enviadas para seu email."
+      });
     } catch (error) {
       console.error('Erro ao solicitar redefinição de senha:', error);
+      toast({
+        title: "Erro na redefinição",
+        description: "Não foi possível enviar o email de redefinição. Verifique o endereço e tente novamente.",
+        variant: "destructive"
+      });
     }
+  };
+
+  const verifyUserCredentials = async (email: string, password: string) => {
+    console.log('Verificando credenciais para:', email);
+    
+    // Tentar verificar no Supabase primeiro
+    try {
+      console.log('Tentando verificar credenciais no Supabase para:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        console.error('Erro na verificação de credenciais com Supabase:', error);
+        // Não retornar aqui, tentar verificar no Firebase em seguida
+      } else if (data.user) {
+        console.log('Credenciais válidas no Supabase para:', email);
+        return { valid: true, message: 'Credenciais válidas' };
+      }
+    } catch (supabaseError) {
+      console.error('Falha completa na verificação de credenciais com Supabase:', supabaseError);
+      // Continuar para tentativa com Firebase
+    }
+    
+    // Fallback para Firebase
+    return await verifyCredentials(email, password);
   };
 
   const value = {
@@ -282,6 +558,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithGoogle: handleGoogleSignIn,
     signOut: handleSignOut,
     resetPassword: handleResetPassword,
+    verifyUserCredentials,
     loading
   };
 

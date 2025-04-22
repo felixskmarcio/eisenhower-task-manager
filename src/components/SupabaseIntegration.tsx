@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code } from "lucide-react";
+import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn } from "lucide-react";
 import { setupDatabase, syncTasks } from '@/lib/supabase';
+import { supabase, clearSupabaseStorage, isSupabaseConnected, resetToDefaultCredentials } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -14,25 +15,18 @@ import {
 } from "@/components/ui/dialog";
 import ErrorDisplay from './ErrorDisplay';
 import ApiErrorDisplay from './ApiErrorDisplay';
+import { useAuth } from '@/contexts/AuthContext';
 
-// Interface para simular a resposta do Supabase
 interface SupabaseResponse {
   data: Record<string, unknown>[] | null;
   error: Error | null;
 }
 
-// Mock para simular a criação de um cliente Supabase
 const createSupabaseClient = (url: string, key: string) => {
-  // Em uma implementação real, isso usaria:
-  // import { createClient } from '@supabase/supabase-js'
-  // return createClient(url, key)
-  
-  // Esta é apenas uma simulação
   return {
     from: (table: string) => ({
       select: () => ({
         then: (callback: (response: SupabaseResponse) => void) => {
-          // Simula uma resposta bem-sucedida após 1s
           setTimeout(() => {
             callback({ data: [], error: null });
           }, 1000);
@@ -40,12 +34,18 @@ const createSupabaseClient = (url: string, key: string) => {
         }
       })
     }),
-    // Simula autenticação
     auth: {
       getSession: () => Promise.resolve({ data: {}, error: null })
     }
   };
 };
+
+const DEFAULT_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const DEFAULT_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const DISCONNECTION_FLAG = 'supabaseDisconnected';
+const LAST_DISCONNECTION_TIME = 'lastSupabaseDisconnectionTime';
+const DISCONNECT_RETRIES = 'supabaseDisconnectRetries';
 
 const SupabaseIntegration = () => {
   const [supabaseUrl, setSupabaseUrl] = useState('');
@@ -53,25 +53,175 @@ const SupabaseIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'not_connected' | 'connected' | 'testing' | 'success' | 'error'>('not_connected');
   const [dbSetupResult, setDbSetupResult] = useState<{success: boolean, message: string} | null>(null);
   const [syncError, setSyncError] = useState<{title: string; message: string; details?: string} | null>(null);
+  const [usingDefaultClient, setUsingDefaultClient] = useState(false);
+  const [savedTasksCount, setSavedTasksCount] = useState<number>(0);
+  const [isCheckingTasks, setIsCheckingTasks] = useState(false);
+  const { user, signInWithGoogle } = useAuth();
+  const [isUserChecked, setIsUserChecked] = useState(false);
+  const [disconnectionAttempts, setDisconnectionAttempts] = useState(0);
+  const disconnectTimeoutRef = useRef<number | null>(null);
+  const [syncRetryCount, setSyncRetryCount] = useState(0);
 
   useEffect(() => {
-    // Carregar dados do localStorage ao inicializar
-    const savedUrl = localStorage.getItem('supabaseUrl');
-    const savedKey = localStorage.getItem('supabaseKey');
-    
-    if (savedUrl && savedKey) {
-      setSupabaseUrl(savedUrl);
-      setSupabaseKey(savedKey);
-      setConnectionStatus('connected');
+    const checkDisconnectionState = () => {
+      const disconnected = sessionStorage.getItem(DISCONNECTION_FLAG);
+      const lastDisconnectionTime = sessionStorage.getItem(LAST_DISCONNECTION_TIME);
+      const disconnectRetries = Number(sessionStorage.getItem(DISCONNECT_RETRIES) || '0');
       
-      // Verificar setup do banco
-      checkDatabaseSetup();
+      console.log('Estado de desconexão:', { disconnected, lastDisconnectionTime, disconnectRetries });
+      
+      if (disconnected === 'true') {
+        const now = Date.now();
+        const lastTime = lastDisconnectionTime ? parseInt(lastDisconnectionTime) : 0;
+        const timeDiff = now - lastTime;
+        
+        if (timeDiff > 10000) {
+          console.log('O processo de desconexão está demorando muito, tentando novamente');
+          sessionStorage.removeItem(DISCONNECTION_FLAG);
+          sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
+          
+          if (isSupabaseConnected()) {
+            sessionStorage.setItem(DISCONNECT_RETRIES, String(disconnectRetries + 1));
+            
+            if (disconnectRetries < 3) {
+              console.log('Tentando desconexão forçada novamente...');
+              executeDisconnect(true);
+            } else {
+              console.log('Muitas tentativas de desconexão. Resetando para estado limpo...');
+              sessionStorage.removeItem(DISCONNECT_RETRIES);
+              forceCleanDisconnect();
+            }
+          }
+        }
+      } else if (disconnected === 'completed') {
+        console.log('Desconexão concluída com sucesso, limpando flags');
+        sessionStorage.removeItem(DISCONNECTION_FLAG);
+        sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
+        sessionStorage.removeItem(DISCONNECT_RETRIES);
+        
+        if (isSupabaseConnected()) {
+          console.log('ALERTA: Ainda conectado após desconexão "concluída"!');
+          forceCleanDisconnect();
+        }
+      }
+    };
+    
+    const url = new URL(window.location.href);
+    const disconnected = url.searchParams.get('disconnected');
+    
+    if (disconnected === 'true') {
+      console.log('Redirecionado após desconexão, verificando status...');
+      url.searchParams.delete('disconnected');
+      window.history.replaceState({}, document.title, url.toString());
+      
+      sessionStorage.setItem(DISCONNECTION_FLAG, 'completed');
+      
+      if (isSupabaseConnected()) {
+        console.warn('Ainda há dados de conexão do Supabase após a desconexão. Limpando novamente...');
+        clearSupabaseStorage();
+        
+        if (isSupabaseConnected()) {
+          forceCleanDisconnect();
+        } else {
+          setConnectionStatus('not_connected');
+        }
+      }
     }
+    
+    checkDisconnectionState();
+
+    const checkConnection = async () => {
+      console.log('Verificando conexão do Supabase...');
+      
+      if (sessionStorage.getItem(DISCONNECTION_FLAG) === 'true') {
+        console.log('Em processo de desconexão, pulando verificação de conexão');
+        setConnectionStatus('not_connected');
+        return;
+      }
+      
+      const savedUrl = localStorage.getItem('supabaseUrl');
+      const savedKey = localStorage.getItem('supabaseKey');
+      
+      if (savedUrl && savedKey) {
+        console.log('Credenciais encontradas no localStorage, configurando cliente...');
+        setSupabaseUrl(savedUrl);
+        setSupabaseKey(savedKey);
+        setConnectionStatus('connected');
+        setUsingDefaultClient(false);
+        
+        await checkDatabaseSetup();
+      } else if (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_KEY) {
+        console.log('Usando credenciais padrão das variáveis de ambiente...');
+        setSupabaseUrl(DEFAULT_SUPABASE_URL);
+        setSupabaseKey(DEFAULT_SUPABASE_KEY);
+        setConnectionStatus('connected');
+        setUsingDefaultClient(true);
+        
+        toast({
+          title: "Credenciais padrão carregadas",
+          description: "Usando configuração de Supabase das variáveis de ambiente."
+        });
+        
+        await checkDatabaseSetup();
+      } else {
+        console.log('Nenhuma credencial encontrada.');
+        setConnectionStatus('not_connected');
+        
+        toast({
+          title: "Credenciais não encontradas",
+          description: "Configure as credenciais do Supabase para usar este recurso.",
+          variant: "destructive"
+        });
+      }
+      
+      setIsUserChecked(true);
+    };
+    
+    if (!sessionStorage.getItem(DISCONNECTION_FLAG)) {
+      checkConnection();
+    }
+    
+    return () => {
+      if (disconnectTimeoutRef.current) {
+        clearTimeout(disconnectTimeoutRef.current);
+      }
+    };
   }, []);
-  
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const disconnected = url.searchParams.get('disconnected');
+    
+    if (disconnected === 'true') {
+      url.searchParams.delete('disconnected');
+      window.history.replaceState({}, document.title, url.toString());
+      
+      if (isSupabaseConnected()) {
+        console.warn("Ainda existem dados do Supabase após a desconexão. Tentando limpar novamente.");
+        clearSupabaseStorage();
+        
+        if (isSupabaseConnected()) {
+          forceCleanDisconnect();
+        } else {
+          setConnectionStatus('not_connected');
+        }
+      }
+    } else {
+      const shouldBeConnected = isSupabaseConnected();
+      console.log("Estado atual de conexão (pela verificação):", shouldBeConnected);
+      
+      if (shouldBeConnected && connectionStatus === 'not_connected') {
+        setConnectionStatus('connected');
+      } else if (!shouldBeConnected && connectionStatus === 'connected') {
+        setConnectionStatus('not_connected');
+      }
+    }
+  }, [connectionStatus]);
+
   const checkDatabaseSetup = async () => {
     try {
       const result = await setupDatabase();
@@ -84,12 +234,18 @@ const SupabaseIntegration = () => {
           variant: "destructive",
         });
       }
+      
+      return result;
     } catch (error) {
       console.error("Erro ao verificar banco de dados:", error);
       setDbSetupResult({
         success: false,
         message: "Não foi possível verificar o banco de dados. Verifique as credenciais."
       });
+      return {
+        success: false,
+        message: "Não foi possível verificar o banco de dados. Verifique as credenciais."
+      };
     }
   };
 
@@ -109,19 +265,15 @@ const SupabaseIntegration = () => {
     setConnectionStatus('testing');
     
     try {
-      // Simular criação do cliente e teste de conexão
       const supabase = createSupabaseClient(supabaseUrl, supabaseKey);
       
-      // Simular uma verificação de conexão
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Salvar no localStorage
       localStorage.setItem('supabaseUrl', supabaseUrl);
       localStorage.setItem('supabaseKey', supabaseKey);
       
       setConnectionStatus('connected');
       
-      // Verificar setup do banco
       await checkDatabaseSetup();
       
       toast({
@@ -147,16 +299,12 @@ const SupabaseIntegration = () => {
     setConnectionStatus('testing');
     
     try {
-      // Simulação de teste de conexão
       const supabase = createSupabaseClient(supabaseUrl, supabaseKey);
       
-      // Verificar setup do banco
       await checkDatabaseSetup();
       
-      // Simulação de consulta para verificar conexão
       await new Promise<boolean>((resolve, reject) => {
         setTimeout(() => {
-          // Simulamos 90% de chance de sucesso
           if (Math.random() > 0.1) {
             resolve(true);
           } else {
@@ -188,109 +336,233 @@ const SupabaseIntegration = () => {
     }
   };
 
-  const handleSyncData = async () => {
+  const handleSyncData = async (retry = false) => {
+    if (retry) {
+      setSyncRetryCount(prev => prev + 1);
+      if (syncRetryCount >= 3) {
+        toast({
+          title: "Limite de tentativas",
+          description: "Muitas tentativas de sincronização. Verifique suas credenciais e a conexão.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      setSyncRetryCount(0);
+    }
+
     setIsSyncing(true);
+    setSyncError(null);
+    
     try {
       const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
       
-      toast({
-        title: `${localTasks.length} tarefas encontradas`,
-        description: `Iniciando sincronização de ${localTasks.length} tarefas com o Supabase.`,
-      });
-      
-      // Se não houver tarefas, mostrar mensagem e retornar
       if (localTasks.length === 0) {
         toast({
           title: "Nenhuma tarefa para sincronizar",
-          description: "Não foram encontradas tarefas no armazenamento local. Adicione tarefas primeiro.",
+          description: "Adicione algumas tarefas primeiro.",
           variant: "destructive",
         });
         setIsSyncing(false);
         return;
       }
       
-      // Logar as tarefas para debug
-      console.log("Tarefas locais para sincronizar:", localTasks);
+      console.log("Iniciando sincronização de", localTasks.length, "tarefas");
       
-      // Simular sincronização com Supabase
+      if (!user) {
+        console.log("Sincronizando como usuário anônimo");
+      }
+      
       const result = await syncTasks(localTasks);
-
+      
       if (result.success) {
         toast({
           title: "Sincronização concluída",
-          description: result.message,
+          description: `${result.syncedCount} tarefas sincronizadas com sucesso.`
         });
+        
+        if (result.syncedCount > 0) {
+          localStorage.removeItem('tasks');
+        }
       } else {
+        console.error("Erro na sincronização:", result.message);
+        
+        if (!retry && result.message.includes('violates row-level security')) {
+          toast({
+            title: "Tentando método alternativo",
+            description: "Sincronizando com configurações alternativas"
+          });
+          
+          setTimeout(() => {
+            handleSyncData(true);
+          }, 1000);
+          return;
+        }
+        
         setSyncError({
           title: "Erro na sincronização",
-          message: result.message || "Falha ao sincronizar tarefas com o Supabase.",
-          details: undefined
+          message: result.message,
+          details: JSON.stringify({
+            errorType: "SyncError",
+            taskCount: localTasks.length,
+            timestamp: new Date().toISOString(),
+            retryCount: syncRetryCount
+          }, null, 2)
+        });
+        
+        toast({
+          title: "Erro na sincronização",
+          description: "Não foi possível sincronizar as tarefas. Verifique os detalhes do erro.",
+          variant: "destructive"
         });
       }
     } catch (error) {
-      console.error("Erro ao sincronizar dados:", error);
+      console.error("Erro ao sincronizar:", error);
       setSyncError({
         title: "Erro na sincronização",
-        message: error instanceof Error ? error.message : "Erro desconhecido durante a sincronização.",
+        message: error instanceof Error ? error.message : "Erro desconhecido",
         details: error instanceof Error ? error.stack : undefined
+      });
+      
+      toast({
+        title: "Erro na sincronização",
+        description: "Ocorreu um erro inesperado. Tente novamente mais tarde.",
+        variant: "destructive"
       });
     } finally {
       setIsSyncing(false);
     }
   };
 
-  const handleDisconnect = () => {
-    localStorage.removeItem('supabaseUrl');
-    localStorage.removeItem('supabaseKey');
-    setSupabaseUrl('');
-    setSupabaseKey('');
-    setConnectionStatus('not_connected');
-    setDbSetupResult(null);
+  const forceCleanDisconnect = () => {
+    clearSupabaseStorage();
     
-    toast({
-      title: "Desconectado",
-      description: "Integração com Supabase removida",
-    });
+    sessionStorage.removeItem(DISCONNECTION_FLAG);
+    sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
+    sessionStorage.removeItem(DISCONNECT_RETRIES);
+    
+    const cacheBuster = new Date().getTime();
+    window.location.href = `/config?cache=${cacheBuster}`;
   };
+
+  const executeDisconnect = async (force = false) => {
+    try {
+      if (!force) {
+        setIsDisconnecting(true);
+      }
+      
+      sessionStorage.setItem(DISCONNECTION_FLAG, 'true');
+      sessionStorage.setItem(LAST_DISCONNECTION_TIME, Date.now().toString());
+      
+      if (!force) {
+        toast({
+          title: "Desconectando...",
+          description: "Aguarde enquanto finalizamos o processo de desconexão."
+        });
+      }
+      
+      try {
+        await supabase.auth.signOut({
+          scope: 'global'
+        });
+        console.log("Usuário desconectado do Supabase com sucesso");
+      } catch (signOutError) {
+        console.error("Erro no signOut do Supabase:", signOutError);
+      }
+      
+      const cleanupSuccess = clearSupabaseStorage();
+      console.log("Resultado da limpeza:", cleanupSuccess ? "Sucesso" : "Falha");
+      
+      setSupabaseUrl('');
+      setSupabaseKey('');
+      setConnectionStatus('not_connected');
+      setDbSetupResult(null);
+      setUsingDefaultClient(false);
+      setSyncError(null);
+      
+      if (!force) {
+        toast({
+          title: "Desconectado com sucesso",
+          description: "Integração com Supabase removida completamente."
+        });
+      }
+      
+      const stillConnected = isSupabaseConnected();
+      console.log("Ainda conectado após limpeza?", stillConnected);
+      
+      if (stillConnected) {
+        console.warn("Ainda detectados vestígios de conexão. Realizando limpeza forçada...");
+        
+        clearSupabaseStorage();
+        setDisconnectionAttempts(prev => prev + 1);
+        
+        if (disconnectionAttempts >= 2) {
+          console.warn("Múltiplas tentativas de desconexão falharam. Forçando recarga completa...");
+          forceCleanDisconnect();
+          return;
+        }
+      }
+      
+      const url = new URL(window.location.href);
+      url.searchParams.set('disconnected', 'true');
+      
+      url.searchParams.delete('cache');
+      url.pathname = '/config';
+      
+      url.searchParams.set('t', Date.now().toString());
+      
+      console.log("Redirecionando para:", url.toString());
+      
+      disconnectTimeoutRef.current = window.setTimeout(() => {
+        window.location.href = url.toString();
+      }, 500);
+      
+    } catch (error) {
+      console.error("Erro ao desconectar:", error);
+      
+      if (!force) {
+        toast({
+          title: "Erro ao desconectar",
+          description: "Não foi possível remover a integração com Supabase. Erro: " + (error instanceof Error ? error.message : String(error)),
+          variant: "destructive"
+        });
+      }
+      
+      sessionStorage.removeItem(DISCONNECTION_FLAG);
+      sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
+      
+    } finally {
+      if (!force) {
+        setIsDisconnecting(false);
+      }
+    }
+  };
+
+  const handleDisconnect = () => executeDisconnect();
 
   const isConnected = connectionStatus === 'connected' || connectionStatus === 'success' || connectionStatus === 'testing';
 
   const getStatusIndicator = () => {
-    switch (connectionStatus) {
-      case 'testing':
+    if (connectionStatus === 'testing') {
+      return <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />;
+    } else if (connectionStatus === 'success') {
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
+    } else if (connectionStatus === 'error') {
+      return <AlertCircle className="h-4 w-4 text-red-500" />;
+    } else if (connectionStatus === 'connected') {
+      if (usingDefaultClient) {
         return (
-          <div className="flex items-center gap-2 text-amber-500">
-            <RefreshCw size={18} className="animate-spin" />
-            <span className="font-medium">Testando conexão...</span>
+          <div className="flex items-center">
+            <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
+            <span className="text-xs text-muted-foreground">(padrão)</span>
           </div>
         );
-      case 'success':
-        return (
-          <div className="flex items-center gap-2 text-green-600">
-            <CheckCircle size={18} />
-            <span className="font-medium">Conexão verificada com sucesso!</span>
-          </div>
-        );
-      case 'error':
-        return (
-          <div className="flex items-center gap-2 text-red-600">
-            <AlertCircle size={18} />
-            <span className="font-medium">Erro na conexão</span>
-          </div>
-        );
-      case 'connected':
-        return (
-          <div className="flex items-center gap-2 text-green-600">
-            <Database size={18} />
-            <span className="font-medium">Conectado ao Supabase</span>
-          </div>
-        );
-      default:
-        return null;
+      }
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
     }
+    return null;
   };
 
-  // Função para obter a classe CSS apropriada com base no status da conexão
   const getConnectionStatusClass = () => {
     if (connectionStatus === 'success') {
       return 'bg-green-500/10 border-green-500/30';
@@ -303,28 +575,86 @@ const SupabaseIntegration = () => {
     }
   };
 
-  // SQL para criar a tabela tasks
   const createTableSQL = `
--- Criar tabela de tarefas
-CREATE TABLE tasks (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  title TEXT NOT NULL,
-  description TEXT,
-  urgency INTEGER NOT NULL,
-  importance INTEGER NOT NULL,
-  quadrant INTEGER NOT NULL,
-  completed BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  completed_at TIMESTAMP WITH TIME ZONE,
-  tags TEXT[],
-  user_id UUID
-);
+  CREATE TABLE tasks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    description TEXT,
+    urgency INTEGER NOT NULL,
+    importance INTEGER NOT NULL,
+    quadrant INTEGER NOT NULL,
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    completed_at TIMESTAMP WITH TIME ZONE,
+    tags TEXT[],
+    user_id UUID
+  );
 
--- Opcional: criar índices para melhorar performance de consultas
-CREATE INDEX idx_tasks_user_id ON tasks(user_id);
-CREATE INDEX idx_tasks_quadrant ON tasks(quadrant);
-CREATE INDEX idx_tasks_completed ON tasks(completed);
+  CREATE INDEX idx_tasks_user_id ON tasks(user_id);
+  CREATE INDEX idx_tasks_quadrant ON tasks(quadrant);
+  CREATE INDEX idx_tasks_completed ON tasks(completed);
   `;
+
+  const handleRetrySyncAfterError = () => {
+    setSyncError(null);
+    handleSyncData(true);
+  };
+  
+  const handleLogin = async () => {
+    try {
+      if (signInWithGoogle) {
+        await signInWithGoogle();
+        toast({
+          title: "Login realizado",
+          description: "Agora você pode sincronizar suas tarefas."
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      toast({
+        title: "Erro no login",
+        description: "Não foi possível fazer login. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const checkSavedTasks = async () => {
+    setIsCheckingTasks(true);
+    
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact' });
+        
+      if (error) {
+        console.error('Erro ao verificar tarefas:', error);
+        toast({
+          title: "Erro ao verificar tarefas",
+          description: "Não foi possível verificar as tarefas salvas.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setSavedTasksCount(data?.length || 0);
+      
+      toast({
+        title: "Verificação concluída",
+        description: `Você tem ${data?.length || 0} tarefa(s) salva(s) no Supabase.`
+      });
+      
+    } catch (error) {
+      console.error('Erro ao verificar tarefas:', error);
+      toast({
+        title: "Erro na verificação",
+        description: "Ocorreu um erro ao verificar as tarefas.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCheckingTasks(false);
+    }
+  };
 
   return (
     <div>
@@ -381,15 +711,24 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
               variant="outline"
               size="sm"
               onClick={handleDisconnect}
+              disabled={isDisconnecting}
               className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
             >
-              Desconectar
+              {isDisconnecting ? (
+                <>
+                  <RefreshCw size={14} className="mr-1 animate-spin" /> Desconectando...
+                </>
+              ) : (
+                <>
+                  Desconectar
+                </>
+              )}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={handleTestConnection}
-              disabled={isTesting}
+              disabled={isTesting || isDisconnecting}
               className="text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
             >
               {isTesting ? (
@@ -403,8 +742,8 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
             <Button
               size="sm"
               className="flex items-center gap-1"
-              onClick={handleSyncData}
-              disabled={isSyncing || (dbSetupResult && !dbSetupResult.success)}
+              onClick={() => handleSyncData(false)}
+              disabled={isSyncing || isDisconnecting || (dbSetupResult && !dbSetupResult.success)}
             >
               {isSyncing ? (
                 <>
@@ -416,7 +755,30 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
                 </>
               )}
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={checkSavedTasks}
+              disabled={isCheckingTasks || !isConnected}
+              className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
+            >
+              {isCheckingTasks ? (
+                <>
+                  <RefreshCw size={14} className="mr-1 animate-spin" /> Verificando...
+                </>
+              ) : (
+                <>
+                  <Database className="h-4 w-4 mr-1" /> Verificar Tarefas Salvas
+                </>
+              )}
+            </Button>
           </div>
+          
+          {savedTasksCount > 0 && (
+            <p className="text-sm text-muted-foreground mt-3">
+              Você tem {savedTasksCount} tarefa(s) salva(s) no Supabase.
+            </p>
+          )}
         </div>
       ) : (
         <form onSubmit={handleConnect} className="space-y-4">
@@ -471,15 +833,12 @@ CREATE INDEX idx_tasks_completed ON tasks(completed);
           error={{
             message: syncError.message,
             details: { details: syncError.details },
-            status: 500, // Assumindo erro interno do servidor
+            status: 500,
             method: "SYNC",
             path: "/tasks",
             timestamp: new Date().toISOString()
           }}
-          onRetry={() => {
-            setSyncError(null);
-            handleSyncData();
-          }}
+          onRetry={handleRetrySyncAfterError}
           className="mb-4"
         />
       )}
