@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -191,13 +190,17 @@ export const syncTasks = async (localTasks: LocalTask[]) => {
       const formattedTasks = formatTasksForSupabase(localTasks);
       console.log("Tarefas formatadas para sincronização:", formattedTasks);
 
+      // Verificar se o usuário está autenticado para obter o ID real
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUserId = session?.user?.id;
+      
       // Preparar tarefas com IDs e timestamps válidos
       const tasksToUpsert = formattedTasks.map(task => ({
         ...task,
         id: task.id || generateUUID(), // Garante um UUID válido
         created_at: task.created_at || new Date().toISOString(),
-        // Defina user_id como 'anonymous-user' se não estiver definido
-        user_id: task.user_id || 'anonymous-user'
+        // Usar ID do usuário atual se autenticado, ou o UUID gerado para 'anonymous-user'
+        user_id: currentUserId || task.user_id
       }));
       
       // Inserir todas as tarefas com upsert
@@ -213,11 +216,11 @@ export const syncTasks = async (localTasks: LocalTask[]) => {
         if (insertError.code === '42501' || insertError.message.includes('violates row-level security')) {
           console.log('Tentando sincronizar sem policy de RLS...');
           
-          // Tentativa alternativa - remover a verificação de user_id se for um problema de RLS
+          // Tentativa alternativa - usar null para user_id se for um problema de RLS
           const { data: insertedWithoutRLS, error: secondError } = await supabase
             .from('tasks')
             .upsert(
-              tasksToUpsert.map(t => ({...t, user_id: 'anonymous-user'})),
+              tasksToUpsert.map(t => ({...t, user_id: null})),
               { onConflict: 'id' }
             )
             .select();
@@ -331,7 +334,7 @@ function isValidUUID(id: string): boolean {
   return uuidRegex.test(id);
 }
 
-// Modificar a função formatTasksForSupabase para incluir o ID do usuário
+// Modificar a função formatTasksForSupabase para gerar um UUID aleatório para usuários anônimos
 function formatTasksForSupabase(localTasks: LocalTask[]): Task[] {
   return localTasks.map(task => {
     // Garantir que temos um ID de tarefa válido
@@ -376,6 +379,11 @@ function formatTasksForSupabase(localTasks: LocalTask[]): Task[] {
     const quadrant = typeof task.quadrant === 'number' ? task.quadrant : 
                     (task.quadrant ? Number(task.quadrant) : 4);
     
+    // Gerar UUID para usuário anônimo
+    const userId = isValidUUID(task.user_id || '') 
+      ? task.user_id 
+      : generateUUID();
+    
     // Garantir que os campos obrigatórios estão presentes
     const formattedTask: Task = {
       id: taskId,
@@ -388,7 +396,7 @@ function formatTasksForSupabase(localTasks: LocalTask[]): Task[] {
       created_at,
       completed_at,
       tags: Array.isArray(task.tags) ? task.tags : [],
-      user_id: task.user_id || 'anonymous-user' // Usar 'anonymous-user' por padrão
+      user_id: userId // Usar UUID gerado ou existente
     };
     
     return formattedTask;

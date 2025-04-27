@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Check, Calendar as CalendarIcon, CheckCircle, RefreshCw, ExternalLink, LogOut, AlertCircle, AlertTriangle, X } from 'lucide-react';
-import { Task } from '@/services/googleCalendar';
 import { 
   loadGoogleApiScript, 
   initializeGoogleApi,
@@ -17,7 +15,7 @@ import {
 import './styles.css';
 
 // Use service for syncing tasks
-import { syncTasksWithCalendar } from '@/services/googleCalendar';
+import { syncTasksWithCalendar, Task } from '@/services/googleCalendar';
 
 interface GoogleCalendarSyncProps {
   tasks: Task[];

@@ -8,7 +8,9 @@ import { formatDate } from '@/utils/dateUtils';
 import { getTasks } from '@/services/database';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
+import { Task as DatabaseTask } from '@/services/types';
 
+// Define uma interface local para a Task que será usada no dashboard
 interface Task {
   id: string;
   title: string;
@@ -17,21 +19,21 @@ interface Task {
   importance: number;
   quadrant: number;
   completed: boolean;
-  created_at: string;
-  completed_at?: string | null;
+  createdAt: Date;
+  completedAt: Date | null;
 }
 
 // Função para converter os dados do formato do banco para o formato usado no dashboard
-const convertTasksFormat = (tasks: Task[]) => {
+const convertTasksFormat = (tasks: DatabaseTask[]): Task[] => {
   return tasks.map(task => ({
-    id: task.id,
-    title: task.title,
+    id: task.id || '',
+    title: task.title || '',
     description: task.description || '',
     urgency: task.urgency,
     importance: task.importance,
     quadrant: task.quadrant,
     completed: task.completed,
-    createdAt: new Date(task.created_at),
+    createdAt: new Date(task.created_at || new Date()),
     completedAt: task.completed_at ? new Date(task.completed_at) : null
   }));
 };
