@@ -106,7 +106,7 @@ export const checkCalendarAccess = async (): Promise<boolean> => {
       access_token: token
     });
 
-    // Tento listar os calendários como teste de permissão
+    // Lista os calendários para verificar permissão
     const response = await window.gapi.client.calendar.calendarList.list({
       maxResults: 1
     });

@@ -39,7 +39,7 @@ O Task Eagle Eye adotará uma Arquitetura em Camadas, separando claramente as re
 ## Benefícios da Nova Arquitetura
 
 - Separação clara de responsabilidades
-- Facilidade de manutenção e teste
+- Facilidade de manutenção
 - Escalabilidade melhorada
 - Reutilização de código
 - Flexibilidade para futuras expansões

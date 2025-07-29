@@ -122,7 +122,7 @@ export const determineTaskQuadrant = (urgency: number, importance: number): numb
 };
 
 /**
- * Exemplo de um Markdown que contém tarefas para teste
+ * Exemplo de um Markdown que contém tarefas
  */
 export const sampleMarkdown = `# Projeto X
 

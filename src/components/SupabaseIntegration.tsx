@@ -320,11 +320,11 @@ const SupabaseIntegration = () => {
         description: "Sua conexão com o Supabase está funcionando corretamente",
       });
     } catch (error) {
-      console.error("Erro ao testar conexão:", error);
+      console.error("Erro ao verificar conexão:", error);
       setConnectionStatus('error');
       
       toast({
-        title: "Falha no teste de conexão",
+        title: "Falha na conexão",
         description: "Não foi possível conectar ao Supabase. Verifique suas credenciais.",
         variant: "destructive",
       });

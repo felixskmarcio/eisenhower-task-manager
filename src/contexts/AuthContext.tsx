@@ -31,8 +31,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TEST_EMAIL = 'teste@example.com';
-const TEST_PASSWORD = 'senha123';
+
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -151,15 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Iniciando processo de cadastro para:', email);
       setLoading(true);
       
-      if (email === TEST_EMAIL && password === TEST_PASSWORD) {
-        toast({
-          title: "Conta de teste",
-          description: "Esta é uma conta de teste e não pode ser usada para cadastro.",
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
+
       
       const userExists = await checkIfUserExists(email);
       if (userExists) {
@@ -270,44 +261,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Iniciando processo de login para:', email);
       setLoading(true);
       
-      if (email === TEST_EMAIL && password === TEST_PASSWORD) {
-        console.log('Usando credenciais de teste');
-        const testUser = {
-          uid: 'test-user-id',
-          email: TEST_EMAIL,
-          displayName: 'Usuário de Teste',
-          photoURL: null,
-          emailVerified: true,
-          isAnonymous: false,
-          metadata: {
-            creationTime: new Date().toISOString(),
-            lastSignInTime: new Date().toISOString()
-          },
-          providerData: [],
-          refreshToken: '',
-          tenantId: null,
-          delete: () => Promise.resolve(),
-          getIdToken: () => Promise.resolve(''),
-          getIdTokenResult: () => Promise.resolve({} as any),
-          reload: () => Promise.resolve(),
-          toJSON: () => ({})
-        } as unknown as User;
-        
-        setUser(testUser);
-        setProfile({
-          id: testUser.uid,
-          nome: 'Usuário de Teste',
-          email: TEST_EMAIL
-        });
-        
-        toast({
-          title: "Login de teste realizado",
-          description: "Você está usando uma conta de teste"
-        });
-        
-        navigate('/dashboard');
-        return;
-      }
+
       
       // Tentar login no Supabase primeiro
       try {
@@ -454,13 +408,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Iniciando processo de logout');
       setLoading(true);
       
-      if (user?.email === TEST_EMAIL) {
-        console.log('Fazendo logout de usuário de teste');
-        setUser(null);
-        setProfile(null);
-        navigate('/login');
-        return;
-      }
+
       
       // Tentar logout do Supabase primeiro
       try {

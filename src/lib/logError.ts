@@ -31,7 +31,7 @@ export interface ErrorDetails {
   };
 }
 
-// Armazenamento de erros em memória (para debug e análise)
+// Armazenamento de erros em memória para análise
 const errorHistory: ErrorDetails[] = [];
 const MAX_ERROR_HISTORY = 20;
 
@@ -140,4 +140,4 @@ export default {
   formatErrorForClipboard,
   copyErrorToClipboard,
   ErrorType
-}; 
+};
