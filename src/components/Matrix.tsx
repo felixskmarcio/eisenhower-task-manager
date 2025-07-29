@@ -1197,7 +1197,7 @@ export const Matrix = () => {
 
           <TabsContent value="concluidas">
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Tarefas Concluídas</h2>
+            <h2 className="text-2xl font-bold drop-shadow-sm" style={{ color: 'var(--color-accent)' }}>Tarefas Concluídas</h2>
             <div className="grid gap-3">
               {tasks
                 .filter(task => task.completed)
@@ -1211,7 +1211,7 @@ export const Matrix = () => {
 
           <TabsContent value="todas">
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#50fa7b] drop-shadow-sm">Todas as Tarefas</h2>
+            <h2 className="text-2xl font-bold drop-shadow-sm" style={{ color: 'var(--color-accent)' }}>Todas as Tarefas</h2>
             <div className="grid gap-3">
               {tasks
                 .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
