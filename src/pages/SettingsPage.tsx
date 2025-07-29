@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Moon, Sun, Palette, Calendar as CalendarIcon, Database, Save, FileText, User, Key, Bell, ChevronRight, Eye, EyeOff } from "lucide-react";
-import MarkdownImport from '@/components/MarkdownImport';
+import { Settings, Moon, Sun, Palette, Calendar as CalendarIcon, Database, Save, User, Key, Bell, ChevronRight, Eye, EyeOff } from "lucide-react";
+
 import SupabaseIntegration from '@/components/SupabaseIntegration';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -137,19 +137,7 @@ const SettingsPage = () => {
           <SupabaseIntegration />
         </Card>
         
-        <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
-          <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
-            <FileText className="h-5 w-5 text-primary" />
-            Importar Arquivos Markdown
-          </h2>
-          <Separator className="my-4" />
-          
-          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            Importe arquivos Markdown (.md ou .markdown) diretamente para a Matriz de Eisenhower.
-          </p>
-          
-          <MarkdownImport />
-        </Card>
+
         
         <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
           <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
