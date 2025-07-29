@@ -870,16 +870,7 @@ export const Matrix = () => {
     );
   };
 
-  // Botão de ação flutuante para criar novas tarefas em dispositivos móveis
-  const FloatingActionButton = ({ onClick }: { onClick: () => void }) => (
-    <button
-      onClick={onClick}
-      className="btn btn-primary btn-circle fixed right-6 bottom-6 shadow-xl floating-button btn-gradient btn-primary-gradient"
-      aria-label="Adicionar nova tarefa"
-    >
-      <Plus size={24} />
-    </button>
-  );
+
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -1255,7 +1246,7 @@ export const Matrix = () => {
       )}
 
       {/* Botão de ação flutuante para dispositivos móveis */}
-      <FloatingActionButton onClick={() => setIsAddModalOpen(true)} />
+      
       
       {/* Modal de confirmação de exclusão personalizado */}
       {isDeleteDialogOpen && taskToDelete && (

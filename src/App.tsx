@@ -23,7 +23,7 @@ import Landing from "./pages/Landing";
 import './styles/index.css';
 import './styles/settings.css';
 import './styles/loading.css';
-import DebugTools from '@/components/DebugTools'
+
 import ErrorBoundary from './components/ErrorBoundary';
 import GlobalErrorHandler from './components/GlobalErrorHandler';
 import LoadingScreen from './components/LoadingScreen';
@@ -117,7 +117,7 @@ const AppContent = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-            {process.env.NODE_ENV === 'development' && <DebugTools />}
+    
             <GlobalErrorHandler />
           </TooltipProvider>
         </TagProvider>
