@@ -2,7 +2,14 @@
   "name": "task-eagle-eye",
   "private": false,
   "description": "Um gerenciador de tarefas moderno baseado na Matriz de Eisenhower",
-  "keywords": ["task-manager", "eisenhower-matrix", "productivity", "react", "typescript", "vite"],
+  "keywords": [
+    "task-manager",
+    "eisenhower-matrix",
+    "productivity",
+    "react",
+    "typescript",
+    "vite"
+  ],
   "author": "Seu Nome <seu.email@exemplo.com>",
   "license": "MIT",
   "repository": {
@@ -59,6 +66,7 @@
     "@types/dompurify": "^3.0.5",
     "@types/gapi": "^0.0.47",
     "@types/gapi.client.calendar": "^3.0.12",
+    "@vercel/speed-insights": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",

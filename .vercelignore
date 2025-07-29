@@ -1,0 +1,65 @@
+# Dependencies
+node_modules
+
+# Development files
+src
+
+# Build tools
+vite.config.ts
+tsconfig.json
+tsconfig.app.json
+tsconfig.node.json
+postcss.config.js
+tailwind.config.ts
+eslint.config.js
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+SECURITY.md
+docs/
+
+# Scripts
+*.ps1
+*.sh
+
+# Docker
+Dockerfile
+docker-compose.yml
+nginx.conf
+
+# Other
+components.css
+styles.css
+components/
+styles/
+pages/
+supabase/
+.github/
+bun.lockb
+package-lock.json
