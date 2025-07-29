@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussões da Comunidade
+    url: https://github.com/felixskmarcio/eisenhower-task-manager/discussions
+    about: Faça perguntas e discuta ideias com a comunidade
+  - name: 🔒 Relatório de Segurança
+    url: https://github.com/felixskmarcio/eisenhower-task-manager/security/advisories/new
+    about: Reporte vulnerabilidades de segurança de forma privada
+  - name: 📧 Contato Direto
+    url: mailto:felixskmarcio@gmail.com
+    about: Entre em contato diretamente para questões sensíveis

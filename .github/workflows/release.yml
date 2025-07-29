@@ -1,0 +1,411 @@
+name: 🏷️ Release Automation
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.2.3)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
+      draft:
+        description: 'Create as draft'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+permissions:
+  contents: write
+  pull-requests: read
+  issues: read
+
+jobs:
+  # Job 1: Preparar release
+  prepare-release:
+    name: 📋 Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      previous_tag: ${{ steps.version.outputs.previous_tag }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: 🏷️ Extract version info
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+            IS_PRERELEASE="${{ github.event.inputs.prerelease }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+            # Detectar se é prerelease (contém alpha, beta, rc, etc.)
+            if [[ "$VERSION" =~ (alpha|beta|rc|dev|pre) ]]; then
+              IS_PRERELEASE="true"
+            else
+              IS_PRERELEASE="false"
+            fi
+          fi
+          
+          # Encontrar a tag anterior
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          echo "Version: $VERSION"
+          echo "Previous tag: $PREVIOUS_TAG"
+          echo "Is prerelease: $IS_PRERELEASE"
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          
+      - name: 📝 Generate changelog
+        id: changelog
+        run: |
+          echo "📝 Generating changelog..."
+          
+          VERSION="${{ steps.version.outputs.version }}"
+          PREVIOUS_TAG="${{ steps.version.outputs.previous_tag }}"
+          
+          # Cabeçalho do changelog
+          CHANGELOG="## 🚀 Release $VERSION\n\n"
+          
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            CHANGELOG+="**Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...$VERSION\n\n"
+            
+            # Obter PRs mergeados entre as tags
+            echo "Getting merged PRs between $PREVIOUS_TAG and $VERSION..."
+            
+            # Commits entre as tags
+            COMMITS=$(git log --oneline --no-merges "$PREVIOUS_TAG..HEAD" --pretty=format:"%h %s")
+            
+            # Categorizar mudanças
+            FEATURES=""
+            FIXES=""
+            DOCS=""
+            CHORES=""
+            OTHERS=""
+            
+            while IFS= read -r commit; do
+              if [[ -n "$commit" ]]; then
+                HASH=$(echo "$commit" | cut -d' ' -f1)
+                MESSAGE=$(echo "$commit" | cut -d' ' -f2-)
+                
+                # Categorizar baseado no tipo de commit (Conventional Commits)
+                if [[ "$MESSAGE" =~ ^feat(\(.+\))?:.*$ ]]; then
+                  FEATURES+="- $MESSAGE ($HASH)\n"
+                elif [[ "$MESSAGE" =~ ^fix(\(.+\))?:.*$ ]]; then
+                  FIXES+="- $MESSAGE ($HASH)\n"
+                elif [[ "$MESSAGE" =~ ^docs(\(.+\))?:.*$ ]]; then
+                  DOCS+="- $MESSAGE ($HASH)\n"
+                elif [[ "$MESSAGE" =~ ^(chore|ci|build|style|refactor|test)(\(.+\))?:.*$ ]]; then
+                  CHORES+="- $MESSAGE ($HASH)\n"
+                else
+                  OTHERS+="- $MESSAGE ($HASH)\n"
+                fi
+              fi
+            done <<< "$COMMITS"
+            
+            # Adicionar seções ao changelog
+            if [[ -n "$FEATURES" ]]; then
+              CHANGELOG+="### 🚀 New Features\n$FEATURES\n"
+            fi
+            
+            if [[ -n "$FIXES" ]]; then
+              CHANGELOG+="### 🐛 Bug Fixes\n$FIXES\n"
+            fi
+            
+            if [[ -n "$DOCS" ]]; then
+              CHANGELOG+="### 📚 Documentation\n$DOCS\n"
+            fi
+            
+            if [[ -n "$CHORES" ]]; then
+              CHANGELOG+="### 🔧 Maintenance\n$CHORES\n"
+            fi
+            
+            if [[ -n "$OTHERS" ]]; then
+              CHANGELOG+="### 📦 Other Changes\n$OTHERS\n"
+            fi
+          else
+            CHANGELOG+="🎉 Initial release!\n\n"
+            CHANGELOG+="This is the first release of the Eisenhower Task Manager.\n\n"
+          fi
+          
+          # Adicionar informações adicionais
+          CHANGELOG+="\n---\n\n"
+          CHANGELOG+="### 📊 Release Information\n"
+          CHANGELOG+="- **Release Date**: $(date -u +%Y-%m-%d)\n"
+          CHANGELOG+="- **Commit**: \`${{ github.sha }}\`\n"
+          CHANGELOG+="- **Built with**: Node.js ${{ env.NODE_VERSION }}, pnpm ${{ env.PNPM_VERSION }}\n"
+          
+          if [[ "${{ steps.version.outputs.is_prerelease }}" == "true" ]]; then
+            CHANGELOG+="\n⚠️ **This is a pre-release version**. Use with caution in production environments.\n"
+          fi
+          
+          CHANGELOG+="\n*Generated by RepoGuardian AI 🤖*"
+          
+          # Salvar changelog em arquivo
+          echo -e "$CHANGELOG" > changelog.md
+          
+          # Escapar para output do GitHub
+          CHANGELOG_ESCAPED=$(echo -e "$CHANGELOG" | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/"/\\"/g')
+          echo "changelog=$CHANGELOG_ESCAPED" >> $GITHUB_OUTPUT
+          
+      - name: 📊 Upload changelog
+        uses: actions/upload-artifact@v3
+        with:
+          name: changelog
+          path: changelog.md
+
+  # Job 2: Build release assets
+  build-assets:
+    name: 🏗️ Build Release Assets
+    runs-on: ubuntu-latest
+    needs: [prepare-release]
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: 🧪 Run tests
+        run: pnpm test
+        
+      - name: 🏗️ Build application
+        run: pnpm build
+        
+      - name: 📦 Create release archive
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          
+          # Criar arquivo de informações da build
+          echo "{
+            \"version\": \"$VERSION\",
+            \"buildTime\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"commit\": \"${{ github.sha }}\",
+            \"tag\": \"$VERSION\",
+            \"isPrerelease\": ${{ needs.prepare-release.outputs.is_prerelease }}
+          }" > dist/release-info.json
+          
+          # Criar arquivo ZIP
+          cd dist
+          zip -r "../eisenhower-task-manager-$VERSION.zip" .
+          cd ..
+          
+          # Criar arquivo tar.gz
+          tar -czf "eisenhower-task-manager-$VERSION.tar.gz" -C dist .
+          
+          # Informações dos arquivos
+          ls -la *.zip *.tar.gz
+          
+      - name: 📊 Upload release assets
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-assets
+          path: |
+            *.zip
+            *.tar.gz
+            dist/
+
+  # Job 3: Create GitHub Release
+  create-release:
+    name: 🏷️ Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [prepare-release, build-assets]
+    outputs:
+      release_id: ${{ steps.create_release.outputs.id }}
+      release_url: ${{ steps.create_release.outputs.html_url }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📥 Download release assets
+        uses: actions/download-artifact@v3
+        with:
+          name: release-assets
+          
+      - name: 📥 Download changelog
+        uses: actions/download-artifact@v3
+        with:
+          name: changelog
+          
+      - name: 🏷️ Create GitHub Release
+        id: create_release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            const version = '${{ needs.prepare-release.outputs.version }}';
+            const isPrerelease = '${{ needs.prepare-release.outputs.is_prerelease }}' === 'true';
+            const isDraft = '${{ github.event.inputs.draft }}' === 'true';
+            
+            // Ler changelog
+            const changelog = fs.readFileSync('changelog.md', 'utf8');
+            
+            // Criar release
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: version,
+              name: `Release ${version}`,
+              body: changelog,
+              draft: isDraft,
+              prerelease: isPrerelease,
+              generate_release_notes: false
+            });
+            
+            console.log(`Created release: ${release.data.html_url}`);
+            
+            // Upload assets
+            const assets = [
+              `eisenhower-task-manager-${version}.zip`,
+              `eisenhower-task-manager-${version}.tar.gz`
+            ];
+            
+            for (const asset of assets) {
+              if (fs.existsSync(asset)) {
+                console.log(`Uploading asset: ${asset}`);
+                
+                const uploadAsset = await github.rest.repos.uploadReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: release.data.id,
+                  name: asset,
+                  data: fs.readFileSync(asset)
+                });
+                
+                console.log(`Uploaded: ${uploadAsset.data.name}`);
+              }
+            }
+            
+            return {
+              id: release.data.id,
+              html_url: release.data.html_url,
+              upload_url: release.data.upload_url
+            };
+
+  # Job 4: Post-release actions
+  post-release:
+    name: 📢 Post-release Actions
+    runs-on: ubuntu-latest
+    needs: [prepare-release, create-release]
+    if: always() && needs.create-release.result == 'success'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📢 Announce release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const version = '${{ needs.prepare-release.outputs.version }}';
+            const releaseUrl = '${{ needs.create-release.outputs.release_url }}';
+            const isPrerelease = '${{ needs.prepare-release.outputs.is_prerelease }}' === 'true';
+            
+            // Criar discussão sobre o release (se não for prerelease)
+            if (!isPrerelease) {
+              try {
+                const discussion = await github.rest.teams.createDiscussionInOrg({
+                  org: context.repo.owner,
+                  team_slug: 'developers',
+                  title: `🚀 Release ${version} is now available!`,
+                  body: `
+                  ## 🎉 New Release Available!
+                  
+                  **Version**: ${version}
+                  **Release Notes**: ${releaseUrl}
+                  
+                  Please update your local environments and test the new features.
+                  
+                  If you encounter any issues, please report them in our [Issues](https://github.com/${context.repo.owner}/${context.repo.repo}/issues) section.
+                  
+                  *Automated by RepoGuardian AI 🤖*
+                  `
+                });
+                
+                console.log('Created team discussion for release announcement');
+              } catch (error) {
+                console.log('Could not create team discussion:', error.message);
+              }
+            }
+            
+            console.log(`Release ${version} announced successfully!`);
+            
+      - name: 🏷️ Update version tags
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          
+          # Extrair major.minor da versão
+          if [[ "$VERSION" =~ ^v([0-9]+)\.([0-9]+)\. ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            
+            # Criar/atualizar tags de major e minor (apenas para releases estáveis)
+            if [[ "${{ needs.prepare-release.outputs.is_prerelease }}" == "false" ]]; then
+              git config user.name "RepoGuardian AI"
+              git config user.email "action@github.com"
+              
+              # Tag major (v1, v2, etc.)
+              git tag -f "v$MAJOR" "$VERSION"
+              git push origin "v$MAJOR" --force
+              
+              # Tag major.minor (v1.2, v1.3, etc.)
+              git tag -f "v$MAJOR.$MINOR" "$VERSION"
+              git push origin "v$MAJOR.$MINOR" --force
+              
+              echo "Updated version tags: v$MAJOR, v$MAJOR.$MINOR"
+            fi
+          fi
+          
+      - name: ✅ Release summary
+        run: |
+          echo "🎉 Release completed successfully!"
+          echo "Version: ${{ needs.prepare-release.outputs.version }}"
+          echo "Release URL: ${{ needs.create-release.outputs.release_url }}"
+          echo "Is Prerelease: ${{ needs.prepare-release.outputs.is_prerelease }}"
+          echo "Release ID: ${{ needs.create-release.outputs.release_id }}"
+
+  # Job 5: Cleanup
+  cleanup:
+    name: 🧹 Cleanup
+    runs-on: ubuntu-latest
+    needs: [post-release]
+    if: always()
+    
+    steps:
+      - name: 🧹 Clean up artifacts
+        run: |
+          echo "🧹 Cleaning up temporary files and artifacts..."
+          # Aqui você pode adicionar lógica para limpar recursos temporários
+          echo "Cleanup completed"

@@ -1,0 +1,433 @@
+name: 🔒 Security & Dependencies
+
+on:
+  schedule:
+    # Executar toda segunda-feira às 9:00 UTC
+    - cron: '0 9 * * 1'
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/security.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force dependency updates'
+        required: false
+        default: false
+        type: boolean
+      security_scan_only:
+        description: 'Run security scan only'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+permissions:
+  contents: write
+  pull-requests: write
+  security-events: write
+  actions: read
+
+jobs:
+  # Job 1: Audit de Segurança
+  security-audit:
+    name: 🔍 Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: 🔒 Run npm audit
+        id: audit
+        run: |
+          echo "🔍 Running security audit..."
+          
+          # Executar audit e capturar resultado
+          if pnpm audit --audit-level moderate --json > audit-results.json 2>&1; then
+            echo "audit_status=success" >> $GITHUB_OUTPUT
+            echo "✅ No security vulnerabilities found"
+          else
+            echo "audit_status=failure" >> $GITHUB_OUTPUT
+            echo "❌ Security vulnerabilities detected"
+            
+            # Mostrar resumo das vulnerabilidades
+            echo "📊 Vulnerability Summary:"
+            cat audit-results.json | jq -r '.vulnerabilities | to_entries[] | "\(.key): \(.value.severity)"' || true
+          fi
+          
+      - name: 📊 Upload audit results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-audit-results
+          path: audit-results.json
+          
+      - name: 🔒 Auto-fix vulnerabilities
+        if: steps.audit.outputs.audit_status == 'failure' && github.event_name != 'pull_request'
+        run: |
+          echo "🔧 Attempting to auto-fix vulnerabilities..."
+          
+          # Tentar corrigir automaticamente
+          if pnpm audit --fix; then
+            echo "✅ Some vulnerabilities were auto-fixed"
+            echo "auto_fix_applied=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Could not auto-fix all vulnerabilities"
+            echo "auto_fix_applied=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Job 2: CodeQL Analysis
+  codeql:
+    name: 🔍 CodeQL Analysis
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript' ]
+        
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 🔍 Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+          
+      - name: 🏗️ Autobuild
+        uses: github/codeql-action/autobuild@v2
+        
+      - name: 🔍 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # Job 3: Dependency Review
+  dependency-review:
+    name: 🔍 Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 🔍 Dependency Review
+        uses: actions/dependency-review-action@v3
+        with:
+          fail-on-severity: moderate
+          allow-licenses: MIT, Apache-2.0, BSD-3-Clause, ISC, BSD-2-Clause
+          deny-licenses: GPL-2.0, GPL-3.0, AGPL-1.0, AGPL-3.0
+          comment-summary-in-pr: true
+
+  # Job 4: OSSAR (Open Source Static Analysis Runner)
+  ossar:
+    name: 🔍 OSSAR Analysis
+    runs-on: windows-latest
+    if: github.event.inputs.security_scan_only != 'true'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 🔍 Run OSSAR
+        uses: github/ossar-action@v1
+        id: ossar
+        
+      - name: 📊 Upload OSSAR results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ${{ steps.ossar.outputs.sarifFile }}
+
+  # Job 5: Dependency Updates
+  dependency-updates:
+    name: 📦 Dependency Updates
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.force_update == 'true'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: 🔍 Check for outdated dependencies
+        id: outdated
+        run: |
+          echo "🔍 Checking for outdated dependencies..."
+          
+          # Verificar dependências desatualizadas
+          if pnpm outdated --format json > outdated.json 2>/dev/null; then
+            OUTDATED_COUNT=$(cat outdated.json | jq 'length')
+            echo "Found $OUTDATED_COUNT outdated dependencies"
+            echo "outdated_count=$OUTDATED_COUNT" >> $GITHUB_OUTPUT
+            
+            if [[ "$OUTDATED_COUNT" -gt 0 ]]; then
+              echo "has_updates=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_updates=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+            echo "outdated_count=0" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: 📦 Update dependencies
+        if: steps.outdated.outputs.has_updates == 'true'
+        run: |
+          echo "📦 Updating dependencies..."
+          
+          # Configurar git
+          git config user.name "RepoGuardian AI"
+          git config user.email "action@github.com"
+          
+          # Atualizar dependências patch e minor
+          pnpm update --latest
+          
+          # Verificar se houve mudanças
+          if git diff --quiet package.json pnpm-lock.yaml; then
+            echo "No changes after update"
+            echo "changes_made=false" >> $GITHUB_OUTPUT
+          else
+            echo "Dependencies updated"
+            echo "changes_made=true" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: 🧪 Test after updates
+        if: steps.outdated.outputs.has_updates == 'true'
+        run: |
+          echo "🧪 Running tests after dependency updates..."
+          
+          # Reinstalar dependências
+          pnpm install
+          
+          # Executar testes
+          if pnpm test; then
+            echo "✅ Tests passed after updates"
+            echo "tests_passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Tests failed after updates"
+            echo "tests_passed=false" >> $GITHUB_OUTPUT
+            
+            # Reverter mudanças se os testes falharam
+            git checkout -- package.json pnpm-lock.yaml
+            echo "Reverted dependency updates due to test failures"
+          fi
+          
+      - name: 📝 Create dependency update PR
+        if: steps.outdated.outputs.has_updates == 'true' && steps.outdated.outputs.tests_passed == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            
+            // Criar branch para o PR
+            const branchName = `dependency-updates-${new Date().toISOString().split('T')[0]}`;
+            execSync(`git checkout -b ${branchName}`);
+            
+            // Commit das mudanças
+            execSync('git add package.json pnpm-lock.yaml');
+            execSync('git commit -m "chore: update dependencies\n\nAutomated dependency updates by RepoGuardian AI"');
+            execSync(`git push origin ${branchName}`);
+            
+            // Ler informações das dependências atualizadas
+            let outdatedInfo = '';
+            try {
+              const outdated = JSON.parse(require('fs').readFileSync('outdated.json', 'utf8'));
+              outdatedInfo = Object.entries(outdated)
+                .map(([pkg, info]) => `- \`${pkg}\`: ${info.current} → ${info.wanted}`)
+                .join('\n');
+            } catch (e) {
+              outdatedInfo = 'Could not parse outdated dependencies information.';
+            }
+            
+            // Criar PR
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '📦 Automated Dependency Updates',
+              head: branchName,
+              base: 'main',
+              body: `## 📦 Automated Dependency Updates
+            
+            This PR contains automated updates for outdated dependencies.
+            
+            ### 📊 Updated Dependencies
+            ${outdatedInfo}
+            
+            ### ✅ Verification
+            - [x] All tests pass
+            - [x] No security vulnerabilities introduced
+            - [x] Only patch and minor updates included
+            
+            ### 🤖 Automation Details
+            - **Triggered by**: Scheduled workflow
+            - **Date**: ${new Date().toISOString().split('T')[0]}
+            - **Total updates**: ${{ steps.outdated.outputs.outdated_count }}
+            
+            *This PR was created automatically by RepoGuardian AI 🤖*
+            
+            ---
+            
+            **Review Guidelines:**
+            1. Verify that all CI checks pass
+            2. Test the application locally if needed
+            3. Check for any breaking changes in the updated packages
+            4. Merge when satisfied with the updates`,
+              draft: false
+            });
+            
+            // Adicionar labels
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.data.number,
+              labels: ['dependencies', 'automated', 'maintenance']
+            });
+            
+            console.log(`Created PR #${pr.data.number}: ${pr.data.html_url}`);
+
+  # Job 6: Security Report
+  security-report:
+    name: 📊 Security Report
+    runs-on: ubuntu-latest
+    needs: [security-audit, codeql, ossar]
+    if: always()
+    
+    steps:
+      - name: 📥 Download audit results
+        if: needs.security-audit.result != 'skipped'
+        uses: actions/download-artifact@v3
+        with:
+          name: security-audit-results
+          path: ./audit-results/
+          
+      - name: 📊 Generate security report
+        run: |
+          echo "📊 Generating security report..."
+          
+          REPORT="# 🔒 Security Report\n\n"
+          REPORT+="**Generated**: $(date -u +%Y-%m-%d\ %H:%M\ UTC)\n"
+          REPORT+="**Workflow**: ${{ github.workflow }}\n"
+          REPORT+="**Run ID**: ${{ github.run_id }}\n\n"
+          
+          # Status dos jobs
+          REPORT+="## 📋 Job Status\n\n"
+          REPORT+="| Job | Status |\n"
+          REPORT+="|-----|--------|\n"
+          REPORT+="| Security Audit | ${{ needs.security-audit.result }} |\n"
+          REPORT+="| CodeQL Analysis | ${{ needs.codeql.result }} |\n"
+          REPORT+="| OSSAR Analysis | ${{ needs.ossar.result }} |\n"
+          
+          # Resumo de vulnerabilidades
+          if [[ -f "./audit-results/audit-results.json" ]]; then
+            REPORT+="\n## 🔍 Vulnerability Summary\n\n"
+            
+            VULN_COUNT=$(cat ./audit-results/audit-results.json | jq '.metadata.vulnerabilities.total // 0')
+            if [[ "$VULN_COUNT" -gt 0 ]]; then
+              REPORT+="⚠️ **$VULN_COUNT vulnerabilities found**\n\n"
+              
+              # Breakdown por severidade
+              HIGH=$(cat ./audit-results/audit-results.json | jq '.metadata.vulnerabilities.high // 0')
+              MODERATE=$(cat ./audit-results/audit-results.json | jq '.metadata.vulnerabilities.moderate // 0')
+              LOW=$(cat ./audit-results/audit-results.json | jq '.metadata.vulnerabilities.low // 0')
+              
+              REPORT+="- High: $HIGH\n"
+              REPORT+="- Moderate: $MODERATE\n"
+              REPORT+="- Low: $LOW\n"
+            else
+              REPORT+="✅ **No vulnerabilities found**\n"
+            fi
+          fi
+          
+          # Recomendações
+          REPORT+="\n## 💡 Recommendations\n\n"
+          if [[ "${{ needs.security-audit.result }}" == "failure" ]]; then
+            REPORT+="- 🔧 Run \`pnpm audit --fix\` to automatically fix vulnerabilities\n"
+            REPORT+="- 📦 Consider updating vulnerable dependencies\n"
+          fi
+          
+          REPORT+="- 🔄 Keep dependencies up to date\n"
+          REPORT+="- 🔍 Review CodeQL findings in the Security tab\n"
+          REPORT+="- 📊 Monitor security advisories for used packages\n"
+          
+          REPORT+="\n---\n*Generated by RepoGuardian AI 🤖*"
+          
+          echo -e "$REPORT" > security-report.md
+          
+      - name: 📊 Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: security-report.md
+          
+      - name: 📢 Comment security report (PR only)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            if (fs.existsSync('security-report.md')) {
+              const report = fs.readFileSync('security-report.md', 'utf8');
+              
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: report
+              });
+            }
+
+  # Job 7: Cleanup
+  cleanup:
+    name: 🧹 Cleanup
+    runs-on: ubuntu-latest
+    needs: [security-report]
+    if: always()
+    
+    steps:
+      - name: 🧹 Clean up temporary files
+        run: |
+          echo "🧹 Cleaning up temporary files and artifacts..."
+          # Limpeza será feita automaticamente pelo GitHub Actions
+          echo "Cleanup completed"

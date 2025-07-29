@@ -1,12 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { InfoIcon, PlayCircle, ArrowRight, LogIn, Mail, Phone, MapPin, Github, Linkedin, Twitter } from 'lucide-react';
+import { InfoIcon, PlayCircle, ArrowRight, LogIn, Mail, Phone, MapPin, Github, Linkedin, Twitter, Send, User, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import AppLogo from '@/components/ui/app-logo';
 
 const Landing = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simular envio do formulário
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setSubmitStatus('success');
+      setFormData({ name: '', email: '', message: '' });
+    } catch (error) {
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setSubmitStatus('idle'), 3000);
+    }
+  };
   return (
     <main className="min-h-screen bg-base-100 py-12 md:py-20 relative">
       {/* Plano de fundo com gradiente e efeito */}
@@ -131,121 +163,260 @@ const Landing = () => {
         
         {/* Seção de Contato */}
         <section className="mb-16" aria-labelledby="contact-heading">
-          <div className="text-center mb-12">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
             <h2 id="contact-heading" className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Entre em Contato
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Tem dúvidas ou sugestões? Estamos aqui para ajudar você a maximizar sua produtividade.
             </p>
-          </div>
+          </motion.div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Email */}
-            <Card className="bg-card/60 backdrop-blur-sm transition-transform hover:scale-105">
-              <CardHeader className="text-center">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Mail className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle className="text-lg">Email</CardTitle>
-                <CardDescription>
-                  <a 
-                     href="mailto:felixskmarcio2@gmail.com" 
-                     className="text-primary hover:text-primary/80 transition-colors"
-                     aria-label="Enviar email para felixskmarcio2@gmail.com"
-                   >
-                     felixskmarcio2@gmail.com
-                   </a>
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            {/* Telefone */}
-            <Card className="bg-card/60 backdrop-blur-sm transition-transform hover:scale-105">
-              <CardHeader className="text-center">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Phone className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle className="text-lg">Telefone</CardTitle>
-                <CardDescription>
-                  <a 
-                     href="tel:+5582998274851" 
-                     className="text-primary hover:text-primary/80 transition-colors"
-                     aria-label="Ligar para +55 82 9.9827-4851"
-                   >
-                     +55 82 9.9827-4851
-                   </a>
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            {/* Localização */}
-            <Card className="bg-card/60 backdrop-blur-sm transition-transform hover:scale-105 md:col-span-2 lg:col-span-1">
-              <CardHeader className="text-center">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle className="text-lg">Localização</CardTitle>
-                <CardDescription>
-                   Penedo, AL<br />
-                   Brasil
-                 </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-          
-          {/* Redes Sociais */}
-          <div className="mt-12 text-center">
-            <h3 className="text-xl font-semibold text-foreground mb-6">Siga-nos nas Redes Sociais</h3>
-            <div className="flex justify-center gap-4">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
-                asChild
-              >
-                <a 
-                  href="https://github.com/felixskmarcio?tab=repositories" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  aria-label="Seguir no GitHub"
-                >
-                  <Github className="h-5 w-5" />
-                </a>
-              </Button>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            {/* Informações de Contato */}
+            <motion.div 
+              className="space-y-6"
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <div className="mb-8">
+                <h3 className="text-2xl font-semibold text-foreground mb-4">Informações de Contato</h3>
+                <p className="text-muted-foreground">
+                  Entre em contato conosco através dos canais abaixo ou envie uma mensagem diretamente.
+                </p>
+              </div>
               
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
-                asChild
-              >
-                <a 
-                  href="https://www.linkedin.com/in/marcio-eduardo-felixbr-0010a530/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  aria-label="Seguir no LinkedIn"
-                >
-                  <Linkedin className="h-5 w-5" />
-                </a>
-              </Button>
+              <div className="grid gap-4">
+                {/* Email */}
+                <Card className="bg-card/60 backdrop-blur-sm border-l-4 border-l-primary hover:shadow-lg transition-all duration-300">
+                  <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mr-4">
+                      <Mail className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Email</CardTitle>
+                      <CardDescription>
+                        <a 
+                           href="mailto:felixskmarcio2@gmail.com" 
+                           className="text-primary hover:text-primary/80 transition-colors font-medium"
+                           aria-label="Enviar email para felixskmarcio2@gmail.com"
+                         >
+                           felixskmarcio2@gmail.com
+                         </a>
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                </Card>
+                
+                {/* Telefone */}
+                <Card className="bg-card/60 backdrop-blur-sm border-l-4 border-l-primary hover:shadow-lg transition-all duration-300">
+                  <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mr-4">
+                      <Phone className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Telefone</CardTitle>
+                      <CardDescription>
+                        <a 
+                           href="tel:+5582998274851" 
+                           className="text-primary hover:text-primary/80 transition-colors font-medium"
+                           aria-label="Ligar para +55 82 9.9827-4851"
+                         >
+                           +55 82 9.9827-4851
+                         </a>
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                </Card>
+                
+                {/* Localização */}
+                <Card className="bg-card/60 backdrop-blur-sm border-l-4 border-l-primary hover:shadow-lg transition-all duration-300">
+                  <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mr-4">
+                      <MapPin className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Localização</CardTitle>
+                      <CardDescription className="font-medium">
+                         Penedo, AL<br />
+                         Brasil
+                       </CardDescription>
+                    </div>
+                  </CardHeader>
+                </Card>
+              </div>
               
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
-                asChild
-              >
-                <a 
-                  href="https://x.com/felixskmarcio2" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  aria-label="Seguir no Twitter"
-                >
-                  <Twitter className="h-5 w-5" />
-                </a>
-              </Button>
-            </div>
+              {/* Redes Sociais */}
+              <div className="mt-8">
+                <h4 className="text-lg font-semibold text-foreground mb-4">Conecte-se Conosco</h4>
+                <div className="flex gap-3">
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="rounded-full hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:scale-110"
+                    asChild
+                  >
+                    <a 
+                      href="https://github.com/felixskmarcio?tab=repositories" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      aria-label="Seguir no GitHub"
+                    >
+                      <Github className="h-5 w-5" />
+                    </a>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="rounded-full hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:scale-110"
+                    asChild
+                  >
+                    <a 
+                      href="https://www.linkedin.com/in/marcio-eduardo-felixbr-0010a530/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      aria-label="Seguir no LinkedIn"
+                    >
+                      <Linkedin className="h-5 w-5" />
+                    </a>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="rounded-full hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:scale-110"
+                    asChild
+                  >
+                    <a 
+                      href="https://x.com/felixskmarcio2" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      aria-label="Seguir no Twitter"
+                    >
+                      <Twitter className="h-5 w-5" />
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+            
+            {/* Formulário de Contato */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              <Card className="bg-card/60 backdrop-blur-sm border-2 border-primary/20 hover:border-primary/40 transition-all duration-300">
+                <CardHeader>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <MessageSquare className="h-5 w-5 text-primary" />
+                    </div>
+                    <CardTitle className="text-xl">Envie uma Mensagem</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Preencha o formulário abaixo e entraremos em contato em breve.
+                  </CardDescription>
+                </CardHeader>
+                
+                <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-sm font-medium">Nome Completo</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="name"
+                        name="name"
+                        type="text"
+                        placeholder="Seu nome completo"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="pl-10 h-11"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="pl-10 h-11"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="message" className="text-sm font-medium">Mensagem</Label>
+                    <Textarea
+                      id="message"
+                      name="message"
+                      placeholder="Escreva sua mensagem aqui..."
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      className="min-h-[120px] resize-none"
+                      required
+                    />
+                  </div>
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 gap-2 font-medium"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        Enviar Mensagem
+                      </>
+                    )}
+                  </Button>
+                  
+                  {submitStatus === 'success' && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-green-600 text-sm text-center font-medium"
+                    >
+                      ✓ Mensagem enviada com sucesso!
+                    </motion.div>
+                  )}
+                  
+                  {submitStatus === 'error' && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-red-600 text-sm text-center font-medium"
+                    >
+                      ✗ Erro ao enviar mensagem. Tente novamente.
+                    </motion.div>
+                  )}
+                </form>
+              </Card>
+            </motion.div>
           </div>
         </section>
         

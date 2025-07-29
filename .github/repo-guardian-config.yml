@@ -1,0 +1,261 @@
+# Configuração do RepoGuardian AI
+# Este arquivo define as regras de automação para o repositório
+
+# Regras para Issues
+issue_rules:
+  # Regras de labels automáticas
+  - if_title_contains: ['bug', 'erro', 'falha', 'problema']
+    then_add_label: 'bug'
+    then_add_label: 'priority:high'
+    then_add_to_project: 'Bug Tracking'
+  
+  - if_title_contains: ['feature', 'funcionalidade', 'novo', 'adicionar']
+    then_add_label: 'enhancement'
+    then_add_label: 'priority:medium'
+    then_add_to_project: 'Feature Development'
+  
+  - if_title_contains: ['docs', 'documentação', 'readme']
+    then_add_label: 'documentation'
+    then_add_label: 'priority:low'
+  
+  - if_title_contains: ['performance', 'otimização', 'lento']
+    then_add_label: 'performance'
+    then_add_label: 'priority:medium'
+  
+  - if_title_contains: ['security', 'segurança', 'vulnerabilidade']
+    then_add_label: 'security'
+    then_add_label: 'priority:critical'
+
+  # Verificação de template
+  - if_missing_template_sections: ['Descrição', 'Passos para reproduzir', 'Comportamento esperado']
+    then_comment: |
+      Olá! 👋
+      
+      Para garantir a clareza e agilizar a resolução, esta Issue precisa seguir nosso template padrão.
+      
+      **Checklist para uma boa Issue:**
+      - [ ] Título descritivo e claro
+      - [ ] Descrição detalhada do problema/solicitação
+      - [ ] Passos para reproduzir (para bugs)
+      - [ ] Comportamento esperado vs atual
+      - [ ] Ambiente (navegador, SO, versão)
+      
+      Por favor, edite esta Issue para incluir as informações em falta.
+      
+      *Labels adicionadas automaticamente pelo RepoGuardian AI* 🤖
+    then_add_label: 'status:needs-info'
+
+# Regras para Pull Requests
+pr_rules:
+  # Verificação de Conventional Commits
+  - if_title_not_matches: '^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)(\(.+\))?: .+$'
+    then_comment: |
+      ⚠️ **Título do PR não segue o padrão Conventional Commits**
+      
+      Por favor, ajuste o título para seguir o formato:
+      `tipo(escopo): descrição`
+      
+      **Tipos válidos:**
+      - `feat`: Nova funcionalidade
+      - `fix`: Correção de bug
+      - `docs`: Documentação
+      - `style`: Formatação/estilo
+      - `refactor`: Refatoração
+      - `test`: Testes
+      - `chore`: Tarefas de manutenção
+      - `perf`: Melhorias de performance
+      - `ci`: CI/CD
+      - `build`: Build/dependências
+      
+      **Exemplo:** `feat(auth): adicionar autenticação com Google`
+    then_add_label: 'status:needs-review'
+  
+  # Verificação de referência a Issue
+  - if_description_not_contains: ['#', 'closes', 'fixes', 'resolves']
+    then_comment: |
+      📋 **Referência a Issue**
+      
+      Este PR não parece referenciar uma Issue relacionada.
+      
+      Por favor, adicione uma referência usando:
+      - `Closes #123` - para fechar a Issue automaticamente
+      - `Fixes #123` - para correções de bugs
+      - `Resolves #123` - para resoluções gerais
+      - `Related to #123` - para PRs relacionados
+    then_add_label: 'status:needs-info'
+  
+  # Verificação de tamanho do PR
+  - if_changes_exceed: 500
+    then_comment: |
+      📏 **PR Grande Detectado**
+      
+      Este PR contém muitas alterações (>500 linhas).
+      
+      **Recomendações:**
+      - Considere dividir em PRs menores
+      - Adicione uma descrição detalhada das mudanças
+      - Inclua testes adequados
+      - Solicite revisão de múltiplos desenvolvedores
+    then_add_label: 'size:large'
+    then_add_label: 'priority:high'
+  
+  # Auto-aprovação para mudanças menores
+  - if_changes_only: ['*.md', '*.txt', 'docs/**']
+    and_if_author_is: ['dependabot', 'renovate']
+    then_add_label: 'auto-merge'
+    then_comment: |
+      ✅ **Auto-aprovação para documentação**
+      
+      Este PR contém apenas alterações em documentação e foi criado por um bot confiável.
+      Será mesclado automaticamente após as verificações de CI passarem.
+
+# Automação de Releases
+release_automation:
+  # Trigger para criação de release
+  trigger_on_tag: 'v*.*.*'
+  
+  # Categorização do changelog
+  categorize_by_labels:
+    - title: '🚀 Novas Funcionalidades'
+      labels: ['enhancement', 'feature']
+      emoji: '✨'
+    
+    - title: '🐛 Correções de Bugs'
+      labels: ['bug', 'fix']
+      emoji: '🔧'
+    
+    - title: '📚 Documentação'
+      labels: ['documentation', 'docs']
+      emoji: '📖'
+    
+    - title: '⚡ Performance'
+      labels: ['performance', 'perf']
+      emoji: '🚀'
+    
+    - title: '🔒 Segurança'
+      labels: ['security']
+      emoji: '🛡️'
+    
+    - title: '🧹 Manutenção'
+      labels: ['chore', 'refactor']
+      emoji: '🔨'
+    
+    - title: '🧪 Testes'
+      labels: ['test']
+      emoji: '✅'
+    
+    - title: '🏗️ Build/CI'
+      labels: ['ci', 'build']
+      emoji: '⚙️'
+  
+  # Configurações do release
+  release_settings:
+    draft: true
+    prerelease: false
+    generate_release_notes: true
+    mention_maintainers: ['@felixskmarcio']
+    include_contributors: true
+
+# Configurações de notificação
+notifications:
+  # Canais de notificação
+  channels:
+    slack:
+      webhook_url: '${SLACK_WEBHOOK_URL}'
+      channel: '#dev-notifications'
+    
+    discord:
+      webhook_url: '${DISCORD_WEBHOOK_URL}'
+  
+  # Eventos para notificar
+  events:
+    - 'issue_opened'
+    - 'pr_opened'
+    - 'pr_merged'
+    - 'release_published'
+    - 'security_alert'
+
+# Configurações de qualidade
+quality_gates:
+  # Verificações obrigatórias
+  required_checks:
+    - 'ci/build'
+    - 'ci/test'
+    - 'ci/lint'
+    - 'security/scan'
+  
+  # Cobertura de testes mínima
+  min_test_coverage: 80
+  
+  # Verificações de segurança
+  security_checks:
+    - 'dependency_scan'
+    - 'code_scan'
+    - 'secret_scan'
+
+# Configurações de automação
+automation:
+  # Auto-merge para dependabot
+  auto_merge:
+    enabled: true
+    conditions:
+      - author: 'dependabot[bot]'
+      - checks_passed: true
+      - labels_include: ['dependencies']
+      - changes_only: ['package.json', 'package-lock.json', 'yarn.lock']
+  
+  # Stale issues/PRs
+  stale_management:
+    enabled: true
+    days_until_stale: 30
+    days_until_close: 7
+    stale_label: 'stale'
+    exempt_labels: ['pinned', 'security', 'priority:critical']
+    stale_comment: |
+      Esta Issue/PR está inativa há 30 dias e será fechada em 7 dias se não houver atividade.
+      
+      Se ainda for relevante, por favor comente ou atualize para manter aberta.
+
+# Configurações de métricas
+metrics:
+  # Métricas a serem coletadas
+  collect:
+    - 'issue_resolution_time'
+    - 'pr_merge_time'
+    - 'code_review_time'
+    - 'release_frequency'
+    - 'bug_rate'
+    - 'test_coverage'
+  
+  # Relatórios automáticos
+  reports:
+    weekly:
+      enabled: true
+      day: 'monday'
+      recipients: ['@felixskmarcio']
+    
+    monthly:
+      enabled: true
+      day: 1
+      include_charts: true
+
+# Configurações de segurança
+security:
+  # Verificações automáticas
+  auto_security_updates: true
+  
+  # Alertas de segurança
+  security_alerts:
+    enabled: true
+    severity_threshold: 'medium'
+    auto_create_issues: true
+  
+  # Verificação de secrets
+  secret_scanning:
+    enabled: true
+    patterns:
+      - 'api_key'
+      - 'secret_key'
+      - 'password'
+      - 'token'
+      - 'private_key'
