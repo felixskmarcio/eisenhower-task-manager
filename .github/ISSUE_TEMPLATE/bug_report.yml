@@ -1,0 +1,123 @@
+name: 🐛 Bug Report
+description: Reporte um bug para nos ajudar a melhorar
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por reportar este bug! Por favor, preencha as informações abaixo para nos ajudar a entender e corrigir o problema.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição do Bug
+      description: Uma descrição clara e concisa do bug.
+      placeholder: Descreva o que aconteceu...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para Reproduzir
+      description: Passos para reproduzir o comportamento
+      placeholder: |
+        1. Vá para '...'
+        2. Clique em '...'
+        3. Role para baixo até '...'
+        4. Veja o erro
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento Esperado
+      description: Uma descrição clara e concisa do que você esperava que acontecesse.
+      placeholder: Descreva o que deveria acontecer...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamento Atual
+      description: Uma descrição clara e concisa do que realmente aconteceu.
+      placeholder: Descreva o que realmente aconteceu...
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Se aplicável, adicione screenshots para ajudar a explicar o problema.
+      placeholder: Cole suas screenshots aqui...
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Navegador
+      description: Qual navegador você estava usando?
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - Opera
+        - Outro
+    validations:
+      required: true
+
+  - type: input
+    id: browser-version
+    attributes:
+      label: Versão do Navegador
+      description: Qual versão do navegador você estava usando?
+      placeholder: ex. 91.0.4472.124
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Sistema Operacional
+      description: Qual sistema operacional você estava usando?
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - iOS
+        - Android
+        - Outro
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Dispositivo
+      description: Qual dispositivo você estava usando?
+      placeholder: ex. iPhone 12, Samsung Galaxy S21, Desktop
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Contexto Adicional
+      description: Adicione qualquer outro contexto sobre o problema aqui.
+      placeholder: Qualquer informação adicional que possa ser útil...
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      description: Por favor, confirme que você:
+      options:
+        - label: Procurei por issues similares antes de criar esta
+          required: true
+        - label: Testei na versão mais recente
+          required: true
+        - label: Li o guia de contribuição
+          required: true

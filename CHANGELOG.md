@@ -5,6 +5,39 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Unreleased]
+
+### Adicionado
+- 📄 Documentação completa para projeto open source
+- 📋 Código de Conduta (CODE_OF_CONDUCT.md) baseado no Contributor Covenant
+- 🤝 Guia de Contribuição (CONTRIBUTING.md) detalhado
+- 🎯 Templates para Issues (bug report e feature request)
+- 🔄 Template para Pull Requests
+- ⚖️ Licença MIT
+- 📊 Badges informativos no README
+- 🚀 Instruções de deploy para Vercel e Netlify
+- 📱 Informações sobre PWA e uso mobile
+- 🎨 Seção de tecnologias com badges visuais
+
+### Alterado
+- 📖 README.md completamente reescrito com:
+  - Matriz de Eisenhower explicada
+  - Funcionalidades detalhadas por categoria
+  - Instruções de instalação expandidas
+  - Guia de uso com exemplos práticos
+  - Roadmap do projeto
+  - Links para documentação
+- 📦 package.json atualizado com:
+  - Nome alterado de "vite_react_shadcn_ts" para "task-eagle-eye"
+  - Metadados do projeto (descrição, keywords, autor)
+  - Links para repositório e issues
+  - Configuração para publicação (private: false)
+
+### Técnico
+- 🏗️ Estrutura de arquivos organizada para projeto open source
+- 📁 Criação da pasta .github/ com templates
+- 🔧 Configuração adequada para contribuições da comunidade
+
 ## [1.3.0] - 2025-07-29
 
 ### Adicionado
