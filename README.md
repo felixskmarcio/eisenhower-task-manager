@@ -1,6 +1,8 @@
 # 🦅 Task Eagle Eye
 
 <div align="center">
+  <img src=".github/PrintScreens/dashboard.png" alt="Task Eagle Eye - Dashboard" width="800" />
+  
   <p><strong>Gerencie suas tarefas com a precisão de uma águia</strong></p>
   
   <p>Um gerenciador de tarefas moderno baseado na Matriz de Eisenhower, projetado para maximizar sua produtividade e facilitar a organização pessoal.</p>
@@ -154,6 +156,11 @@ npm run start
 - 🔔 **Notificações inteligentes** - Receba lembretes no momento certo
 - 🔄 **Sincronização em nuvem** - Acesse suas tarefas em qualquer dispositivo
 - 🤝 **Colaboração em equipe** - Compartilhe projetos e delegue tarefas
+
+### 💝 Apoie o Projeto
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub-pink.svg)](https://github.com/felixskmarcio)
+[![PayPal](https://img.shields.io/badge/PayPal-00457C?style=flat&logo=paypal&logoColor=white)](https://www.paypal.com/invoice/p/#7VXJY445W6S2VG2L)
 
 ## 🤝 Contribuição
 
