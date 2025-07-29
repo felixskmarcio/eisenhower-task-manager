@@ -602,8 +602,13 @@ export const Matrix = () => {
     e.stopPropagation();
   };
 
-  // Componente simplificado para a tarefa
-  const TaskCard = ({ task }: { task: Task }) => {
+  // Componente otimizado para a tarefa
+  const TaskCard = React.memo(({ task, isTimerActive, timeLeft, taskTimeSpent }: { 
+    task: Task; 
+    isTimerActive: boolean; 
+    timeLeft?: number; 
+    taskTimeSpent: { [key: string]: number }; 
+  }) => {
     return (
       <div 
         className={`matrix-card mb-2 ${task.completed ? 'opacity-60' : ''}`}
@@ -633,26 +638,21 @@ export const Matrix = () => {
               
               {/* Conteúdo principal */}
               <div className="flex-1 min-w-0">
-                <motion.h4 
-                  className={`task-title ${
+                <h4 
+                  className={`font-bold text-md tracking-tight truncate ${
                     task.completed 
                       ? 'line-through text-gray-400' 
-                      : 'task-title-gradient task-title-animated task-title-fade-in'
-                  } ${
-                    !task.completed && (
-                      task.urgency > 7 
-                        ? 'task-title-high-priority' 
-                        : task.urgency > 4 
-                          ? 'task-title-medium-priority' 
-                          : 'task-title-low-priority'
-                    )
-                  } font-bold text-md tracking-tight truncate`}
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
+                      : ''
+                  }`}
+                  style={{
+                    color: task.completed ? undefined : 
+                      task.urgency > 7 ? 'var(--color-high-priority)' :
+                      task.urgency > 4 ? 'var(--color-medium-priority)' :
+                      'var(--color-low-priority)'
+                  }}
                 >
                   {task.title}
-                </motion.h4>
+                </h4>
                 
                 {task.description && (
                   <p className="text-xs mt-1 text-base-content/70 line-clamp-2 leading-snug">
@@ -729,7 +729,9 @@ export const Matrix = () => {
         </div>
       </div>
     );
-  };
+  });
+
+  TaskCard.displayName = 'TaskCard';
 
   const BarChart = () => {
     const maxValue = Math.max(...salesData);
@@ -975,7 +977,13 @@ export const Matrix = () => {
           </div>
         ) : (
           filteredTasks.map(task => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard 
+              key={task.id} 
+              task={task} 
+              isTimerActive={activeTimer === task.id}
+              timeLeft={timeLeft}
+              taskTimeSpent={taskTimeSpent}
+            />
           ))
         )}
       </div>
@@ -1194,7 +1202,13 @@ export const Matrix = () => {
                 .filter(task => task.completed)
                 .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
                 .map(task => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard 
+                    key={task.id} 
+                    task={task} 
+                    isTimerActive={activeTimer === task.id}
+                    timeLeft={timeLeft}
+                    taskTimeSpent={taskTimeSpent}
+                  />
                 ))}
             </div>
           </div>
@@ -1207,7 +1221,13 @@ export const Matrix = () => {
               {tasks
                 .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
                 .map(task => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard 
+                    key={task.id} 
+                    task={task} 
+                    isTimerActive={activeTimer === task.id}
+                    timeLeft={timeLeft}
+                    taskTimeSpent={taskTimeSpent}
+                  />
                 ))}
             </div>
           </div>
