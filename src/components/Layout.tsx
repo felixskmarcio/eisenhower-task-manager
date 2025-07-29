@@ -80,8 +80,13 @@ const Layout = ({
               {user ? (
                 <>
                   <AnimatedNavigationTabs items={navItems} />
-                  <Button variant="ghost" size="sm" onClick={signOut} className="ml-2 text-muted-foreground hover:text-destructive">
-                    <LogOut className="h-4 w-4 mr-1" />
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={signOut} 
+                    className="ml-2 flex items-center gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
                     <span className="hidden sm:inline">Sair</span>
                   </Button>
                 </>
@@ -123,4 +128,4 @@ const Layout = ({
   );
 };
 
-export default Layout;
+export default Layout; 

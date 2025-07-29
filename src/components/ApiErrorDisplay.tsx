@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Copy, Check, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -124,4 +125,4 @@ const ApiErrorDisplay: React.FC<ApiErrorDisplayProps> = ({
   );
 };
 
-export default ApiErrorDisplay; 
+export default ApiErrorDisplay;

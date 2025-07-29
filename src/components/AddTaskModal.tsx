@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Tag, AlertTriangle, Calendar as CalendarIcon } from 'lucide-react';
@@ -49,6 +48,7 @@ const AddTaskModal = ({
 }: AddTaskModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTitleFocused, setIsTitleFocused] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -57,11 +57,18 @@ const AddTaskModal = ({
     
     setIsSubmitting(true);
     
-    // Simulando um pequeno atraso para feedback visual
     setTimeout(() => {
       onAddTask();
       setIsSubmitting(false);
     }, 300);
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setNewTask({
+      ...newTask, 
+      start_date: date ? date.toISOString() : null
+    });
+    setTimeout(() => setCalendarOpen(false), 100);
   };
 
   const getUrgencyColor = (value: number) => {
@@ -78,14 +85,17 @@ const AddTaskModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={`sm:max-w-[500px] ${isDarkMode ? 'bg-gray-900 text-gray-100 border-gray-700' : 'bg-white text-black border-gray-200'}`}>
+      <DialogContent className={`sm:max-w-[95%] md:max-w-[600px] lg:max-w-[700px] h-auto max-h-[90vh] overflow-y-auto ${
+        isDarkMode ? 'bg-gray-900 text-gray-100 border-gray-700' : 'bg-white text-black border-gray-200'
+      }`}>
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.3 }}
+          className="space-y-4"
         >
-          <DialogHeader>
+          <DialogHeader className="space-y-2">
             <DialogTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Nova Tarefa
             </DialogTitle>
@@ -94,7 +104,7 @@ const AddTaskModal = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-2">
             <div className="grid gap-2">
               <div className="flex items-center gap-2">
                 <Label htmlFor="title" className="text-sm font-medium">
@@ -192,7 +202,7 @@ const AddTaskModal = ({
               <Label htmlFor="start-date" className="text-sm font-medium">
                 Data de Início (Opcional)
               </Label>
-              <Popover>
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     id="start-date"
@@ -211,12 +221,13 @@ const AddTaskModal = ({
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
                   <Calendar
                     mode="single"
                     selected={newTask.start_date ? new Date(newTask.start_date) : undefined}
-                    onSelect={(date) => setNewTask({...newTask, start_date: date ? date.toISOString() : null})}
+                    onSelect={handleDateSelect}
                     initialFocus
+                    className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
@@ -234,99 +245,91 @@ const AddTaskModal = ({
               )}
             </div>
 
-            <motion.div 
-              className="grid gap-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="flex items-center justify-between">
-                <Label htmlFor="urgency" className="text-sm font-medium">
-                  Urgência
-                </Label>
-                <div className="flex items-center gap-1">
-                  <TaskIcon name="urgent" size={14} className={
-                    newTask.urgency > 7 
-                      ? 'text-red-500' 
-                      : newTask.urgency > 4 
-                      ? 'text-yellow-500' 
-                      : 'text-green-500'
-                  } />
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold 
-                    ${newTask.urgency > 7 
-                      ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' 
-                      : newTask.urgency > 4 
-                      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' 
-                      : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'}`}
-                  >
-                    {newTask.urgency}/10
-                  </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <motion.div className="grid gap-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="urgency" className="text-sm font-medium">
+                    Urgência
+                  </Label>
+                  <div className="flex items-center gap-1">
+                    <TaskIcon name="urgent" size={14} className={
+                      newTask.urgency > 7 
+                        ? 'text-red-500' 
+                        : newTask.urgency > 4 
+                        ? 'text-yellow-500' 
+                        : 'text-green-500'
+                    } />
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold 
+                      ${newTask.urgency > 7 
+                        ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' 
+                        : newTask.urgency > 4 
+                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' 
+                        : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'}`}
+                    >
+                      {newTask.urgency}/10
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="px-1 pt-2">
-                <Slider
-                  id="urgency"
-                  min={1}
-                  max={10}
-                  step={1}
-                  value={[newTask.urgency]}
-                  onValueChange={(value) => setNewTask({...newTask, urgency: value[0]})}
-                  className="py-1"
-                />
-                <div className="w-full flex justify-between mt-1 text-xs text-muted-foreground">
-                  <span>Baixa</span>
-                  <span>Média</span>
-                  <span>Alta</span>
+                <div className="px-1 pt-2">
+                  <Slider
+                    id="urgency"
+                    min={1}
+                    max={10}
+                    step={1}
+                    value={[newTask.urgency]}
+                    onValueChange={(value) => setNewTask({...newTask, urgency: value[0]})}
+                    className="py-1"
+                  />
+                  <div className="w-full flex justify-between mt-1 text-xs text-muted-foreground">
+                    <span>Baixa</span>
+                    <span>Média</span>
+                    <span>Alta</span>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
 
-            <motion.div 
-              className="grid gap-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="flex items-center justify-between">
-                <Label htmlFor="importance" className="text-sm font-medium">
-                  Importância
-                </Label>
-                <div className="flex items-center gap-1">
-                  <TaskIcon name="important" size={14} className={
-                    newTask.importance > 7 
-                      ? 'text-blue-500' 
-                      : newTask.importance > 4 
-                      ? 'text-indigo-500' 
-                      : 'text-purple-500'
-                  } />
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold 
-                    ${newTask.importance > 7 
-                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' 
-                      : newTask.importance > 4 
-                      ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300' 
-                      : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'}`}
-                  >
-                    {newTask.importance}/10
-                  </span>
+              <motion.div className="grid gap-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="importance" className="text-sm font-medium">
+                    Importância
+                  </Label>
+                  <div className="flex items-center gap-1">
+                    <TaskIcon name="important" size={14} className={
+                      newTask.importance > 7 
+                        ? 'text-blue-500' 
+                        : newTask.importance > 4 
+                        ? 'text-indigo-500' 
+                        : 'text-purple-500'
+                    } />
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold 
+                      ${newTask.importance > 7 
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' 
+                        : newTask.importance > 4 
+                        ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300' 
+                        : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'}`}
+                    >
+                      {newTask.importance}/10
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="px-1 pt-2">
-                <Slider
-                  id="importance"
-                  min={1}
-                  max={10}
-                  step={1}
-                  value={[newTask.importance]}
-                  onValueChange={(value) => setNewTask({...newTask, importance: value[0]})}
-                  className="py-1"
-                />
-                <div className="w-full flex justify-between mt-1 text-xs text-muted-foreground">
-                  <span>Baixa</span>
-                  <span>Média</span>
-                  <span>Alta</span>
+                <div className="px-1 pt-2">
+                  <Slider
+                    id="importance"
+                    min={1}
+                    max={10}
+                    step={1}
+                    value={[newTask.importance]}
+                    onValueChange={(value) => setNewTask({...newTask, importance: value[0]})}
+                    className="py-1"
+                  />
+                  <div className="w-full flex justify-between mt-1 text-xs text-muted-foreground">
+                    <span>Baixa</span>
+                    <span>Média</span>
+                    <span>Alta</span>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
 
             <div className="grid gap-2">
               <Label className="text-sm font-medium">Tags</Label>
@@ -346,7 +349,12 @@ const AddTaskModal = ({
             <Button 
               variant="outline" 
               onClick={onClose}
-              className={isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}
+              className={`
+                ${isDarkMode 
+                  ? 'hover:bg-gray-800 bg-gray-700 text-gray-300' 
+                  : 'hover:bg-gray-100 bg-gray-200 text-gray-700'}
+                border-transparent
+              `}
             >
               Cancelar
             </Button>
