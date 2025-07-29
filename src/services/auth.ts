@@ -1,5 +1,7 @@
 import { 
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -30,11 +32,13 @@ const loginAttempts: Record<string, number> = {};
 const errorMessages: Record<string, string> = {
   'auth/popup-closed-by-user': 'A janela de autenticação foi fechada antes da conclusão.',
   'auth/cancelled-popup-request': 'A operação de login foi cancelada.',
-  'auth/popup-blocked': 'O popup de login foi bloqueado pelo navegador.',
+  'auth/popup-blocked': 'O popup de login foi bloqueado pelo navegador. Permita popups para este site ou tente novamente.',
   'auth/network-request-failed': 'Falha na conexão de rede. Verifique sua internet.',
   'auth/user-disabled': 'Esta conta de usuário foi desativada.',
   'auth/unauthorized-domain': 'Este domínio não está autorizado para operações de login.',
   'auth/invalid-api-key': 'A chave API do Firebase é inválida.',
+  'auth/api-key-not-valid': 'Chave API do Firebase inválida. Verifique a configuração do projeto.',
+  'auth/api-key-not-valid.-please-pass-a-valid-api-key': 'Chave API do Firebase inválida. Verifique a configuração do projeto.',
   'auth/operation-not-allowed': 'O método de login com Google não está habilitado.',
   'auth/account-exists-with-different-credential': 'Uma conta já existe com o mesmo email mas usando diferentes credenciais.',
   'auth/email-already-in-use': 'Este email já está sendo usado por outra conta.',
@@ -181,11 +185,67 @@ export const signInWithEmail = async (email: string, password: string): Promise<
   );
 };
 
+// Função para login com redirecionamento (fallback quando popup é bloqueado)
+export const signInWithGoogleRedirect = async (): Promise<void> => {
+  try {
+    await signInWithRedirect(auth, googleProvider);
+  } catch (error) {
+    const authError = error as AuthError;
+    console.error('Erro no redirecionamento Google:', authError);
+    
+    const friendlyMessage = errorMessages[authError.code] || 
+                            'Não foi possível redirecionar para o Google.';
+    
+    toast({
+      title: "Erro na Conexão",
+      description: friendlyMessage,
+      variant: "destructive"
+    });
+    
+    throw authError;
+  }
+};
+
+// Função para processar o resultado do redirecionamento
+export const handleRedirectResult = async (): Promise<User | null> => {
+  try {
+    const result = await getRedirectResult(auth);
+    
+    if (result) {
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const token = credential?.accessToken;
+      
+      if (token) {
+        sessionStorage.setItem('googleAccessToken', token);
+      }
+      
+      return result.user;
+    }
+    
+    return null;
+  } catch (error) {
+    const authError = error as AuthError;
+    console.error('Erro ao processar resultado do redirecionamento:', authError);
+    
+    const friendlyMessage = errorMessages[authError.code] || 
+                            'Erro ao processar login do Google.';
+    
+    toast({
+      title: "Erro na Conexão",
+      description: friendlyMessage,
+      variant: "destructive"
+    });
+    
+    throw authError;
+  }
+};
+
 export const signInWithGoogle = async (): Promise<User | null> => {
   return applyRateLimit(
     'auth:google',
     async () => {
       try {
+        // Primeiro, tentar com popup
         const result = await signInWithPopup(auth, googleProvider);
         const credential = GoogleAuthProvider.credentialFromResult(result);
         const token = credential?.accessToken;
@@ -198,6 +258,13 @@ export const signInWithGoogle = async (): Promise<User | null> => {
         return result.user;
       } catch (error) {
         const authError = error as AuthError;
+        
+        // Se o popup foi bloqueado, tentar com redirecionamento
+        if (authError.code === 'auth/popup-blocked') {
+          console.log('Popup bloqueado, tentando redirecionamento...');
+          await signInWithGoogleRedirect();
+          return null; // O resultado será processado após o redirecionamento
+        }
         
         // Registrar no sistema de log
         logError(authError, {

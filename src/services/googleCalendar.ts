@@ -70,7 +70,7 @@ export const initGoogleCalendarApi = (): Promise<void> => {
         // Inicializar cliente com chaves da aplicação
         await window.gapi.client.init({
           // As chaves devem ser obtidas do ambiente ou configuração
-          apiKey: process.env.REACT_APP_GOOGLE_API_KEY || window.GOOGLE_API_KEY,
+          apiKey: import.meta.env.VITE_GOOGLE_API_KEY || window.GOOGLE_API_KEY,
           discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
         });
 
@@ -101,11 +101,17 @@ export const checkCalendarAccess = async (): Promise<boolean> => {
       await initGoogleCalendarApi();
     }
 
+    // Configurar o token de acesso
+    window.gapi.client.setToken({
+      access_token: token
+    });
+
     // Tento listar os calendários como teste de permissão
-    await window.gapi.client.calendar.calendarList.list({
+    const response = await window.gapi.client.calendar.calendarList.list({
       maxResults: 1
     });
-    return true;
+    
+    return response.status === 200;
   } catch (error) {
     // Se der erro 401 ou 403, provavelmente é falta de permissão
     console.error('Erro ao verificar acesso ao calendário:', error);
@@ -329,4 +335,4 @@ export default {
   checkCalendarAccess,
   createEventFromTask,
   syncTasksWithCalendar
-}; 
+};

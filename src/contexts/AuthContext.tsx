@@ -13,7 +13,8 @@ import {
   subscribeToAuthChanges,
   resetPassword as authResetPassword,
   verifyCredentials,
-  checkIfUserExists
+  checkIfUserExists,
+  handleRedirectResult
 } from '@/services/auth';
 
 interface AuthContextType {
@@ -111,6 +112,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
+    // Verificar se há resultado de redirecionamento pendente
+    const checkRedirectResult = async () => {
+      try {
+        console.log('🔍 Checking for redirect result...');
+        const redirectUser = await handleRedirectResult();
+        if (redirectUser) {
+          console.log('✅ Redirect login successful:', redirectUser.email);
+          // O subscribeToAuthChanges já vai processar o usuário
+        }
+      } catch (error) {
+        console.error('❌ Error handling redirect result:', error);
+      }
+    };
+
     // Verificar usuário atual do Firebase
     const currentUser = getCurrentUser();
     if (currentUser) {
@@ -120,6 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       console.log('Nenhum usuário autenticado no Firebase, verificando Supabase...');
       checkSupabaseSession();
+      checkRedirectResult();
     }
     
     setLoading(false);
@@ -368,44 +384,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleGoogleSignIn = async () => {
     try {
-      console.log('Iniciando login com Google');
+      console.log('Iniciando login com Google via Firebase');
       setLoading(true);
       
-      // Tentar usar Supabase para login Google primeiro
-      try {
-        console.log('Tentando login com Google via Supabase');
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin + '/dashboard'
-          }
-        });
-        
-        if (error) {
-          console.error('Erro no login Google com Supabase:', error);
-          // Continuar para tentativa com Firebase
-        } else if (data) {
-          console.log('Login com Google via Supabase iniciado:', data);
-          // O redirecionamento deve ocorrer automaticamente
-          return;
-        }
-      } catch (supabaseError) {
-        console.error('Falha completa no login Google com Supabase:', supabaseError);
-        // Continuar para tentativa com Firebase
-      }
-      
-      // Fallback para Firebase
       const googleUser = await signInWithGoogle();
+      console.log('Usuário retornado do Firebase:', googleUser);
       
       if (googleUser) {
-        console.log('Login com Google via Firebase bem-sucedido para:', googleUser.email);
+        console.log('Login com Google realizado com sucesso via Firebase, ID:', googleUser.uid);
+        
+        // Tentar criar/atualizar perfil no Supabase
         try {
-          console.log('Atualizando perfil no Supabase');
-          const { data, error } = await supabase
-            .from('profiles')
+          console.log('Criando/atualizando perfil no Supabase para usuário do Google');
+          await supabase.from('profiles')
             .upsert({
               id: googleUser.uid,
-              nome: googleUser.displayName,
+              nome: googleUser.displayName || 'Usuário Google',
               email: googleUser.email,
               foto_url: googleUser.photoURL
             });
@@ -420,13 +414,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         
         navigate('/dashboard');
+      } else {
+        console.log('Nenhum usuário retornado do Firebase');
       }
       
     } catch (error: any) {
-      console.error('Erro no login com Google:', error);
+      console.error('Erro detalhado no login Google:', {
+        code: error.code,
+        message: error.message,
+        stack: error.stack,
+        fullError: error
+      });
+      
+      // Mensagem de erro mais específica baseada no código
+      let errorMessage = "Não foi possível fazer login com o Google. Tente novamente.";
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "A janela de login foi fechada. Tente novamente.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "O popup foi bloqueado pelo navegador. Permita popups e tente novamente.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "Domínio não autorizado. Verifique a configuração do Firebase.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Login com Google não está habilitado. Verifique a configuração.";
+      }
+      
       toast({
         title: "Erro no login",
-        description: "Não foi possível fazer login com o Google. Tente novamente.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
