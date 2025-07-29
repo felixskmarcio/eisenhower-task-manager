@@ -176,29 +176,40 @@ const Demo = () => {
       }
     }
   };
-  return <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <motion.div initial="hidden" animate="visible" variants={headerVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-600">
-            Matriz de Eisenhower
-          </h1>
-          <p className="text-muted-foreground mt-1">Versão de demonstração - Organize suas tarefas por prioridade</p>
-        </div>
-        
-        <div className="flex gap-4 mt-4 md:mt-0">
-          <Button onClick={() => setDialogOpen(true)} className="gap-2 shadow-md hover:shadow-lg transition-shadow duration-300">
-            <PlusCircle className="h-4 w-4" />
-            Nova Tarefa
-          </Button>
-          <Button asChild variant="outline" className="shadow-sm hover:shadow-md transition-shadow duration-300">
-            <Link to="/introduction" className="gap-2">
-              Saiba mais
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/50">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <motion.div initial="hidden" animate="visible" variants={headerVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12">
+          <div className="relative">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-purple-500/20 to-indigo-600/20 rounded-lg blur opacity-25"></div>
+            <div className="relative">
+              <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-600 to-indigo-600 mb-2">
+                Matriz de Eisenhower
+              </h1>
+              <p className="text-muted-foreground/80 text-lg">Versão de demonstração - Organize suas tarefas por prioridade</p>
+            </div>
+          </div>
           
-        </div>
-      </motion.div>
+          <div className="flex gap-4 mt-6 md:mt-0">
+            <Button 
+              onClick={() => setDialogOpen(true)} 
+              className="gap-2 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
+            >
+              <PlusCircle className="h-4 w-4" />
+              Nova Tarefa
+            </Button>
+            <Button 
+              asChild 
+              variant="outline" 
+              className="glass-effect border-white/20 hover:bg-white/10 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <Link to="/introduction" className="gap-2">
+                Saiba mais
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </motion.div>
 
       {/* Tutorial / Instruções */}
       <AnimatePresence>
@@ -263,26 +274,26 @@ const Demo = () => {
           </motion.div>}
       </AnimatePresence>
 
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid grid-cols-5 shadow-md">
-          <TabsTrigger value="all">Todas</TabsTrigger>
-          <TabsTrigger value="1" className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-500"></span>
-            Q1
-          </TabsTrigger>
-          <TabsTrigger value="2" className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-            Q2
-          </TabsTrigger>
-          <TabsTrigger value="3" className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            Q3
-          </TabsTrigger>
-          <TabsTrigger value="4" className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-gray-500"></span>
-            Q4
-          </TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-8">
+          <TabsList className="grid grid-cols-5 glass-effect border-white/20 shadow-xl backdrop-blur-xl bg-white/10 dark:bg-black/10 p-1">
+            <TabsTrigger value="all" className="data-[state=active]:bg-white/20 data-[state=active]:shadow-lg transition-all duration-300">Todas</TabsTrigger>
+            <TabsTrigger value="1" className="flex items-center gap-2 data-[state=active]:bg-red-500/20 data-[state=active]:shadow-lg transition-all duration-300">
+              <span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span>
+              Q1
+            </TabsTrigger>
+            <TabsTrigger value="2" className="flex items-center gap-2 data-[state=active]:bg-green-500/20 data-[state=active]:shadow-lg transition-all duration-300">
+              <span className="w-2 h-2 rounded-full bg-green-500 shadow-sm"></span>
+              Q2
+            </TabsTrigger>
+            <TabsTrigger value="3" className="flex items-center gap-2 data-[state=active]:bg-amber-500/20 data-[state=active]:shadow-lg transition-all duration-300">
+              <span className="w-2 h-2 rounded-full bg-amber-500 shadow-sm"></span>
+              Q3
+            </TabsTrigger>
+            <TabsTrigger value="4" className="flex items-center gap-2 data-[state=active]:bg-gray-500/20 data-[state=active]:shadow-lg transition-all duration-300">
+              <span className="w-2 h-2 rounded-full bg-gray-500 shadow-sm"></span>
+              Q4
+            </TabsTrigger>
+          </TabsList>
         
         <TabsContent value={activeTab} className="mt-6">
           {activeTab === 'all' ? <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -306,18 +317,18 @@ const Demo = () => {
                   duration: 0.4
                 }
               }
-            }} className={`border rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-br ${gradient} backdrop-blur-sm`}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className={`p-1.5 rounded-md ${color}/20`}>
-                        <Icon className={`h-4 w-4 ${quadrantData[quadrant as 1 | 2 | 3 | 4].textColor}`} />
+            }} className={`glass-card border-white/20 rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 bg-gradient-to-br ${gradient} backdrop-blur-xl transform hover:scale-[1.02] hover:-translate-y-1`}>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className={`p-2 rounded-xl ${color}/20 shadow-lg backdrop-blur-sm`}>
+                        <Icon className={`h-5 w-5 ${quadrantData[quadrant as 1 | 2 | 3 | 4].textColor}`} />
                       </div>
-                      <h3 className="font-medium">{title}</h3>
-                      <Badge variant="outline" className="ml-auto">
+                      <h3 className="font-semibold text-lg">{title}</h3>
+                      <Badge variant="outline" className="ml-auto glass-effect border-white/30 bg-white/10 shadow-sm">
                         {quadTasks.length}
                       </Badge>
                     </div>
                     
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
                       <AnimatePresence>
                         {quadTasks.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">
                             Sem tarefas neste quadrante
@@ -336,161 +347,227 @@ const Demo = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog de nova tarefa */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="backdrop-blur-md bg-background/95 border-primary/10 shadow-xl">
-          <DialogHeader>
-            <DialogTitle>Adicionar Nova Tarefa</DialogTitle>
-            <DialogDescription>
-              Preencha os detalhes da tarefa e selecione o quadrante correto na matriz.
-            </DialogDescription>
-          </DialogHeader>
+        {/* Dialog de nova tarefa */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="glass-card backdrop-blur-2xl bg-white/10 dark:bg-black/20 border-white/20 shadow-2xl max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">Adicionar Nova Tarefa</DialogTitle>
+              <DialogDescription className="text-muted-foreground/80">
+                Preencha os detalhes da tarefa e selecione o quadrante correto na matriz.
+              </DialogDescription>
+            </DialogHeader>
           
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Título da Tarefa</Label>
-              <Input id="title" placeholder="Digite o título da tarefa" value={newTask.title} onChange={e => setNewTask({
-              ...newTask,
-              title: e.target.value
-            })} className="shadow-sm" />
-            </div>
+            <div className="grid gap-6 py-6">
+              <div className="space-y-3">
+                <Label htmlFor="title" className="text-sm font-medium">Título da Tarefa</Label>
+                <Input 
+                  id="title" 
+                  placeholder="Digite o título da tarefa" 
+                  value={newTask.title} 
+                  onChange={e => setNewTask({
+                    ...newTask,
+                    title: e.target.value
+                  })} 
+                  className="glass-effect border-white/20 bg-white/5 shadow-lg focus:shadow-xl transition-all duration-300" 
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <Label htmlFor="description" className="text-sm font-medium">Descrição (opcional)</Label>
+                <Textarea 
+                  id="description" 
+                  placeholder="Detalhes adicionais sobre a tarefa" 
+                  value={newTask.description} 
+                  onChange={e => setNewTask({
+                    ...newTask,
+                    description: e.target.value
+                  })} 
+                  className="glass-effect border-white/20 bg-white/5 shadow-lg focus:shadow-xl transition-all duration-300 min-h-[100px]" 
+                />
+              </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição (opcional)</Label>
-              <Textarea id="description" placeholder="Detalhes adicionais sobre a tarefa" value={newTask.description} onChange={e => setNewTask({
-              ...newTask,
-              description: e.target.value
-            })} className="shadow-sm" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Quadrante</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {Object.entries(quadrantData).map(([key, data]) => {
-                const Icon = data.icon;
-                const isSelected = newTask.quadrant === parseInt(key);
-                return <motion.div key={key} whileHover={{
-                  scale: 1.02
-                }} whileTap={{
-                  scale: 0.98
-                }} className={`border rounded-lg p-3 cursor-pointer transition-all shadow-sm hover:shadow-md ${isSelected ? 'border-primary ring-1 ring-primary bg-primary/5' : ''}`} onClick={() => setNewTask({
-                  ...newTask,
-                  quadrant: parseInt(key) as 1 | 2 | 3 | 4
-                })}>
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1 rounded-md ${data.color}/20`}>
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Quadrante</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(quadrantData).map(([key, data]) => {
+                    const Icon = data.icon;
+                    const isSelected = newTask.quadrant === parseInt(key);
+                    return <motion.div 
+                      key={key} 
+                      whileHover={{ scale: 1.03, y: -2 }} 
+                      whileTap={{ scale: 0.98 }} 
+                      className={`glass-effect border-white/20 rounded-xl p-4 cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl ${
+                        isSelected 
+                          ? 'border-primary/50 ring-2 ring-primary/30 bg-primary/10 shadow-primary/20' 
+                          : 'hover:bg-white/5'
+                      }`} 
+                      onClick={() => setNewTask({
+                        ...newTask,
+                        quadrant: parseInt(key) as 1 | 2 | 3 | 4
+                      })}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-xl ${data.color}/20 shadow-md`}>
                           <Icon className={`h-4 w-4 ${data.textColor}`} />
                         </div>
-                        <span className="text-sm font-medium">{`Q${key}: ${data.title.split(",")[0]}`}</span>
+                        <div>
+                          <span className="text-sm font-semibold">{`Q${key}`}</span>
+                          <p className="text-xs text-muted-foreground/80">{data.title.split(",")[0]}</p>
+                        </div>
                       </div>
                     </motion.div>;
-              })}
+                  })}
+                </div>
               </div>
-            </div>
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAddTask} disabled={!newTask.title} className="relative overflow-hidden group">
-              <span className="relative z-10">Adicionar</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-primary to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setDialogOpen(false)}
+                className="glass-effect border-white/20 hover:bg-white/10 shadow-lg transition-all duration-300"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleAddTask} 
+                disabled={!newTask.title} 
+                className="bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0 disabled:opacity-50 disabled:transform-none"
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Adicionar Tarefa
+              </Button>
+            </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <div className="mt-16 text-center border-t pt-8">
-        <Card className="max-w-3xl mx-auto mb-8 bg-muted/40 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader>
-            <CardTitle className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-600">
-              Maximizando sua produtividade
-            </CardTitle>
-            <CardDescription>Dicas para uso eficiente da Matriz de Eisenhower no dia a dia</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <motion.div whileHover={{
-                scale: 1.03,
-                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
-              }} className="flex flex-col gap-2 p-3 rounded-lg border border-border/50 bg-gradient-to-br from-red-50/50 to-transparent">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <div className="p-1 rounded-full bg-red-500/20">
-                      <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
-                    </div>
-                    <span>Quadrante 1: Urgente & Importante</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground">Dedique tempo para <strong>reduzir</strong> as tarefas deste quadrante melhorando seu planejamento. Muitas tarefas aqui indicam gerenciamento reativo.</p>
-                </motion.div>
-                
-                <motion.div whileHover={{
-                scale: 1.03,
-                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
-              }} className="flex flex-col gap-2 p-3 rounded-lg border border-border/50 bg-gradient-to-br from-green-50/50 to-transparent">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <div className="p-1 rounded-full bg-green-500/20">
-                      <CheckSquare className="h-3.5 w-3.5 text-green-500" />
-                    </div>
-                    <span>Quadrante 2: Não-Urgente & Importante</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground"><strong>Amplie</strong> seu foco aqui. Investir tempo em planejamento, relacionamentos e desenvolvimento pessoal traz os melhores resultados a longo prazo.</p>
-                </motion.div>
-                
-                <motion.div whileHover={{
-                scale: 1.03,
-                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
-              }} className="flex flex-col gap-2 p-3 rounded-lg border border-border/50 bg-gradient-to-br from-amber-50/50 to-transparent">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <div className="p-1 rounded-full bg-amber-500/20">
-                      <Clock className="h-3.5 w-3.5 text-amber-500" />
-                    </div>
-                    <span>Quadrante 3: Urgente & Não-Importante</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground"><strong>Reduza ou delegue</strong> estas tarefas. Elas parecem importantes pela urgência, mas não contribuem para seus objetivos de longo prazo.</p>
-                </motion.div>
-                
-                <motion.div whileHover={{
-                scale: 1.03,
-                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
-              }} className="flex flex-col gap-2 p-3 rounded-lg border border-border/50 bg-gradient-to-br from-gray-50/50 to-transparent">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <div className="p-1 rounded-full bg-gray-500/20">
-                      <Trash2 className="h-3.5 w-3.5 text-gray-500" />
-                    </div>
-                    <span>Quadrante 4: Não-Urgente & Não-Importante</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground"><strong>Elimine</strong> estas atividades. Elas são desperdiçadores de tempo que não trazem valor significativo para sua vida ou objetivos.</p>
-                </motion.div>
+        <div className="mt-20 text-center">
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent mb-12"></div>
+          <Card className="max-w-4xl mx-auto mb-12 glass-card border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.01]">
+            <CardHeader className="pb-8">
+              <div className="relative">
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-purple-500/20 to-indigo-600/20 rounded-lg blur opacity-25"></div>
+                <div className="relative">
+                  <CardTitle className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-600 to-indigo-600 mb-3">
+                    Maximizando sua produtividade
+                  </CardTitle>
+                  <CardDescription className="text-lg text-muted-foreground/80">Dicas para uso eficiente da Matriz de Eisenhower no dia a dia</CardDescription>
+                </div>
               </div>
-            </div>
-          </CardContent>
-          <CardFooter className="justify-center">
-            <Button asChild variant="outline" size="sm" className="group relative overflow-hidden">
-              <Link to="/introduction">
-                <span className="relative z-10 group-hover:text-white transition-colors duration-300">
-                  Ver guia completo
-                  <ArrowRight className="h-3.5 w-3.5 ml-1.5 inline" />
-                </span>
-                <span className="absolute inset-0 bg-gradient-to-r from-primary/80 to-indigo-600/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              </Link>
-            </Button>
-          </CardFooter>
-        </Card>
+            </CardHeader>
+            <CardContent className="px-8">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <motion.div 
+                    whileHover={{
+                      scale: 1.05,
+                      y: -5,
+                      boxShadow: "0 20px 40px -10px rgba(239, 68, 68, 0.2)"
+                    }} 
+                    className="glass-effect border-white/20 rounded-2xl p-6 bg-gradient-to-br from-red-50/30 via-red-50/10 to-transparent backdrop-blur-xl shadow-xl"
+                  >
+                    <h4 className="font-semibold text-lg flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-xl bg-red-500/20 shadow-lg">
+                        <AlertTriangle className="h-5 w-5 text-red-500" />
+                      </div>
+                      <span>Quadrante 1: Urgente & Importante</span>
+                    </h4>
+                    <p className="text-sm text-muted-foreground/90 leading-relaxed">Dedique tempo para <strong className="text-red-600">reduzir</strong> as tarefas deste quadrante melhorando seu planejamento. Muitas tarefas aqui indicam gerenciamento reativo.</p>
+                  </motion.div>
+                  
+                  <motion.div 
+                    whileHover={{
+                      scale: 1.05,
+                      y: -5,
+                      boxShadow: "0 20px 40px -10px rgba(34, 197, 94, 0.2)"
+                    }} 
+                    className="glass-effect border-white/20 rounded-2xl p-6 bg-gradient-to-br from-green-50/30 via-green-50/10 to-transparent backdrop-blur-xl shadow-xl"
+                  >
+                    <h4 className="font-semibold text-lg flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-xl bg-green-500/20 shadow-lg">
+                        <CheckSquare className="h-5 w-5 text-green-500" />
+                      </div>
+                      <span>Quadrante 2: Não-Urgente & Importante</span>
+                    </h4>
+                    <p className="text-sm text-muted-foreground/90 leading-relaxed"><strong className="text-green-600">Amplie</strong> seu foco aqui. Investir tempo em planejamento, relacionamentos e desenvolvimento pessoal traz os melhores resultados a longo prazo.</p>
+                  </motion.div>
+                  
+                  <motion.div 
+                    whileHover={{
+                      scale: 1.05,
+                      y: -5,
+                      boxShadow: "0 20px 40px -10px rgba(245, 158, 11, 0.2)"
+                    }} 
+                    className="glass-effect border-white/20 rounded-2xl p-6 bg-gradient-to-br from-amber-50/30 via-amber-50/10 to-transparent backdrop-blur-xl shadow-xl"
+                  >
+                    <h4 className="font-semibold text-lg flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-xl bg-amber-500/20 shadow-lg">
+                        <Clock className="h-5 w-5 text-amber-500" />
+                      </div>
+                      <span>Quadrante 3: Urgente & Não-Importante</span>
+                    </h4>
+                    <p className="text-sm text-muted-foreground/90 leading-relaxed"><strong className="text-amber-600">Reduza ou delegue</strong> estas tarefas. Elas parecem importantes pela urgência, mas não contribuem para seus objetivos de longo prazo.</p>
+                  </motion.div>
+                  
+                  <motion.div 
+                    whileHover={{
+                      scale: 1.05,
+                      y: -5,
+                      boxShadow: "0 20px 40px -10px rgba(107, 114, 128, 0.2)"
+                    }} 
+                    className="glass-effect border-white/20 rounded-2xl p-6 bg-gradient-to-br from-gray-50/30 via-gray-50/10 to-transparent backdrop-blur-xl shadow-xl"
+                  >
+                    <h4 className="font-semibold text-lg flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-xl bg-gray-500/20 shadow-lg">
+                        <Trash2 className="h-5 w-5 text-gray-500" />
+                      </div>
+                      <span>Quadrante 4: Não-Urgente & Não-Importante</span>
+                    </h4>
+                    <p className="text-sm text-muted-foreground/90 leading-relaxed"><strong className="text-gray-600">Elimine</strong> estas atividades. Elas são desperdiçadores de tempo que não trazem valor significativo para sua vida ou objetivos.</p>
+                  </motion.div>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="justify-center pb-8">
+              <Button 
+                asChild 
+                variant="outline" 
+                size="lg" 
+                className="glass-effect border-white/20 hover:bg-white/10 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group"
+              >
+                <Link to="/introduction">
+                  <span className="relative z-10 flex items-center gap-2">
+                    Ver guia completo
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+              </Button>
+            </CardFooter>
+          </Card>
 
-        <p className="text-muted-foreground mb-4">
-          Esta é uma versão de demonstração. Crie uma conta para salvar suas tarefas e acessar todos os recursos.
-        </p>
-        <Button asChild className="gap-2 relative overflow-hidden group shadow-lg">
-          <Link to="/login">
-            <span className="relative z-10">
-              Criar conta
-              <ArrowRight className="h-4 w-4 ml-1.5 inline" />
-            </span>
-            <span className="absolute inset-0 bg-gradient-to-r from-primary/80 to-indigo-600/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-          </Link>
-        </Button>
+          <div className="space-y-8 mt-12 mb-16">
+            <p className="text-muted-foreground/80 text-lg max-w-2xl mx-auto leading-relaxed text-center">
+              Esta é uma versão de demonstração. Crie uma conta para salvar suas tarefas e acessar todos os recursos.
+            </p>
+            <div className="flex justify-center">
+              <Button 
+                asChild 
+                size="lg" 
+                className="bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border-0 px-8 py-3 text-lg group"
+              >
+                <Link to="/login">
+                  <span className="flex items-center gap-3">
+                    Criar conta
+                    <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 // Componente para exibir uma tarefa
@@ -512,34 +589,35 @@ const TaskCard = ({
   index: number;
 }) => {
   const Icon = quadrantData.icon;
-  return <motion.div initial={{
-    opacity: 0,
-    x: -10
-  }} animate={{
-    opacity: 1,
-    x: 0
-  }} exit={{
-    opacity: 0,
-    x: 10
-  }} transition={{
-    duration: 0.3,
-    delay: index * 0.05
-  }} whileHover={{
-    scale: 1.02,
-    boxShadow: "0 8px 20px -5px rgba(0, 0, 0, 0.1), 0 6px 10px -5px rgba(0, 0, 0, 0.04)"
-  }} className={`border rounded-lg p-3 hover:shadow-md transition-all duration-300 group bg-gradient-to-br ${quadrantData.gradient} backdrop-blur-sm`}>
-      <div className="flex items-start gap-2">
-        <div className={`p-1.5 rounded-md ${quadrantData.color}/20 mt-0.5`}>
-          <Icon className={`h-3.5 w-3.5 ${quadrantData.textColor}`} />
+  return <motion.div 
+    initial={{ opacity: 0, x: -10 }} 
+    animate={{ opacity: 1, x: 0 }} 
+    exit={{ opacity: 0, x: 10 }} 
+    transition={{ duration: 0.3, delay: index * 0.05 }} 
+    whileHover={{ 
+      scale: 1.03, 
+      y: -2,
+      boxShadow: "0 12px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 15px -5px rgba(0, 0, 0, 0.08)"
+    }} 
+    className={`glass-card border-white/20 rounded-xl p-4 hover:shadow-xl transition-all duration-500 group bg-gradient-to-br ${quadrantData.gradient} backdrop-blur-xl transform hover:-translate-y-1`}
+  >
+      <div className="flex items-start gap-3">
+        <div className={`p-2 rounded-xl ${quadrantData.color}/20 mt-0.5 shadow-lg backdrop-blur-sm`}>
+          <Icon className={`h-4 w-4 ${quadrantData.textColor}`} />
         </div>
         
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm truncate">{task.title}</h4>
-          {task.description && <p className="text-muted-foreground text-xs mt-1 line-clamp-2">{task.description}</p>}
+          <h4 className="font-semibold text-sm truncate mb-1">{task.title}</h4>
+          {task.description && <p className="text-muted-foreground/80 text-xs line-clamp-2 leading-relaxed">{task.description}</p>}
         </div>
         
-        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => onRemove(task.id)}>
-          <Trash2 className="h-3.5 w-3.5" />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-500/20 hover:text-red-500 rounded-lg" 
+          onClick={() => onRemove(task.id)}
+        >
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
     </motion.div>;

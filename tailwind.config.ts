@@ -89,6 +89,35 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-5px)" },
         },
+        "glow-pulse": {
+          "0%": { opacity: "0.5" },
+          "50%": { opacity: "0.8", transform: "scale(1.05)" },
+          "100%": { opacity: "0.5" },
+        },
+        "gentle-bounce": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-3px)" },
+        },
+        "glow-shadow": {
+          "0%, 100%": { boxShadow: "0 10px 15px -3px rgba(99, 102, 241, 0.3), 0 4px 6px -4px rgba(99, 102, 241, 0.3)" },
+          "50%": { boxShadow: "0 15px 20px -3px rgba(99, 102, 241, 0.4), 0 8px 10px -4px rgba(99, 102, 241, 0.4)" },
+        },
+        "pulse-slow": {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.1)" },
+        },
+        "rotate-left": {
+          "0%": { transform: "rotate(-6deg) translateX(-12px)" },
+          "33%": { transform: "rotate(-10deg) translateX(-10px)" },
+          "66%": { transform: "rotate(-4deg) translateX(-14px)" },
+          "100%": { transform: "rotate(-6deg) translateX(-12px)" },
+        },
+        "rotate-right": {
+          "0%": { transform: "rotate(6deg) translateX(12px)" },
+          "33%": { transform: "rotate(10deg) translateX(10px)" },
+          "66%": { transform: "rotate(4deg) translateX(14px)" },
+          "100%": { transform: "rotate(6deg) translateX(12px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -98,6 +127,12 @@ export default {
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
         "gradient-animation": "gradient-animation 6s ease infinite",
         "float": "float 3s ease-in-out infinite",
+        "glow-pulse": "glow-pulse 3s infinite ease-in-out",
+        "gentle-bounce": "gentle-bounce 3s infinite ease-in-out",
+        "glow-shadow": "glow-shadow 3s infinite ease-in-out",
+        "pulse-slow": "pulse-slow 3s infinite ease-in-out",
+        "rotate-left": "rotate-left 5s infinite ease-in-out",
+        "rotate-right": "rotate-right 5s infinite ease-in-out",
       },
     },
   },
