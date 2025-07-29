@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn } from "lucide-react";
+import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn, Eye, EyeOff } from "lucide-react";
 import { setupDatabase, syncTasks } from '@/lib/supabase';
 import { supabase, clearSupabaseStorage, isSupabaseConnected, resetToDefaultCredentials } from '@/integrations/supabase/client';
 import {
@@ -50,6 +50,8 @@ const DISCONNECT_RETRIES = 'supabaseDisconnectRetries';
 const SupabaseIntegration = () => {
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseKey, setSupabaseKey] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showUrl, setShowUrl] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -724,14 +726,29 @@ const SupabaseIntegration = () => {
             <label htmlFor="supabaseUrl" className="block text-sm font-medium mb-1">
               URL do Projeto Supabase
             </label>
-            <Input
-              id="supabaseUrl"
-              type="text"
-              value={supabaseUrl}
-              onChange={(e) => setSupabaseUrl(e.target.value)}
-              placeholder="https://xxxxxxxxxxxxx.supabase.co"
-              className="w-full"
-            />
+            <div className="relative">
+              <Input
+                id="supabaseUrl"
+                type={showUrl ? "text" : "password"}
+                value={supabaseUrl}
+                onChange={(e) => setSupabaseUrl(e.target.value)}
+                placeholder="https://xxxxxxxxxxxxx.supabase.co"
+                className="w-full pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowUrl(!showUrl)}
+              >
+                {showUrl ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
               Encontrada nas configurações do seu projeto no Supabase
             </p>
@@ -741,14 +758,29 @@ const SupabaseIntegration = () => {
             <label htmlFor="supabaseKey" className="block text-sm font-medium mb-1">
               Chave de API do Supabase
             </label>
-            <Input
-              id="supabaseKey"
-              type="password"
-              value={supabaseKey}
-              onChange={(e) => setSupabaseKey(e.target.value)}
-              placeholder="eyJxxxxxxxxxxxxxxxxxxxxxxxx"
-              className="w-full"
-            />
+            <div className="relative">
+              <Input
+                id="supabaseKey"
+                type={showPassword ? "text" : "password"}
+                value={supabaseKey}
+                onChange={(e) => setSupabaseKey(e.target.value)}
+                placeholder="eyJxxxxxxxxxxxxxxxxxxxxxxxx"
+                className="w-full pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
               Utilize a chave anon/public key encontrada nas configurações do API do seu projeto
             </p>
