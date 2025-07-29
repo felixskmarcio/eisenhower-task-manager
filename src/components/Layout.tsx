@@ -114,7 +114,7 @@ const Layout = ({
               <AppLogo size="sm" animated={true} className="scale-75" />
               <span className="font-medium text-primary/70">Eisenhower Task Manager</span>
               <span className="text-primary/40">•</span>
-              <span>Versão 1.2.0</span>
+              <span>Versão 1.3.0</span>
             </div>
             <div className="flex items-center gap-4">
               <NavigationLink to="/introduction" className="text-muted-foreground hover:text-primary transition-colors" showLoadingScreen={true}>Sobre</NavigationLink>

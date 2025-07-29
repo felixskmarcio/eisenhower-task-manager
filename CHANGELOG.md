@@ -5,6 +5,23 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.3.0] - 2025-07-29
+
+### Adicionado
+- Integração aprimorada com Google Calendar para sincronização de tarefas
+- Novos componentes para melhorar a experiência do usuário
+- Arquivos de teste para configuração do Firebase
+
+### Alterado
+- Refatoração do componente SupabaseIntegration com melhor tratamento de erros
+- Removido componente MarkdownImport não utilizado
+- Corrigidas importações no SettingsPage.tsx
+- Atualizadas dependências do projeto para versões mais recentes
+
+### Técnico
+- Atualizada versão do projeto de 1.2.0 para 1.3.0
+- Melhorias na integração com serviços externos (Firebase, Google Calendar)
+
 ## [1.2.0] - 2025-01-27
 
 ### Alterado
