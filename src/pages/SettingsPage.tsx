@@ -221,7 +221,7 @@ const SettingsPage = () => {
           <h2 className="text-xl font-semibold mb-2 text-primary/90">Sobre</h2>
           <Separator className="my-4" />
           <p className="text-sm font-medium mb-3 text-primary/80">
-            Gerenciador de Tarefas - Versão 1.0.0
+            Gerenciador de Tarefas - Versão 1.2.0
           </p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Um aplicativo de gerenciamento de tarefas que utiliza a Matriz de Eisenhower para ajudar você a priorizar suas atividades de forma eficiente.
