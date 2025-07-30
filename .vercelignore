@@ -57,7 +57,6 @@ nginx.conf
 components.css
 styles.css
 components/
-styles/
 pages/
 supabase/
 .github/
