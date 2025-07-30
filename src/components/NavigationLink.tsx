@@ -36,37 +36,38 @@ const NavigationLink: React.FC<NavigationLinkProps> = ({
 
   // Se queremos mostrar a tela de carregamento, interceptamos a navegação
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    
-    // Só ativar o carregamento se estiver navegando para uma rota diferente
-    if (location.pathname !== to.toString()) {
-      // Ativar a tela de carregamento
-      setPageTransition(true);
-      
-      // Navegar após um pequeno delay para garantir que a tela de carregamento seja exibida
-      setTimeout(() => {
+    // Só intercepta o clique principal (esquerdo) sem modificadores
+    if (
+      e.button === 0 && // Clique esquerdo
+      !e.metaKey && !e.altKey && !e.ctrlKey && !e.shiftKey && // Sem modificadores
+      !(props.target === '_blank')
+    ) {
+      e.preventDefault();
+      if (location.pathname !== to.toString()) {
+        setPageTransition(true);
+        setTimeout(() => {
+          navigate(to.toString());
+        }, 50);
+      } else {
         navigate(to.toString());
-      }, 50);
-    } else {
-      // Se já estiver na mesma rota, apenas navega sem mostrar a tela de carregamento
-      navigate(to.toString());
+      }
+      if (props.onClick) {
+        props.onClick(e);
+      }
     }
-    
-    if (props.onClick) {
-      props.onClick(e);
-    }
+    // Caso contrário, deixa o comportamento padrão (abrir em nova aba, etc)
   };
 
   return (
-    <a
-      href={typeof to === 'string' ? to : '#'}
+    <Link
+      to={to}
       className={combinedClassName}
       onClick={handleClick}
       {...props}
     >
       {children}
-    </a>
+    </Link>
   );
 };
 
-export default NavigationLink; 
+export default NavigationLink;
