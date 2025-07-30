@@ -12,6 +12,17 @@
     <meta property="og:description" content="Organize suas tarefas com a metodologia Eisenhower" />
     <!-- Google API Script -->
     <script src="https://apis.google.com/js/api.js"></script>
+    <script>
+      // Desinstalar Service Workers antigos que possam estar causando problemas
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          registrations.forEach(function(registration) {
+            console.log('Desinstalando Service Worker:', registration.scope);
+            registration.unregister();
+          });
+        });
+      }
+    </script>
   </head>
 
   <body>
