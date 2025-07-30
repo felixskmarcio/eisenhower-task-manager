@@ -1,6 +1,6 @@
 
 @import './base.css';
-@import './components.css';
+@import '@/styles/components.css';
 @import './utilities.css';
 @import './navigation.css';
 @import './task-title.css';
