@@ -9,80 +9,31 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
+      "source": "/security-sw.js",
+      "destination": "/security-sw-deprecated.js"
     },
     {
-      "src": "/favicon.ico",
-      "dest": "/favicon.ico"
+      "source": "/security-sw.js.disabled",
+      "destination": "/security-sw-deprecated.js"
     },
     {
-      "src": "/manifest.json",
-      "dest": "/manifest.json"
+      "source": "/security-sw.js.disabled.bak",
+      "destination": "/security-sw-deprecated.js"
     },
     {
-      "src": "/robots.txt",
-      "dest": "/robots.txt"
-    },
-    {
-      "src": "/sitemap.xml",
-      "dest": "/sitemap.xml"
-    },
-    {
-      "src": "/security-sw.js",
-      "dest": "/security-sw-deprecated.js"
-    },
-    {
-      "src": "/security-sw.js.disabled",
-      "dest": "/security-sw-deprecated.js"
-    },
-    {
-      "src": "/security-sw.js.disabled.bak",
-      "dest": "/security-sw-deprecated.js"
-    },
-    {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        },
-        {
-          "key": "Pragma",
-          "value": "no-cache"
-        },
-        {
-          "key": "Expires",
-          "value": "0"
-        }
-      ]
-    },
     {
       "source": "/security-sw.js",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "no-cache, no-store, must-revalidate"
-        },
-        {
-          "key": "Pragma",
-          "value": "no-cache"
-        },
-        {
-          "key": "Expires",
-          "value": "0"
         }
       ]
     },
@@ -92,14 +43,6 @@
         {
           "key": "Cache-Control",
           "value": "no-cache, no-store, must-revalidate"
-        },
-        {
-          "key": "Pragma",
-          "value": "no-cache"
-        },
-        {
-          "key": "Expires",
-          "value": "0"
         }
       ]
     },
@@ -109,27 +52,8 @@
         {
           "key": "Cache-Control",
           "value": "no-cache, no-store, must-revalidate"
-        },
-        {
-          "key": "Pragma",
-          "value": "no-cache"
-        },
-        {
-          "key": "Expires",
-          "value": "0"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
         }
       ]
     }
-  ],
-  "cleanUrls": true,
-  "trailingSlash": false
+  ]
 }
