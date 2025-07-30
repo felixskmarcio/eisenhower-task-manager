@@ -2,7 +2,7 @@
 node_modules
 
 # Development files
-src
+# src - REMOVIDO: Vite precisa dos arquivos fonte para build
 
 # Build tools
 vite.config.ts

@@ -1,85 +1,74 @@
 # Deploy na Vercel - Solução para Erro 404
 
 ## Problema Identificado
+O erro 404 nas rotas `/dashboard`, `/productivity`, `/tags` e `/config` ocorria por dois problemas principais:
 
-O erro 404 na rota `/productivity` (e outras rotas) ocorria porque a Vercel não estava configurada corretamente para aplicações SPA (Single Page Application) com React Router.
+1. **Arquivo `.vercelignore` incorreto**: A pasta `src` estava sendo excluída do deploy, impedindo que o Vite fizesse o build corretamente
+2. **Configuração de SPA**: A Vercel não estava configurada para lidar com SPAs (Single Page Applications) que usam React Router
 
-## Solução Implementada
+## Soluções Implementadas
 
-### 1. Arquivo `vercel.json` Criado
+### 1. Correção do `.vercelignore`
+Removido `src` da lista de arquivos ignorados, pois o Vite precisa dos arquivos fonte para fazer o build:
 
-Foi criado o arquivo `vercel.json` na raiz do projeto com a seguinte configuração:
+```
+# Development files
+# src - REMOVIDO: Vite precisa dos arquivos fonte para build
+```
+
+### 2. Simplificação do `vercel.json`
+Configuração simplificada seguindo as melhores práticas:
 
 ```json
 {
   "rewrites": [
     {
-      "source": "/((?!api/.*).*)",
-      "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
       "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
+      "destination": "/index.html"
     }
   ]
 }
 ```
 
-### 2. Como Funciona
+### Explicação da Configuração
 
-- **Rewrites**: Todas as rotas (exceto APIs) são redirecionadas para `/index.html`
-- **Headers de Segurança**: Adicionados headers de segurança para proteção adicional
-- **Compatibilidade SPA**: Permite que o React Router gerencie as rotas no lado do cliente
+#### Rewrites
+- `"source": "/(.*)"` - Captura TODAS as rotas
+- `"destination": "/index.html"` - Redireciona todas para o `index.html`
 
-### 3. Rotas Configuradas no App
+Isso permite que o React Router assuma o controle do roteamento no lado do cliente.
 
-As seguintes rotas estão configuradas no `App.tsx`:
+## Por que a Solução Anterior Não Funcionou
 
+1. **Pasta `src` excluída**: O `.vercelignore` estava impedindo que os arquivos fonte fossem enviados para o build
+2. **Regex complexa desnecessária**: A configuração `/((?!api/.*).*)`  era desnecessariamente complexa para este projeto
+3. **Headers de segurança**: Embora úteis, podem causar conflitos em alguns casos
+
+## Rotas Configuradas no App.tsx
+As seguintes rotas estão definidas como rotas privadas:
 - `/dashboard` - Dashboard principal
+- `/matrix` - Matriz de Eisenhower
 - `/productivity` - Dashboard de produtividade
 - `/tags` - Gerenciamento de tags
-- `/config` - Página de configurações
-- `/login` - Página de autenticação
-- `/` - Landing page
+- `/config` - Configurações
 
-### 4. Próximos Passos
+## Próximos Passos
+1. ✅ Correção do `.vercelignore`
+2. ✅ Simplificação do `vercel.json`
+3. ⏳ Commit das alterações
+4. ⏳ Push para o repositório
+5. ⏳ Aguardar o deploy automático da Vercel
+6. ⏳ Testar as rotas após o deploy
 
-1. Faça commit das alterações:
-   ```bash
-   git add vercel.json
-   git commit -m "fix: adiciona configuração vercel.json para SPA routing"
-   git push
-   ```
+## Teste Pós-Deploy
+Após o deploy, teste:
+1. Navegação direta para `https://seu-app.vercel.app/dashboard`
+2. Navegação direta para `https://seu-app.vercel.app/productivity`
+3. Navegação direta para `https://seu-app.vercel.app/tags`
+4. Navegação direta para `https://seu-app.vercel.app/config`
+5. Refresh da página em qualquer uma dessas rotas
 
-2. A Vercel irá automaticamente fazer o redeploy
+Todas devem funcionar corretamente sem erro 404.
 
-3. Teste as rotas após o deploy:
-   - `https://seu-app.vercel.app/productivity`
-   - `https://seu-app.vercel.app/dashboard`
-   - `https://seu-app.vercel.app/tags`
-   - `https://seu-app.vercel.app/config`
-
-### 5. Verificação
-
-Após o deploy, todas as rotas devem funcionar corretamente sem erro 404.
-
-## Observações
-
-- O arquivo `_redirects` existente é usado pelo Netlify, não pela Vercel
-- A Vercel requer o arquivo `vercel.json` para configurações de roteamento
-- A configuração implementada é específica para SPAs com React Router
+## Referências
+Baseado na documentação oficial da Vercel e melhores práticas para SPAs com React Router.
