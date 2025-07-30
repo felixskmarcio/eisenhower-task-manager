@@ -15,12 +15,30 @@
     <script>
       // Desinstalar Service Workers antigos que possam estar causando problemas
       if ('serviceWorker' in navigator) {
+        // Desinstalar todos os service workers existentes
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
           registrations.forEach(function(registration) {
             console.log('Desinstalando Service Worker:', registration.scope);
-            registration.unregister();
+            registration.unregister().then(function(success) {
+              console.log('Service Worker desinstalado:', success);
+            });
           });
         });
+        
+        // Limpar caches também
+        if ('caches' in window) {
+          caches.keys().then(function(cacheNames) {
+            cacheNames.forEach(function(cacheName) {
+              caches.delete(cacheName);
+            });
+          });
+        }
+        
+        // Prevenir registro de novos service workers
+        navigator.serviceWorker.register = function() {
+          console.log('Service Worker registration blocked');
+          return Promise.reject(new Error('Service Worker disabled'));
+        };
       }
     </script>
   </head>

@@ -72,7 +72,7 @@ async function updateCache(request, cache) {
 function addSecurityHeaders(response) {
   if (!response || !response.status) return response;
   
-  // Verificar se o status é válido
+  // Verificar se o status é válido (200-599)
   if (response.status < 200 || response.status >= 600) {
     console.warn('Invalid response status:', response.status);
     return response;

@@ -31,6 +31,18 @@
       "dest": "/sitemap.xml"
     },
     {
+      "src": "/security-sw.js",
+      "dest": "/security-sw-deprecated.js"
+    },
+    {
+      "src": "/security-sw.js.disabled",
+      "dest": "/security-sw-deprecated.js"
+    },
+    {
+      "src": "/security-sw.js.disabled.bak",
+      "dest": "/security-sw-deprecated.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
@@ -50,10 +62,57 @@
         {
           "key": "Expires",
           "value": "0"
+        }
+      ]
+    },
+    {
+      "source": "/security-sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
         },
         {
-          "key": "Service-Worker-Allowed",
-          "value": ""
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "source": "/security-sw.js.disabled",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "source": "/security-sw.js.disabled.bak",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
         }
       ]
     },
