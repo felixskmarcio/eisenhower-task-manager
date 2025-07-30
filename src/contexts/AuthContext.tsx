@@ -4,6 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client.ts';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import {
+  AuthErrorCode,
+  NormalizedAuthError,
+  UserProfile,
+  SignUpData,
+  SignInData,
+  AuthResult,
+  CredentialVerificationResult
+} from '@/types/auth';
+import {
+  normalizeAuthError,
+  validateLoginData,
+  validateSignUpData,
+  logAuthError
+} from '@/utils/authErrorHandler';
 import { 
   signInWithGoogle,
   signInWithEmail,
@@ -19,14 +34,15 @@ import {
 
 interface AuthContextType {
   user: User | null;
-  profile: any | null;
+  profile: UserProfile | null;
   signUp: (email: string, password: string, nome: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  verifyUserCredentials: (email: string, password: string) => Promise<{valid: boolean, message: string}>;
+  verifyUserCredentials: (email: string, password: string) => Promise<CredentialVerificationResult>;
   loading: boolean;
+  lastError?: NormalizedAuthError;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,8 +51,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastError, setLastError] = useState<NormalizedAuthError | undefined>(undefined);
   const navigate = useNavigate();
 
   const fetchProfile = async (userId: string) => {
@@ -149,8 +166,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Iniciando processo de cadastro para:', email);
       setLoading(true);
+      setLastError(undefined);
       
-
+      // Validar dados de entrada
+      const validation = validateSignUpData(email, password, nome);
+      if (!validation.isValid) {
+        const validationError: NormalizedAuthError = {
+          code: 'unknown_error',
+          message: validation.errors.join(', ')
+        };
+        setLastError(validationError);
+        throw new Error(validation.errors.join(', '));
+      }
       
       const userExists = await checkIfUserExists(email);
       if (userExists) {
@@ -260,28 +287,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Iniciando processo de login para:', email);
       setLoading(true);
+      setLastError(undefined);
       
-
+      // Validar dados de entrada
+      const validation = validateLoginData(email, password);
+      if (!validation.isValid) {
+        const validationError: NormalizedAuthError = {
+          code: 'unknown_error',
+          message: validation.errors.join(', ')
+        };
+        setLastError(validationError);
+        throw new Error(validation.errors.join(', '));
+      }
       
       // Tentar login no Supabase primeiro
       try {
         console.log('Tentando login no Supabase para:', email);
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim().toLowerCase(),
           password
         });
         
         if (error) {
           console.error('Erro no login com Supabase:', error);
-          // Se o erro for de credenciais inválidas, lance o erro para ser capturado logo abaixo
-          if (error.message?.includes('Invalid login credentials')) {
-            const customError = new Error('Credenciais inválidas');
-            customError.name = 'AuthError';
-            (customError as any).code = 'invalid_credentials';
-            (customError as any).message = 'Senha incorreta ou usuário não encontrado';
-            throw customError;
-          }
-        } else if (data.user) {
+          throw error;
+        }
+        
+        if (data.user) {
           console.log('Login com Supabase bem-sucedido para:', email);
           setUser(data.user as unknown as User);
           
@@ -298,7 +330,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (supabaseError: any) {
         console.error('Falha no login com Supabase:', supabaseError);
-        throw supabaseError; // Relanç0a o erro para ser capturado
+        
+        // Se for erro de credenciais inválidas, não tentar Firebase
+        if (supabaseError?.message?.includes('Invalid login credentials')) {
+          throw supabaseError;
+        }
+        
+        // Para outros erros, tentar Firebase como fallback
+        console.log('Tentando fallback para Firebase...');
       }
       
       // Verificar se o usuário existe antes de tentar o login do Firebase
@@ -307,7 +346,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Usuário não encontrado em nenhum provedor:', email);
         const notFoundError = new Error('Usuário não encontrado');
         (notFoundError as any).code = 'auth/user-not-found';
-        (notFoundError as any).message = 'Este email não está cadastrado em nosso sistema';
         throw notFoundError;
       }
       
@@ -330,7 +368,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     } catch (error: any) {
       console.error('Erro geral no login:', error);
-      throw error; // Relançar o erro para ser capturado pelo componente
+      
+      // Normalizar o erro antes de relançar
+      const normalizedError = normalizeAuthError(error);
+      setLastError(normalizedError);
+      logAuthError(normalizedError, { email, action: 'signIn' });
+      
+      const customError = new Error(normalizedError.message);
+      (customError as any).code = normalizedError.code;
+      (customError as any).name = 'AuthError';
+      
+      throw customError;
     } finally {
       setLoading(false);
     }
@@ -407,8 +455,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Iniciando processo de logout');
       setLoading(true);
-      
-
       
       // Tentar logout do Supabase primeiro
       try {
@@ -513,7 +559,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return await verifyCredentials(email, password);
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     profile,
     signUp,
@@ -522,7 +568,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut: handleSignOut,
     resetPassword: handleResetPassword,
     verifyUserCredentials,
-    loading
+    loading,
+    lastError
   };
 
   return (
