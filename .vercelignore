@@ -45,7 +45,6 @@ docker-compose.yml
 nginx.conf
 
 # Other
-styles.css
 .github/
 bun.lockb
 package-lock.json
