@@ -1,16 +1,7 @@
 # Dependencies
 node_modules
 
-# Development files
-src
-
 # Build tools
-vite.config.ts
-tsconfig.json
-tsconfig.app.json
-tsconfig.node.json
-postcss.config.js
-tailwind.config.ts
 eslint.config.js
 
 # Environment files
@@ -56,9 +47,6 @@ nginx.conf
 # Other
 components.css
 styles.css
-components/
-styles/
-pages/
 supabase/
 .github/
 bun.lockb
