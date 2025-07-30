@@ -45,7 +45,6 @@ docker-compose.yml
 nginx.conf
 
 # Other
-components.css
 styles.css
 supabase/
 .github/
