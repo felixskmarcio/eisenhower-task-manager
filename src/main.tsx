@@ -4,18 +4,18 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import App from './App.tsx'
 import './styles/index.css'
 
-// Registrar o service worker para segurança
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/security-sw.js')
-      .then(registration => {
-        console.log('Service Worker registrado com sucesso:', registration.scope);
-      })
-      .catch(error => {
-        console.error('Erro ao registrar Service Worker:', error);
-      });
-  });
-}
+// Registrar o service worker para segurança - temporariamente desabilitado para debug
+// if ('serviceWorker' in navigator && import.meta.env.PROD) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('/security-sw.js')
+//       .then(registration => {
+//         console.log('Service Worker registrado com sucesso:', registration.scope);
+//       })
+//       .catch(error => {
+//         console.error('Erro ao registrar Service Worker:', error);
+//       });
+//   });
+// }
 
 // Tratamento de erro global
 window.onerror = (msg, url, lineNo, columnNo, error) => {

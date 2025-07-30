@@ -44,8 +44,14 @@ self.addEventListener('fetch', (event) => {
           return fallbackResponse;
         }
         
-        // Se não tiver fallback, retorna erro
-        throw error;
+        // Se não tiver fallback, retorna uma resposta de erro válida
+        return new Response('Network error', {
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: {
+            'Content-Type': 'text/plain'
+          }
+        });
       }
     })()
   );
@@ -64,7 +70,13 @@ async function updateCache(request, cache) {
 
 // Adiciona cabeçalhos de segurança a uma resposta
 function addSecurityHeaders(response) {
-  if (!response) return response;
+  if (!response || !response.status) return response;
+  
+  // Verificar se o status é válido
+  if (response.status < 200 || response.status >= 600) {
+    console.warn('Invalid response status:', response.status);
+    return response;
+  }
   
   const newHeaders = new Headers(response.headers);
   
@@ -86,11 +98,16 @@ function addSecurityHeaders(response) {
   // Permissões
   newHeaders.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: newHeaders
-  });
+  try {
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: newHeaders
+    });
+  } catch (error) {
+    console.error('Error creating response with security headers:', error);
+    return response;
+  }
 }
 
 // Ao instalar, cache os recursos essenciais
@@ -128,4 +145,4 @@ self.addEventListener('activate', (event) => {
   
   // Tomar controle imediatamente
   self.clients.claim();
-}); 
+});
