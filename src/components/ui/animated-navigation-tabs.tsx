@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { cn } from "@/utils/classNames";
+import { cn } from "../../utils/classNames";
 import { useLocation } from "react-router-dom";
 import NavigationLink from "@/components/NavigationLink";
 

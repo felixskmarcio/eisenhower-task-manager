@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Link, useLocation } from "react-router-dom"
 import { LucideIcon } from "lucide-react"
-import { cn } from "@/utils/classNames"
+import { cn } from "../../utils/classNames"
 
 interface NavItem {
   name: string
