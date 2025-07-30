@@ -1,5 +1,5 @@
 import { initSupabaseClient } from '@/lib/supabase';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.ts';
 import { Task, DatabaseResponse } from './types';
 import { applyRateLimit, MAX_MUTATION_REQUESTS, sanitizeInput, sanitizeTaskData, taskSchema } from './utils';
 

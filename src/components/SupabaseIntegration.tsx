@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Database, Save, CheckCircle, AlertCircle, RefreshCw, Info, Code, LogIn, Eye, EyeOff } from "lucide-react";
 import { setupDatabase, syncTasks } from '@/lib/supabase';
-import { supabase, clearSupabaseStorage, isSupabaseConnected, resetToDefaultCredentials } from '@/integrations/supabase/client';
+import { supabase, clearSupabaseStorage, isSupabaseConnected, resetToDefaultCredentials } from '@/integrations/supabase/client.ts';
 import {
   Dialog,
   DialogContent,

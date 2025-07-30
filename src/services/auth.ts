@@ -413,7 +413,7 @@ export const checkIfUserExists = async (email: string): Promise<boolean> => {
     
     // Verificar no Supabase primeiro
     try {
-      const { supabase } = await import('@/integrations/supabase/client');
+      const { supabase } = await import('@/integrations/supabase/client.ts');
       
       // Tentar verificar com o método de login (apenas para verificação)
       const { data, error } = await supabase.auth.signInWithPassword({
