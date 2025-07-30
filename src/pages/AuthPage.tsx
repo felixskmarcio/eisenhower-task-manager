@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+﻿import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Clock, ArrowRight, Mail, Lock, User, LogIn, Sparkles, Eye, EyeOff, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { toast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator';
-import { useTheme } from '@/contexts/ThemeContext';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form';
+import { toast } from '../hooks/use-toast';
+import { Separator } from '../components/ui/separator';
+import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'framer-motion';
 import {
   Dialog,
@@ -20,8 +20,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import LoginErrorDisplay from '@/components/LoginErrorDisplay';
+} from "../components/ui/dialog";
+import LoginErrorDisplay from '../components/LoginErrorDisplay';
 import { useLocation } from 'react-router-dom';
 
 const loginSchema = z.object({

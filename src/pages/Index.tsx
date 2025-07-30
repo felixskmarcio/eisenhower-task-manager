@@ -1,5 +1,5 @@
 import React from 'react';
-import { Matrix } from '@/components/Matrix';
+import { Matrix } from '../components/Matrix';
 import { Clock, CheckCircle2, LayoutGrid } from 'lucide-react';
 import { motion } from 'framer-motion';
 

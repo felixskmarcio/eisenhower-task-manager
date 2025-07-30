@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+﻿import React, { useEffect, useState } from 'react';
+import { Card } from "../components/ui/card";
+import { Separator } from "../components/ui/separator";
 import { Settings, Moon, Sun, Palette, Calendar as CalendarIcon, Database, Save, User, Key, Bell, ChevronRight, Eye, EyeOff } from "lucide-react";
 
-import SupabaseIntegration from '@/components/SupabaseIntegration';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
-import { signInWithGoogle, signOut, getCurrentUser, subscribeToAuthChanges } from '@/services/auth';
-import { auth } from '@/utils/firebase';
+import SupabaseIntegration from '../components/SupabaseIntegration';
+import { Button } from '../components/ui/button';
+import { toast } from '../hooks/use-toast';
+import { signInWithGoogle, signOut, getCurrentUser, subscribeToAuthChanges } from '../services/auth';
+import { auth } from '../utils/firebase';
 import { User as FirebaseUser } from 'firebase/auth';
-import GoogleCalendarErrorDisplay from '@/components/GoogleCalendarErrorDisplay';
+import GoogleCalendarErrorDisplay from '../components/GoogleCalendarErrorDisplay';
 import { AuthError } from 'firebase/auth';
-import GoogleCalendarSyncButton from '@/components/GoogleCalendarSyncButton';
-import GoogleCalendarSync from '@/components/GoogleCalendarSync/GoogleCalendarSync';
+import GoogleCalendarSyncButton from '../components/GoogleCalendarSyncButton';
+import GoogleCalendarSync from '../components/GoogleCalendarSync/GoogleCalendarSync';
 
 interface Task {
   id: string;

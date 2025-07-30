@@ -1,5 +1,5 @@
-import React from 'react';
-import TagManager from '@/components/TagManager';
+﻿import React from 'react';
+import TagManager from '../components/TagManager';
 const TagsPage = () => {
   return <div className="min-h-screen bg-base-100 py-8 relative">
       {/* Plano de fundo com gradiente e efeito */}

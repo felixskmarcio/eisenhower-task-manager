@@ -1,14 +1,14 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card } from '../components/ui/card';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, BarChart2, ClipboardList, Clock, Calendar as CalendarIcon, CheckCircle, XCircle, TrendingUp, Activity, PieChart as PieChartIcon, Target, ChevronRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
-import { formatDate } from '@/utils/dateUtils';
-import { getTasks } from '@/services/database';
+import { formatDate } from '../utils/dateUtils';
+import { getTasks } from '../services/database';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { Task as DatabaseTask } from '@/services/types';
+import { Task as DatabaseTask } from '../services/types';
 
 // Define uma interface local para a Task que será usada no dashboard
 interface Task {
