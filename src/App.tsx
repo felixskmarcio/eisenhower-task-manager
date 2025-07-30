@@ -49,7 +49,6 @@ const AppContent = () => {
       <AuthProvider>
         <TagProvider>
           <TooltipProvider>
-            <Sonner />
             <Routes>
               {/* Rotas públicas */}
               <Route path="/login" element={
