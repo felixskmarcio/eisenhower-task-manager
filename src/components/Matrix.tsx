@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Clock, CheckCircle, Plus, Trash2, BarChart2, Activity, ChevronLeft, ChevronRight, Volume2, Headphones, X, LayoutGrid, AlertTriangle, Calendar as LucideCalendar, CalendarIcon } from 'lucide-react';
@@ -584,11 +585,16 @@ export const Matrix = () => {
   
   // Função para realizar a exclusão após confirmação
   const handleConfirmDelete = () => {
+    // Ocultar o modal imediatamente usando flushSync para evitar delay
+    flushSync(() => {
+      setIsDeleteDialogOpen(false);
+    });
+    
+    // Depois processar a exclusão da tarefa
     if (taskToDelete) {
       deleteTask(taskToDelete);
       setTaskToDelete(null);
     }
-    setIsDeleteDialogOpen(false);
   };
   
   // Função para cancelar a exclusão
