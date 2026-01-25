@@ -17,6 +17,7 @@ import { PublicRoute } from "./components/PublicRoute";
 import TagsPage from "./pages/TagsPage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
+import AdminPage from "./pages/AdminPage";
 import Introduction from "./pages/Introduction";
 import Demo from "./pages/Demo";
 import Landing from "./pages/Landing";
@@ -110,6 +111,13 @@ const AppContent = () => {
                 <PrivateRoute>
                   <Layout>
                     <SettingsPage />
+                  </Layout>
+                </PrivateRoute>
+              } />
+              <Route path="/admin" element={
+                <PrivateRoute>
+                  <Layout>
+                    <AdminPage />
                   </Layout>
                 </PrivateRoute>
               } />

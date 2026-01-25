@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, CheckCircle, Share, Settings, Home, BarChart2, Tag, CheckSquare, LogOut, InfoIcon, PlayCircle } from "lucide-react";
+import { Star, CheckCircle, Share, Settings, Home, BarChart2, Tag, CheckSquare, LogOut, InfoIcon, PlayCircle, Shield } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { AnimatedNavigationTabs } from "@/components/ui/animated-navigation-tabs";
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,6 +41,11 @@ const Layout = ({
     tile: "Configurações",
     url: "/config",
     icon: Settings
+  }, {
+    id: 5,
+    tile: "Admin",
+    url: "/admin",
+    icon: Shield
   }];
 
   // Items públicos que não requerem autenticação
