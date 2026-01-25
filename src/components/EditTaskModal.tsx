@@ -395,7 +395,7 @@ const EditTaskModal = ({
               <Button 
                 variant="outline" 
                 onClick={onClose}
-                className={`${isDarkMode ? 'border-gray-600 hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                className={`${isDarkMode ? 'border-gray-500 text-gray-200 hover:bg-gray-800 hover:text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
               >
                 Cancelar
               </Button>
