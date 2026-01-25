@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Clock, CheckCircle, Plus, Trash2, BarChart2, Activity, ChevronLeft, ChevronRight, Volume2, Headphones, X, LayoutGrid, AlertTriangle, Calendar as LucideCalendar, CalendarIcon, GripVertical } from 'lucide-react';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
+import { TimerWidget } from './TimerWidget';
 import { formatDate } from '@/utils/dateUtils';
 import TagFilterSelect from './TagFilterSelect';
 import { useToast } from '@/hooks/use-toast';
@@ -83,6 +84,7 @@ export const Matrix = () => {
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const [timerElapsed, setTimerElapsed] = useState<number>(0);
   const [taskTimeSpent, setTaskTimeSpent] = useState<{[key: string]: number}>({});
+  const [selectedTimerTask, setSelectedTimerTask] = useState<Task | null>(null);
   
   // Estado para drag-and-drop com @dnd-kit
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -695,11 +697,13 @@ export const Matrix = () => {
   };
 
   // Componente de tarefa arrastável com useDraggable
-  const DraggableTaskCard = React.memo(({ task, isTimerActive, timeLeft, taskTimeSpent }: { 
+  const DraggableTaskCard = React.memo(({ task, isTimerActive, timeLeft, taskTimeSpent, onSelectForTimer, isSelectedForTimer }: { 
     task: Task; 
     isTimerActive: boolean; 
     timeLeft?: number; 
     taskTimeSpent: { [key: string]: number }; 
+    onSelectForTimer: (task: Task) => void;
+    isSelectedForTimer: boolean;
   }) => {
     const {
       attributes,
@@ -880,12 +884,13 @@ export const Matrix = () => {
                 </div>
               ) : (
                 <button
-                  onClick={() => startTimer(task.id)}
+                  onClick={() => onSelectForTimer(task)}
                   disabled={task.completed}
-                  className={`btn btn-ghost btn-xs rounded-full ${task.completed ? 'opacity-50' : 'hover:bg-opacity-30'}`}
-                  aria-label="Iniciar timer"
+                  className={`btn btn-ghost btn-xs rounded-full ${isSelectedForTimer ? 'bg-primary/20 ring-1 ring-primary' : ''} ${task.completed ? 'opacity-50' : 'hover:bg-opacity-30'}`}
+                  aria-label="Selecionar para timer"
+                  data-testid={`button-select-timer-${task.id}`}
                 >
-                  <Clock className="h-3.5 w-3.5" />
+                  <Clock className={`h-3.5 w-3.5 ${isSelectedForTimer ? 'text-primary' : ''}`} />
                 </button>
               )}
             </div>
@@ -1163,6 +1168,8 @@ export const Matrix = () => {
               isTimerActive={activeTimer === task.id}
               timeLeft={timeLeft}
               taskTimeSpent={taskTimeSpent}
+              onSelectForTimer={handleSelectTaskForTimer}
+              isSelectedForTimer={selectedTimerTask?.id === task.id}
             />
           ))
         )}
@@ -1185,6 +1192,60 @@ export const Matrix = () => {
     setTasks(newTasks);
     saveTasksToLocalStorage(newTasks);
   };
+
+  // Timer Widget handlers
+  const handleTimerWidgetStart = useCallback((taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      setActiveTimer(taskId);
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === taskId ? { ...t, isTimerActive: true } : t
+        )
+      );
+    }
+  }, [tasks]);
+
+  const handleTimerWidgetComplete = useCallback(async (taskId: string, timeSpent: number) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      const currentTimeSpent = task.timeSpent || 0;
+      const newTimeSpent = currentTimeSpent + timeSpent;
+      
+      const updatedTasks = tasks.map((t) =>
+        t.id === taskId ? { ...t, timeSpent: newTimeSpent, isTimerActive: false } : t
+      );
+      
+      setTasks(updatedTasks);
+      saveTasksToLocalStorage(updatedTasks);
+      
+      // Sincronizar com banco de dados
+      const userId = user?.uid || (user as any)?.id || 'anonymous-user';
+      try {
+        await dbUpdateTask(taskId, { time_spent: newTimeSpent }, userId);
+      } catch (err) {
+        console.error('Erro ao sincronizar tempo:', err);
+      }
+      
+      toast({
+        title: 'Sessão concluída!',
+        description: `+${Math.floor(timeSpent / 60)} minutos registrados para "${task.title}"`,
+      });
+    }
+  }, [tasks, user, toast]);
+
+  const handleTimerWidgetStop = useCallback(() => {
+    setActiveTimer(null);
+    setTasks((prevTasks) =>
+      prevTasks.map((t) =>
+        t.isTimerActive ? { ...t, isTimerActive: false } : t
+      )
+    );
+  }, []);
+
+  const handleSelectTaskForTimer = useCallback((task: Task) => {
+    setSelectedTimerTask(task);
+  }, []);
 
   // Carregar tarefas do localStorage ao inicializar
   useEffect(() => {
@@ -1396,6 +1457,8 @@ export const Matrix = () => {
                     isTimerActive={activeTimer === task.id}
                     timeLeft={timeLeft}
                     taskTimeSpent={taskTimeSpent}
+                    onSelectForTimer={handleSelectTaskForTimer}
+                    isSelectedForTimer={selectedTimerTask?.id === task.id}
                   />
                 ))}
             </div>
@@ -1415,6 +1478,8 @@ export const Matrix = () => {
                     isTimerActive={activeTimer === task.id}
                     timeLeft={timeLeft}
                     taskTimeSpent={taskTimeSpent}
+                    onSelectForTimer={handleSelectTaskForTimer}
+                    isSelectedForTimer={selectedTimerTask?.id === task.id}
                   />
                 ))}
             </div>
@@ -1547,6 +1612,15 @@ export const Matrix = () => {
           </div>
         ) : null}
       </DragOverlay>
+      
+      {/* Timer Widget Flutuante */}
+      <TimerWidget
+        activeTask={selectedTimerTask}
+        onTimerComplete={handleTimerWidgetComplete}
+        onTimerStart={handleTimerWidgetStart}
+        onTimerStop={handleTimerWidgetStop}
+        tasks={tasks}
+      />
     </div>
     </DndContext>
   );
