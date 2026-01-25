@@ -411,30 +411,11 @@ export const checkIfUserExists = async (email: string): Promise<boolean> => {
   try {
     console.log('Verificando se usuário existe:', sanitizedEmail);
     
-    // Verificar no Supabase primeiro
+    // Verificar na tabela de perfis do Supabase
     try {
       const { supabase } = await import('@/integrations/supabase/client');
       
-      // Tentar verificar com o método de login (apenas para verificação)
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: sanitizedEmail,
-        password: 'verificacao_temp_12345' // Senha temporária apenas para verificação
-      });
-      
-      // Se o erro inclui "Invalid login credentials", significa que o usuário existe
-      // mas a senha está errada, o que confirma que o email existe
-      if (error && error.message && error.message.includes('Invalid login credentials')) {
-        console.log('Usuário encontrado no Supabase (senha incorreta):', sanitizedEmail);
-        return true;
-      }
-      
-      // Se não houver erro e data.user existir, o usuário existe (caso improvável com senha aleatória)
-      if (data && data.user) {
-        console.log('Usuário encontrado no Supabase:', sanitizedEmail);
-        return true;
-      }
-      
-      // Verificar na tabela de perfis
+      // Verificar na tabela de perfis (método mais confiável)
       const { data: profileData } = await supabase
         .from('profiles')
         .select('id')
@@ -445,6 +426,8 @@ export const checkIfUserExists = async (email: string): Promise<boolean> => {
         console.log('Usuário encontrado na tabela de perfis do Supabase:', profileData);
         return true;
       }
+      
+      console.log('Usuário não encontrado na tabela de perfis do Supabase');
     } catch (supabaseError) {
       console.error('Erro ao verificar usuário no Supabase:', supabaseError);
       // Não propagar esse erro, continuar para verificação no Firebase
@@ -470,6 +453,7 @@ export const checkIfUserExists = async (email: string): Promise<boolean> => {
     }
     
     // Se nenhuma verificação encontrou o usuário, assumimos que não existe
+    console.log('Usuário não encontrado em nenhum provedor:', sanitizedEmail);
     return false;
   } catch (error) {
     console.error('Erro geral ao verificar existência do usuário:', error);
