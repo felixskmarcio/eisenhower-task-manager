@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Clock, CheckCircle, Plus, Trash2, BarChart2, Activity, ChevronLeft, ChevronRight, Volume2, Headphones, X, LayoutGrid, AlertTriangle, Calendar as LucideCalendar, CalendarIcon } from 'lucide-react';
+import { Clock, CheckCircle, Plus, Trash2, BarChart2, Activity, ChevronLeft, ChevronRight, Volume2, Headphones, X, LayoutGrid, AlertTriangle, Calendar as LucideCalendar, CalendarIcon, GripVertical } from 'lucide-react';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import { formatDate } from '@/utils/dateUtils';
@@ -18,8 +18,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Tag } from '../contexts/TagContext';
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverEvent,
+  useDroppable,
+  useDraggable,
+} from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Task {
   id: string;
@@ -63,6 +79,27 @@ export const Matrix = () => {
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const [timerElapsed, setTimerElapsed] = useState<number>(0);
   const [taskTimeSpent, setTaskTimeSpent] = useState<{[key: string]: number}>({});
+  
+  // Estado para drag-and-drop com @dnd-kit
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [overQuadrant, setOverQuadrant] = useState<number | null>(null);
+  
+  // Sensores para diferentes tipos de entrada
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Mínimo 8px de movimento para iniciar drag
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
 
   // Lista de tags disponíveis (movida para o início do componente)
   const availableTags = [
@@ -335,169 +372,70 @@ export const Matrix = () => {
     }
   ];
 
-  const handleDragStart = (e: React.DragEvent, task: Task) => {
-    e.dataTransfer.setData('text/plain', JSON.stringify(task));
-    // Adicionar classe para efeito visual
-    const element = e.currentTarget as HTMLElement;
-    element.classList.add('dragging');
+  // Handlers do @dnd-kit
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const taskId = active.id as string;
+    const task = tasks.find(t => t.id === taskId);
     
-    // Adicionar ghost element para feedback visual
-    const rect = element.getBoundingClientRect();
-    const ghostElement = document.createElement('div');
-    ghostElement.classList.add('drag-ghost');
-    ghostElement.style.width = `${rect.width}px`;
-    ghostElement.style.height = `${rect.height}px`;
-    ghostElement.style.left = `${rect.left}px`;
-    ghostElement.style.top = `${rect.top}px`;
-    document.body.appendChild(ghostElement);
-    
-    // Customizar imagem de arrasto para melhor experiência
-    const dragImage = document.createElement('div');
-    dragImage.style.width = '1px';
-    dragImage.style.height = '1px';
-    dragImage.style.opacity = '0';
-    document.body.appendChild(dragImage);
-    e.dataTransfer.setDragImage(dragImage, 0, 0);
-    
-    // Adicionar efeito visual à tarefa
-    element.style.transform = 'scale(1.05) rotate(1deg)';
-    
-    // Limpar elementos temporários após o próximo ciclo de renderização
-    setTimeout(() => {
-      document.body.removeChild(dragImage);
-      // Não remover o ghost element ainda, será removido no dragEnd
-    }, 0);
-    
-    // Armazenar referência ao ghost element para remoção posterior
-    (e.currentTarget as any)._ghostElement = ghostElement;
-    // Armazenar a tarefa que está sendo arrastada
-    (document as any)._draggedTask = task;
+    if (task) {
+      setActiveId(taskId);
+      setActiveTask(task);
+    }
   };
 
-  const handleDragEnd = (e: React.DragEvent) => {
-    // Remover ghost element
-    const elements = document.querySelectorAll('.dragging');
-    elements.forEach(element => {
-      element.classList.remove('dragging');
-      const ghostElement = (element as any)._ghostElement;
-      if (ghostElement && ghostElement.parentNode) {
-        ghostElement.parentNode.removeChild(ghostElement);
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    if (over) {
+      const quadrantId = over.id as string;
+      const quadrantNumber = parseInt(quadrantId.replace('quadrant-', ''));
+      if (!isNaN(quadrantNumber)) {
+        setOverQuadrant(quadrantNumber);
       }
-      (element as HTMLElement).style.transform = '';
-    });
-    
-    // Limpar a tarefa arrastada
-    (document as any)._draggedTask = null;
+    } else {
+      setOverQuadrant(null);
+    }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    // Adicionar efeito visual na zona de soltar
-    const element = e.currentTarget as HTMLElement;
-    element.classList.add('dropzone-hover');
-    element.classList.add('quadrant-highlight');
-    element.classList.add('active');
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
     
-    // Atualizar posição do ghost element
-    const draggingElements = document.querySelectorAll('.dragging');
-    draggingElements.forEach(draggingElement => {
-      const ghostElement = (draggingElement as any)._ghostElement;
-      if (ghostElement) {
-        // Calcular posição dentro do quadrante para o ghost element
-        const rect = element.getBoundingClientRect();
-        const offsetX = e.clientX - rect.left;
-        const offsetY = e.clientY - rect.top;
+    if (over && activeTask) {
+      const quadrantId = over.id as string;
+      const newQuadrant = parseInt(quadrantId.replace('quadrant-', ''));
+      
+      if (!isNaN(newQuadrant) && activeTask.quadrant !== newQuadrant) {
+        const updatedTasks = tasks.map(task => 
+          task.id === activeTask.id 
+            ? { ...task, quadrant: newQuadrant } 
+            : task
+        );
         
-        // Limitar ao tamanho do quadrante
-        const maxX = rect.width - ghostElement.offsetWidth;
-        const maxY = rect.height - ghostElement.offsetHeight;
-        const limitedX = Math.max(0, Math.min(offsetX, maxX));
-        const limitedY = Math.max(0, Math.min(offsetY, maxY));
+        updateTasks(updatedTasks);
         
-        ghostElement.style.top = `${limitedY + rect.top}px`;
-        ghostElement.style.left = `${limitedX + rect.left}px`;
-        ghostElement.style.opacity = '0.2';
-      }
-    });
-    
-    // Indicar que o drop é permitido
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    // Remover efeito visual quando o cursor sair da zona
-    const element = e.currentTarget as HTMLElement;
-    element.classList.remove('dropzone-hover');
-    element.classList.remove('active');
-  };
-
-  const handleDrop = (e: React.DragEvent, quadrantIndex: number) => {
-    e.preventDefault();
-    // Remover efeito visual da zona de soltar
-    const element = e.currentTarget as HTMLElement;
-    element.classList.remove('dropzone-hover');
-    element.classList.remove('active');
-    
-    const taskData = e.dataTransfer.getData('text/plain');
-    if (taskData) {
-      try {
-        const droppedTask = JSON.parse(taskData);
+        const quadrantNames = [
+          'Fazer (Urgente e Importante)',
+          'Agendar (Importante)',
+          'Delegar (Urgente)',
+          'Eliminar'
+        ];
         
-        // Verificar se o quadrante mudou
-        if (droppedTask.quadrant !== quadrantIndex) {
-          // Animação de destaque na tarefa sendo movida
-          const taskElement = document.getElementById(`task-${droppedTask.id}`);
-          if (taskElement) {
-            // Adicionar classe para animar a transição
-            taskElement.style.transition = 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
-            taskElement.style.transform = 'scale(1.08)';
-            taskElement.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.2)';
-            
-            // Restaurar após a animação
-            setTimeout(() => {
-              taskElement.style.transform = '';
-              taskElement.style.boxShadow = '';
-            }, 600);
-          }
-          
-          const updatedTasks = tasks.map(task => 
-            task.id === droppedTask.id 
-              ? { ...task, quadrant: quadrantIndex } 
-              : task
-          );
-          
-          // Atualizar as tarefas e salvar no localStorage
-          updateTasks(updatedTasks);
-          
-          // Adicionar efeito visual de destaque temporário ao quadrante de destino
-          element.style.transition = 'box-shadow 0.4s ease, background-color 0.4s ease';
-          element.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.7)';
-          element.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
-          
-          setTimeout(() => {
-            element.style.boxShadow = '';
-            element.style.backgroundColor = '';
-          }, 800);
-          
-          // Mostrar notificação com ícone relevante
-          toast({
-            title: 'Tarefa movida',
-            description: `Tarefa "${droppedTask.title}" movida para ${
-              quadrantIndex === 0 ? 'Urgente e Importante' :
-              quadrantIndex === 1 ? 'Importante, Não Urgente' :
-              quadrantIndex === 2 ? 'Urgente, Não Importante' :
-              'Não Urgente, Não Importante'
-            }`,
-          });
-        }
-      } catch (error) {
-        console.error("Erro ao processar a tarefa arrastada:", error);
         toast({
-          title: 'Erro',
-          description: 'Ocorreu um erro ao mover a tarefa.',
+          title: 'Tarefa movida',
+          description: `"${activeTask.title}" movida para ${quadrantNames[newQuadrant]}`,
         });
       }
     }
+    
+    setActiveId(null);
+    setActiveTask(null);
+    setOverQuadrant(null);
+  };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
+    setActiveTask(null);
+    setOverQuadrant(null);
   };
 
   // Função para gerar UUIDs válidos
@@ -602,24 +540,49 @@ export const Matrix = () => {
     e.stopPropagation();
   };
 
-  // Componente otimizado para a tarefa
-  const TaskCard = React.memo(({ task, isTimerActive, timeLeft, taskTimeSpent }: { 
+  // Componente de tarefa arrastável com useDraggable
+  const DraggableTaskCard = React.memo(({ task, isTimerActive, timeLeft, taskTimeSpent }: { 
     task: Task; 
     isTimerActive: boolean; 
     timeLeft?: number; 
     taskTimeSpent: { [key: string]: number }; 
   }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      isDragging,
+    } = useDraggable({
+      id: task.id,
+    });
+
+    const style = transform ? {
+      transform: CSS.Translate.toString(transform),
+      zIndex: isDragging ? 1000 : undefined,
+      opacity: isDragging ? 0.5 : 1,
+    } : undefined;
+
     return (
       <div 
-        className={`matrix-card mb-2 ${task.completed ? 'opacity-60' : ''}`}
-        draggable={true}
-        onDragStart={(e) => handleDragStart(e, task)}
-        onDragEnd={handleDragEnd}
+        ref={setNodeRef}
+        style={style}
+        className={`matrix-card mb-2 ${task.completed ? 'opacity-60' : ''} ${isDragging ? 'shadow-xl' : ''}`}
         id={`task-${task.id}`}
       >
-        <div className="p-2 bg-base-200 rounded-md hover:bg-base-300 transition-all duration-300">
+        <div className="p-2 bg-base-200 rounded-md hover:bg-base-300 transition-all duration-300 group">
           {/* Cabeçalho da tarefa */}
           <div className="flex items-start justify-between">
+            {/* Handle de arrastar */}
+            <div 
+              {...attributes} 
+              {...listeners}
+              className="flex-shrink-0 cursor-grab active:cursor-grabbing mr-1 mt-1 opacity-0 group-hover:opacity-60 transition-opacity touch-none"
+              aria-label="Arrastar tarefa"
+            >
+              <GripVertical className="h-4 w-4 text-base-content/50" />
+            </div>
+            
             <div className="flex items-start flex-1 min-w-0">
               {/* Botão de completar */}
               <div className="flex-shrink-0 mt-0.5">
@@ -731,7 +694,7 @@ export const Matrix = () => {
     );
   });
 
-  TaskCard.displayName = 'TaskCard';
+  DraggableTaskCard.displayName = 'DraggableTaskCard';
 
   const BarChart = () => {
     const maxValue = Math.max(...salesData);
@@ -792,7 +755,7 @@ export const Matrix = () => {
     );
   };
 
-  // Componente de quadrante responsivo
+  // Componente de quadrante responsivo com useDroppable
   const QuadrantContainer = ({ title, description, children, urgentLabel, importantLabel, colorClass, quadrantIndex }: {
     title: string;
     description: string;
@@ -802,36 +765,16 @@ export const Matrix = () => {
     colorClass: string;
     quadrantIndex: number;
   }) => {
-    const [isDragOver, setIsDragOver] = useState(false);
+    const { isOver, setNodeRef } = useDroppable({
+      id: `quadrant-${quadrantIndex}`,
+    });
     
-    const handleDragOverQuadrant = (e: React.DragEvent) => {
-      e.preventDefault();
-      if (!isDragOver) {
-        setIsDragOver(true);
-      }
-      handleDragOver(e);
-    };
-    
-    const handleDragLeaveQuadrant = (e: React.DragEvent) => {
-      // Verificar se o cursor realmente saiu do elemento e não entrou em um filho
-      const relatedTarget = e.relatedTarget as HTMLElement;
-      if (!e.currentTarget.contains(relatedTarget)) {
-        setIsDragOver(false);
-        handleDragLeave(e);
-      }
-    };
-    
-    const handleDropQuadrant = (e: React.DragEvent) => {
-      setIsDragOver(false);
-      handleDrop(e, quadrantIndex);
-    };
+    const isDragOver = isOver || overQuadrant === quadrantIndex;
     
     return (
       <motion.div
-        className={`quadrant-card q${quadrantIndex + 1} h-full flex flex-col ${isDragOver ? 'drop-ready' : ''}`}
-        onDragOver={handleDragOverQuadrant}
-        onDragLeave={handleDragLeaveQuadrant}
-        onDrop={handleDropQuadrant}
+        ref={setNodeRef}
+        className={`quadrant-card q${quadrantIndex + 1} h-full flex flex-col ${isDragOver ? 'drop-ready ring-2 ring-primary/50' : ''}`}
         animate={isDragOver ? {
           scale: 1.01,
           boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)"
@@ -854,16 +797,19 @@ export const Matrix = () => {
               <span>{importantLabel}</span>
             </div>
           </div>
-          {isDragOver && (
-            <motion.div 
-              className="drop-indicator mt-2 p-1 rounded-md border border-dashed border-primary bg-primary bg-opacity-10 text-center"
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <p className="text-xs text-primary">Solte aqui para mover para este quadrante</p>
-            </motion.div>
-          )}
+          <AnimatePresence>
+            {isDragOver && activeId && (
+              <motion.div 
+                className="drop-indicator mt-2 p-2 rounded-md border-2 border-dashed border-primary bg-primary/10 text-center"
+                initial={{ opacity: 0, y: -5, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                exit={{ opacity: 0, y: -5, height: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <p className="text-xs text-primary font-medium">Solte aqui para mover</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         <div className="flex-1 p-2 overflow-y-auto custom-scrollbar bg-base-100 bg-opacity-90">
           {children}
@@ -977,7 +923,7 @@ export const Matrix = () => {
           </div>
         ) : (
           filteredTasks.map(task => (
-            <TaskCard 
+            <DraggableTaskCard 
               key={task.id} 
               task={task} 
               isTimerActive={activeTimer === task.id}
@@ -1029,6 +975,14 @@ export const Matrix = () => {
   }, []);
 
   return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
+    >
     <div className="w-full mx-auto relative">
       {/* Wrapper para aplicar o efeito de blur quando o modal estiver aberto */}
       <div className={isDeleteDialogOpen ? 'blur-sm pointer-events-none transition-all duration-300' : ''}>
@@ -1202,7 +1156,7 @@ export const Matrix = () => {
                 .filter(task => task.completed)
                 .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
                 .map(task => (
-                  <TaskCard 
+                  <DraggableTaskCard 
                     key={task.id} 
                     task={task} 
                     isTimerActive={activeTimer === task.id}
@@ -1221,7 +1175,7 @@ export const Matrix = () => {
               {tasks
                 .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
                 .map(task => (
-                  <TaskCard 
+                  <DraggableTaskCard 
                     key={task.id} 
                     task={task} 
                     isTimerActive={activeTimer === task.id}
@@ -1341,6 +1295,25 @@ export const Matrix = () => {
           </div>
         </div>
       )}
+      
+      {/* Overlay de arrasto - mostra a tarefa sendo arrastada */}
+      <DragOverlay dropAnimation={{
+        duration: 200,
+        easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+      }}>
+        {activeTask ? (
+          <div className="matrix-card bg-base-200 rounded-md shadow-2xl border-2 border-primary/50 p-3 opacity-90">
+            <div className="flex items-center gap-2">
+              <GripVertical className="h-4 w-4 text-primary" />
+              <h4 className="font-bold text-sm truncate">{activeTask.title}</h4>
+            </div>
+            {activeTask.description && (
+              <p className="text-xs mt-1 text-base-content/70 truncate">{activeTask.description}</p>
+            )}
+          </div>
+        ) : null}
+      </DragOverlay>
     </div>
+    </DndContext>
   );
 };
