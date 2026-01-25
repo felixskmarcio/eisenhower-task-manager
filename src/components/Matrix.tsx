@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Clock, CheckCircle, Plus, Trash2, BarChart2, Activity, ChevronLeft, ChevronRight, Volume2, Headphones, X, LayoutGrid, AlertTriangle, Calendar as LucideCalendar, CalendarIcon, GripVertical } from 'lucide-react';
@@ -8,6 +8,8 @@ import { formatDate } from '@/utils/dateUtils';
 import TagFilterSelect from './TagFilterSelect';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useAuth } from '@/contexts/AuthContext';
+import { createTask as dbCreateTask, getTasks as dbGetTasks, updateTask as dbUpdateTask, deleteTask as dbDeleteTask, toggleTaskCompletion as dbToggleTask } from '@/services/database';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -73,6 +75,8 @@ interface DragResult {
 
 export const Matrix = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [activeTimer, setActiveTimer] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(25 * 60); // 25 minutes in seconds
   const [isBreak, setIsBreak] = useState(false);
@@ -298,7 +302,7 @@ export const Matrix = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveTask = (editedTask: {
+  const handleSaveTask = async (editedTask: {
     id: string;
     title: string;
     description: string;
@@ -321,13 +325,45 @@ export const Matrix = () => {
         null
     };
     
+    // Atualizar estado local imediatamente
     const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
     updateTasks(updatedTasks);
     
-    toast({
-      title: 'Tarefa atualizada',
-      description: 'As alterações foram salvas com sucesso!',
-    });
+    // Sincronizar com banco de dados
+    const userId = user?.uid || (user as any)?.id || 'anonymous-user';
+    try {
+      const { error } = await dbUpdateTask(editedTask.id, {
+        title: updatedTask.title,
+        description: updatedTask.description,
+        urgency: updatedTask.urgency,
+        importance: updatedTask.importance,
+        quadrant: updatedTask.quadrant,
+        completed: updatedTask.completed,
+        completed_at: updatedTask.completedAt?.toISOString(),
+        tags: updatedTask.tags,
+        start_date: updatedTask.start_date
+      }, userId);
+      
+      if (error) {
+        console.error('Erro ao atualizar tarefa no banco:', error);
+        toast({
+          title: 'Tarefa atualizada',
+          description: 'Alterações salvas localmente. Sincronização pendente.',
+        });
+      } else {
+        console.log('Tarefa atualizada no banco de dados');
+        toast({
+          title: 'Tarefa atualizada',
+          description: 'As alterações foram salvas e sincronizadas!',
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao sincronizar tarefa:', err);
+      toast({
+        title: 'Tarefa atualizada',
+        description: 'Alterações salvas localmente.',
+      });
+    }
   };
 
   const [selectedDate, setSelectedDate] = useState<number>(14); // Default to day 14
@@ -397,7 +433,7 @@ export const Matrix = () => {
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     
     if (over && activeTask) {
@@ -405,9 +441,33 @@ export const Matrix = () => {
       const newQuadrant = parseInt(quadrantId.replace('quadrant-', ''));
       
       if (!isNaN(newQuadrant) && activeTask.quadrant !== newQuadrant) {
+        // Calcular novos valores de urgência/importância baseado no quadrante
+        let newUrgency = activeTask.urgency;
+        let newImportance = activeTask.importance;
+        
+        // Ajustar urgência e importância baseado no novo quadrante
+        switch (newQuadrant) {
+          case 0: // Fazer - Urgente e Importante
+            newUrgency = Math.max(6, activeTask.urgency);
+            newImportance = Math.max(6, activeTask.importance);
+            break;
+          case 1: // Agendar - Importante mas não urgente
+            newUrgency = Math.min(5, activeTask.urgency);
+            newImportance = Math.max(6, activeTask.importance);
+            break;
+          case 2: // Delegar - Urgente mas não importante
+            newUrgency = Math.max(6, activeTask.urgency);
+            newImportance = Math.min(5, activeTask.importance);
+            break;
+          case 3: // Eliminar - Nem urgente nem importante
+            newUrgency = Math.min(5, activeTask.urgency);
+            newImportance = Math.min(5, activeTask.importance);
+            break;
+        }
+        
         const updatedTasks = tasks.map(task => 
           task.id === activeTask.id 
-            ? { ...task, quadrant: newQuadrant } 
+            ? { ...task, quadrant: newQuadrant, urgency: newUrgency, importance: newImportance } 
             : task
         );
         
@@ -419,6 +479,24 @@ export const Matrix = () => {
           'Delegar (Urgente)',
           'Eliminar'
         ];
+        
+        // Sincronizar com banco de dados
+        const userId = user?.uid || (user as any)?.id || 'anonymous-user';
+        try {
+          const { error } = await dbUpdateTask(activeTask.id, {
+            quadrant: newQuadrant,
+            urgency: newUrgency,
+            importance: newImportance
+          }, userId);
+          
+          if (error) {
+            console.error('Erro ao sincronizar movimento:', error);
+          } else {
+            console.log('Movimento sincronizado com o banco');
+          }
+        } catch (err) {
+          console.error('Erro ao sincronizar:', err);
+        }
         
         toast({
           title: 'Tarefa movida',
@@ -447,18 +525,21 @@ export const Matrix = () => {
     });
   };
 
-  // Modificar a função handleAddTask para usar UUIDs
-  const handleAddTask = () => {
+  // Função para adicionar tarefa - salva no banco e no estado local
+  const handleAddTask = async () => {
     const newTaskQuadrant = calculateQuadrant(newTask.urgency, newTask.importance);
+    const taskId = generateUUID();
     const createdTask: Task = {
       ...newTask,
-      id: generateUUID(),
+      id: taskId,
       quadrant: newTaskQuadrant,
       completed: false,
       createdAt: new Date(),
       completedAt: null,
       start_date: newTask.start_date
     };
+    
+    // Atualizar estado local imediatamente para UX responsiva
     const updatedTasks = [...tasks, createdTask];
     setTasks(updatedTasks);
     saveTasksToLocalStorage(updatedTasks);
@@ -471,10 +552,42 @@ export const Matrix = () => {
       tags: [],
       start_date: null
     });
-    toast({
-      title: 'Tarefa adicionada',
-      description: 'Nova tarefa criada com sucesso!'
-    });
+    
+    // Salvar no banco de dados em background
+    const userId = user?.uid || (user as any)?.id || 'anonymous-user';
+    try {
+      const { error } = await dbCreateTask({
+        title: createdTask.title,
+        description: createdTask.description,
+        urgency: createdTask.urgency,
+        importance: createdTask.importance,
+        quadrant: createdTask.quadrant,
+        completed: createdTask.completed,
+        tags: createdTask.tags,
+        start_date: createdTask.start_date
+      }, userId);
+      
+      if (error) {
+        console.error('Erro ao salvar tarefa no banco:', error);
+        toast({
+          title: 'Aviso',
+          description: 'Tarefa criada localmente. Sincronização pendente.',
+          variant: 'destructive'
+        });
+      } else {
+        console.log('Tarefa salva no banco de dados com sucesso');
+        toast({
+          title: 'Tarefa adicionada',
+          description: 'Nova tarefa criada e sincronizada!'
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao criar tarefa:', err);
+      toast({
+        title: 'Tarefa adicionada',
+        description: 'Nova tarefa criada localmente!'
+      });
+    }
   };
 
   const calculateQuadrant = (urgency: number, importance: number): number => {
@@ -484,11 +597,17 @@ export const Matrix = () => {
     return 3;
   };
 
-  const toggleTaskCompletion = (taskId: string) => {
+  const toggleTaskCompletion = async (taskId: string) => {
+    const taskToUpdate = tasks.find(t => t.id === taskId);
+    if (!taskToUpdate) return;
+    
+    const newCompleted = !taskToUpdate.completed;
+    const completedAt = newCompleted ? new Date() : null;
+    
+    // Atualizar estado local imediatamente
     const updatedTasks = tasks.map(task => {
       if (task.id === taskId) {
-        const completedAt = !task.completed ? new Date() : null;
-        const newTask = { ...task, completed: !task.completed, completedAt };
+        const newTask = { ...task, completed: newCompleted, completedAt };
         if (newTask.completed) {
           setActiveView('completed');
         }
@@ -498,16 +617,51 @@ export const Matrix = () => {
     });
     setTasks(updatedTasks);
     saveTasksToLocalStorage(updatedTasks);
+    
+    // Sincronizar com banco de dados
+    const userId = user?.uid || (user as any)?.id || 'anonymous-user';
+    try {
+      const { error } = await dbToggleTask(taskId, newCompleted, userId);
+      if (error) {
+        console.error('Erro ao atualizar status no banco:', error);
+      } else {
+        console.log('Status da tarefa sincronizado com o banco');
+      }
+    } catch (err) {
+      console.error('Erro ao sincronizar status:', err);
+    }
   };
   
-  const deleteTask = (taskId: string) => {
+  const deleteTask = async (taskId: string) => {
+    // Atualizar estado local imediatamente
     const updatedTasks = tasks.filter(task => task.id !== taskId);
     setTasks(updatedTasks);
     saveTasksToLocalStorage(updatedTasks);
-    toast({
-      title: 'Tarefa excluída',
-      description: 'A tarefa foi removida permanentemente.'
-    });
+    
+    // Sincronizar com banco de dados
+    const userId = user?.uid || (user as any)?.id || 'anonymous-user';
+    try {
+      const { error } = await dbDeleteTask(taskId, userId);
+      if (error) {
+        console.error('Erro ao excluir do banco:', error);
+        toast({
+          title: 'Tarefa excluída',
+          description: 'Removida localmente. Sincronização pendente.'
+        });
+      } else {
+        console.log('Tarefa excluída do banco de dados');
+        toast({
+          title: 'Tarefa excluída',
+          description: 'A tarefa foi removida permanentemente.'
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao excluir tarefa:', err);
+      toast({
+        title: 'Tarefa excluída',
+        description: 'Removida localmente.'
+      });
+    }
   };
 
   // Estado para o diálogo de confirmação de exclusão
