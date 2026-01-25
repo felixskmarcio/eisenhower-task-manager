@@ -75,40 +75,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     console.log('AuthProvider: Inicializando...');
+    let isMounted = true;
     
     // Verificar se há sessão do Supabase
     const checkSupabaseSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          console.log('Sessão do Supabase encontrada:', session);
-          // Aqui você pode definir o usuário a partir da sessão do Supabase
+        if (session && session.user && isMounted) {
+          console.log('Sessão do Supabase encontrada:', session.user.email);
           const supabaseUser = session.user;
-          if (supabaseUser) {
-            console.log('Usuário do Supabase:', supabaseUser);
-            // Se necessário, adapte o formato do usuário do Supabase para o formato do seu User
-            fetchProfile(supabaseUser.id);
-          }
+          console.log('Definindo usuário do Supabase:', supabaseUser.email);
+          // Definir o usuário do Supabase (convertido para o formato esperado)
+          setUser(supabaseUser as unknown as User);
+          fetchProfile(supabaseUser.id);
+          setLoading(false);
+          return true; // Sessão encontrada
         }
+        return false; // Sem sessão
       } catch (error) {
         console.error('Erro ao verificar sessão do Supabase:', error);
+        return false;
       }
     };
     
+    // Configurar listener de mudanças de autenticação do Supabase
+    const { data: { subscription: supabaseSubscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Supabase auth state changed:', event, session?.user?.email);
+        if (session && session.user && isMounted) {
+          setUser(session.user as unknown as User);
+          fetchProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT' && isMounted) {
+          // Só limpar se foi um logout explícito do Supabase
+          const firebaseUser = getCurrentUser();
+          if (!firebaseUser) {
+            setUser(null);
+            setProfile(null);
+          }
+        }
+        setLoading(false);
+      }
+    );
+    
     // Configurar observador de alteração no estado de autenticação do Firebase
-    const unsubscribe = subscribeToAuthChanges((currentUser) => {
-      console.log('Estado de autenticação alterado:', currentUser ? `Usuário: ${currentUser.email}` : 'Não autenticado');
-      setUser(currentUser);
+    const unsubscribeFirebase = subscribeToAuthChanges((currentUser) => {
+      console.log('Estado de autenticação Firebase alterado:', currentUser ? `Usuário: ${currentUser.email}` : 'Não autenticado');
       
-      if (currentUser) {
+      if (currentUser && isMounted) {
+        setUser(currentUser);
         setTimeout(() => {
           fetchProfile(currentUser.uid);
         }, 0);
-      } else {
-        setProfile(null);
+        setLoading(false);
       }
-
-      setLoading(false);
+      // Não definir null aqui - deixar o Supabase gerenciar isso
     });
 
     // Verificar se há resultado de redirecionamento pendente
@@ -118,30 +138,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const redirectUser = await handleRedirectResult();
         if (redirectUser) {
           console.log('✅ Redirect login successful:', redirectUser.email);
-          // O subscribeToAuthChanges já vai processar o usuário
         }
       } catch (error) {
         console.error('❌ Error handling redirect result:', error);
       }
     };
 
-    // Verificar usuário atual do Firebase
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-      console.log('Usuário já autenticado no Firebase:', currentUser.email);
-      setUser(currentUser);
-      fetchProfile(currentUser.uid);
-    } else {
+    // Inicialização assíncrona
+    const initialize = async () => {
+      // Verificar usuário atual do Firebase primeiro
+      const firebaseUser = getCurrentUser();
+      if (firebaseUser) {
+        console.log('Usuário já autenticado no Firebase:', firebaseUser.email);
+        if (isMounted) {
+          setUser(firebaseUser);
+          fetchProfile(firebaseUser.uid);
+          setLoading(false);
+        }
+        return;
+      }
+      
+      // Verificar sessão do Supabase
       console.log('Nenhum usuário autenticado no Firebase, verificando Supabase...');
-      checkSupabaseSession();
-      checkRedirectResult();
-    }
+      const hasSupabaseSession = await checkSupabaseSession();
+      
+      if (!hasSupabaseSession) {
+        // Verificar redirecionamento do Google
+        checkRedirectResult();
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
     
-    setLoading(false);
+    initialize();
 
     return () => {
-      console.log('AuthProvider: Cancelando subscrição de autenticação');
-      unsubscribe();
+      console.log('AuthProvider: Cancelando subscrições de autenticação');
+      isMounted = false;
+      unsubscribeFirebase();
+      supabaseSubscription.unsubscribe();
     };
   }, []);
 
