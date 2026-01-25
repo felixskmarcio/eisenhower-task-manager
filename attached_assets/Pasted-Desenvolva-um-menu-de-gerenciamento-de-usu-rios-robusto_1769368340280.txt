@@ -1,0 +1,30 @@
+Desenvolva um menu de gerenciamento de usuários robusto e seguro que implemente operações CRUD (Criar, Ler, Atualizar, Excluir) de forma eficiente. O sistema deve ser acessível exclusivamente por usuários com perfil de Administrador (ADM). As funcionalidades obrigatórias incluem:
+
+1.  **Autenticação e Autorização:**
+    *   Implementar um sistema de login que verifique credenciais.
+    *   Restringir o acesso a todas as funcionalidades do menu apenas para usuários autenticados com a função "ADM".
+    *   Todas as requisições às APIs de gerenciamento devem validar o token de autenticação e a permissão do usuário.
+
+2.  **Funcionalidades CRUD:**
+    *   **Criar (Create):** Um formulário para cadastrar novos usuários, coletando dados como nome, e-mail, senha (com hash seguro) e atribuição de perfil (ex: ADM, Usuário). Deve incluir validação de dados no front-end e back-end.
+    *   **Ler (Read):** Uma tabela ou lista que exiba todos os usuários cadastrados, com informações como ID, nome, e-mail e perfil. Deve suportar paginação, ordenação e filtros (por nome, e-mail ou perfil).
+    *   **Atualizar (Update):** A capacidade de editar os dados de um usuário existente a partir da lista, abrindo um formulário pré-preenchido. A alteração de senha deve ser um processo separado e seguro.
+    *   **Excluir (Delete):** Opção para remover um usuário da lista, precedida de uma confirmação para evitar exclusões acidentais. Considerar a implementação de "soft delete" (desativação) em vez de exclusão física do registro.
+
+3.  **Requisitos de Segurança:**
+    *   Todas as senhas devem ser armazenadas usando algoritmos de hash fortes (ex: bcrypt).
+    *   Proteger contra ataques comuns (SQL Injection, XSS) através da sanitização de inputs e uso de prepared statements.
+    *   As APIs devem seguir os princípios de menor privilégio e validar escopos de permissão para cada operação.
+    *   Logs de auditoria devem registrar todas as operações críticas (criação, edição, exclusão de usuários) realizadas pelos administradores.
+
+4.  **Interface do Usuário (UI/UX):**
+    *   A interface deve ser intuitiva, responsiva e seguir um design consistente.
+    *   A tabela de usuários deve fornecer feedback visual claro (carregamento, sucesso, erro).
+    *   Incluir mensagens de confirmação para ações destrutivas (excluir) e de sucesso/erro para todas as operações.
+
+5.  **Entregáveis e Critérios de Aceitação:**
+    *   Código-fonte completo do front-end (ex: React, Vue) e back-end (ex: Node.js, Python/Django).
+    *   Scripts de banco de dados para criação da tabela de usuários com os campos necessários.
+    *   Documentação da API (endpoints, parâmetros, respostas) e um guia de instalação/execução.
+    *   Testes unitários para as funções de serviço (CRUD) e testes de integração para os endpoints da API.
+    *   O sistema deve ser totalmente funcional, com todas as rotas protegidas e acessíveis apenas pelo perfil ADM após login bem-sucedido.
