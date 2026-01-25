@@ -1,0 +1,44 @@
+O modal de edição de tarefas não está apresentando uma experiência de usuário adequada e precisa ser completamente redesenhado para atender aos padrões de qualidade do projeto. Realize uma reformulação completa do design do modal "Editar Tarefa", incluindo os seguintes aspectos:
+
+1. **Análise do estado atual**: Avalie criticamente o design atual do modal, identificando problemas específicos de usabilidade, acessibilidade, layout e consistência visual com o restante do projeto.
+
+2. **Requisitos de design**: 
+   - Alinhamento completo com o sistema de design do projeto (cores, tipografia, espaçamento, componentes)
+   - Interface responsiva que funcione bem em diferentes tamanhos de tela
+   - Acessibilidade WCAG 2.1 AA (contraste adequado, navegação por teclado, leitores de tela)
+   - Consistência visual com outros modais e componentes do sistema
+
+3. **Elementos obrigatórios**:
+   - Campos de formulário claramente organizados e etiquetados
+   - Estados visuais para todos os elementos interativos (hover, focus, active, disabled)
+   - Feedback visual adequado para ações do usuário
+   - Indicadores de validação em tempo real
+   - Botões de ação claramente diferenciados (salvar, cancelar, excluir)
+
+4. **Melhorias de usabilidade**:
+   - Fluxo lógico de preenchimento dos campos
+   - Agrupamento semântico de informações relacionadas
+   - Redução da carga cognitiva através de um layout limpo
+   - Mensagens de erro claras e construtivas
+   - Confirmação para ações destrutivas
+
+5. **Implementação técnica**:
+   - Código HTML/CSS semanticamente correto
+   - Componentes reutilizáveis quando aplicável
+   - Performance otimizada (sem renderizações desnecessárias)
+   - Testes de responsividade em breakpoints padrão
+
+6. **Critérios de aceitação**:
+   - O modal deve carregar em menos de 1 segundo
+   - Deve passar em todas as verificações de acessibilidade automatizadas
+   - Deve ser visualmente consistente com o restante da aplicação
+   - Deve funcionar corretamente em navegadores modernos (Chrome, Firefox, Safari, Edge)
+   - Deve ter uma experiência móvel tão boa quanto a desktop
+
+7. **Entregáveis**:
+   - Design finalizado com especificações completas
+   - Código implementado e testado
+   - Documentação das decisões de design
+   - Guia de uso para desenvolvedores
+
+O objetivo é criar um modal de edição de tarefas que seja intuitivo, eficiente e agradável de usar, elevando significativamente a qualidade da experiência do usuário nesta funcionalidade crítica.
