@@ -601,26 +601,73 @@ export const Matrix = () => {
               
               {/* Conteúdo principal */}
               <div className="flex-1 min-w-0">
-                <h4 
-                  className={`font-bold text-md tracking-tight truncate ${
-                    task.completed 
-                      ? 'line-through text-gray-400' 
-                      : ''
-                  }`}
-                  style={{
-                    color: task.completed ? undefined : 
-                      task.urgency > 7 ? 'var(--color-high-priority)' :
-                      task.urgency > 4 ? 'var(--color-medium-priority)' :
-                      'var(--color-low-priority)'
-                  }}
-                >
-                  {task.title}
-                </h4>
-                
-                {task.description && (
-                  <p className="text-xs mt-1 text-base-content/70 line-clamp-2 leading-snug">
-                    {task.description}
-                  </p>
+                {inlineEditingTaskId === task.id ? (
+                  <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="text"
+                      value={inlineEditTitle}
+                      onChange={(e) => setInlineEditTitle(e.target.value)}
+                      className="w-full px-2 py-1 text-sm font-bold bg-base-100 border border-primary/50 rounded focus:outline-none focus:ring-1 focus:ring-primary"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveInlineEdit(task.id);
+                        if (e.key === 'Escape') cancelInlineEdit();
+                      }}
+                    />
+                    <textarea
+                      value={inlineEditDescription}
+                      onChange={(e) => setInlineEditDescription(e.target.value)}
+                      className="w-full px-2 py-1 text-xs bg-base-100 border border-base-content/20 rounded resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+                      rows={2}
+                      placeholder="Descrição (opcional)"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') cancelInlineEdit();
+                      }}
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => saveInlineEdit(task.id)}
+                        className="btn btn-xs btn-primary"
+                      >
+                        Salvar
+                      </button>
+                      <button
+                        onClick={cancelInlineEdit}
+                        className="btn btn-xs btn-ghost"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h4 
+                      className={`font-bold text-md tracking-tight truncate cursor-pointer hover:underline ${
+                        task.completed 
+                          ? 'line-through text-gray-400' 
+                          : ''
+                      }`}
+                      style={{
+                        color: task.completed ? undefined : 
+                          task.urgency > 7 ? 'var(--color-high-priority)' :
+                          task.urgency > 4 ? 'var(--color-medium-priority)' :
+                          'var(--color-low-priority)'
+                      }}
+                      onDoubleClick={() => startInlineEdit(task)}
+                      title="Duplo clique para edição rápida"
+                    >
+                      {task.title}
+                    </h4>
+                    
+                    {task.description && (
+                      <p 
+                        className="text-xs mt-1 text-base-content/70 line-clamp-2 leading-snug cursor-pointer"
+                        onDoubleClick={() => startInlineEdit(task)}
+                      >
+                        {task.description}
+                      </p>
+                    )}
+                  </>
                 )}
                 
                 {task.start_date && (
@@ -822,6 +869,39 @@ export const Matrix = () => {
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  
+  // Estado para edição inline rápida
+  const [inlineEditingTaskId, setInlineEditingTaskId] = useState<string | null>(null);
+  const [inlineEditTitle, setInlineEditTitle] = useState('');
+  const [inlineEditDescription, setInlineEditDescription] = useState('');
+  
+  // Função para iniciar edição inline
+  const startInlineEdit = (task: Task) => {
+    setInlineEditingTaskId(task.id);
+    setInlineEditTitle(task.title);
+    setInlineEditDescription(task.description || '');
+  };
+  
+  // Função para salvar edição inline
+  const saveInlineEdit = (taskId: string) => {
+    if (!inlineEditTitle.trim()) return;
+    
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? { ...task, title: inlineEditTitle, description: inlineEditDescription }
+        : task
+    ));
+    setInlineEditingTaskId(null);
+    setInlineEditTitle('');
+    setInlineEditDescription('');
+  };
+  
+  // Função para cancelar edição inline
+  const cancelInlineEdit = () => {
+    setInlineEditingTaskId(null);
+    setInlineEditTitle('');
+    setInlineEditDescription('');
+  };
   
   // Seletor de tags rápidas como chips
   const QuickTagSelector = () => {
