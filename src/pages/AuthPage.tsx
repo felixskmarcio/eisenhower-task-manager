@@ -132,7 +132,6 @@ const AuthPage: React.FC = () => {
             </p>
           </div>
         ),
-        duration: 8000,
       });
     } catch (error) {
       console.error("Erro ao enviar email de redefinição:", error);
