@@ -1,18 +1,15 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Clock, ArrowRight, Mail, Lock, User, LogIn, Sparkles, Eye, EyeOff, Check } from 'lucide-react';
+import { Clock, ArrowRight, Mail, Lock, User, Sparkles, Eye, EyeOff, Check, Shield, Zap, Target } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form';
 import { toast } from '../hooks/use-toast';
-import { Separator } from '../components/ui/separator';
 import { useTheme } from '../contexts/ThemeContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Dialog,
   DialogContent,
@@ -25,22 +22,22 @@ import LoginErrorDisplay from '../components/LoginErrorDisplay';
 import { useLocation } from 'react-router-dom';
 
 const loginSchema = z.object({
-  email: z.string().email('Digite um e-mail válido'),
+  email: z.string().email('Digite um e-mail valido'),
   password: z.string().min(6, 'A senha precisa ter pelo menos 6 caracteres')
 });
 
 const signupSchema = z.object({
   nome: z.string().min(3, 'O nome precisa ter pelo menos 3 caracteres'),
-  email: z.string().email('Digite um e-mail válido'),
+  email: z.string().email('Digite um e-mail valido'),
   password: z.string().min(6, 'A senha precisa ter pelo menos 6 caracteres'),
   confirmPassword: z.string().min(6, 'A senha precisa ter pelo menos 6 caracteres')
 }).refine(data => data.password === data.confirmPassword, {
   path: ['confirmPassword'],
-  message: 'As senhas não conferem'
+  message: 'As senhas nao conferem'
 });
 
 const resetPasswordSchema = z.object({
-  email: z.string().email('Digite um e-mail válido')
+  email: z.string().email('Digite um e-mail valido')
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -48,8 +45,8 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 const AuthPage: React.FC = () => {
-  const { signIn, signUp, signInWithGoogle, resetPassword, loading, user } = useAuth();
-  const [activeTab, setActiveTab] = useState('login');
+  const { signIn, signUp, signInWithGoogle, resetPassword, loading } = useAuth();
+  const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [googleLoading, setGoogleLoading] = useState(false);
   const { isDarkTheme } = useTheme();
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -97,7 +94,7 @@ const AuthPage: React.FC = () => {
         signupForm.setValue('email', state.email);
       }
     }
-  }, [location]);
+  }, [location, signupForm]);
 
   const onLoginSubmit = async (values: LoginFormValues) => {
     setLoginError(null);
@@ -123,10 +120,10 @@ const AuthPage: React.FC = () => {
       setResetPasswordOpen(false);
       resetPasswordForm.reset();
       toast({
-        title: "Email de recuperação enviado!",
+        title: "Email de recuperacao enviado!",
         description: (
           <div className="mt-2 space-y-2">
-            <p>Enviamos um link de recuperação para <strong>{values.email}</strong></p>
+            <p>Enviamos um link de recuperacao para <strong>{values.email}</strong></p>
             <p className="text-xs text-muted-foreground">
               Verifique sua caixa de entrada e spam. O link expira em 1 hora.
             </p>
@@ -134,10 +131,10 @@ const AuthPage: React.FC = () => {
         ),
       });
     } catch (error) {
-      console.error("Erro ao enviar email de redefinição:", error);
+      console.error("Erro ao enviar email de redefinicao:", error);
       toast({
         title: "Erro ao enviar email",
-        description: "Não foi possível enviar o email de recuperação. Tente novamente.",
+        description: "Nao foi possivel enviar o email de recuperacao. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -167,424 +164,464 @@ const AuthPage: React.FC = () => {
     }
   };
 
-  const containerVariants = {
-    hidden: {
-      opacity: 0
-    },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: {
-      y: 20,
-      opacity: 0
-    },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100
-      }
-    }
-  };
+  const features = [
+    { icon: Target, title: "Matriz Eisenhower", desc: "Priorize tarefas por urgencia e importancia" },
+    { icon: Zap, title: "Produtividade", desc: "Aumente seu foco e eficiencia diaria" },
+    { icon: Shield, title: "Seguro", desc: "Seus dados protegidos e sincronizados" },
+  ];
 
   return (
-    <div className="min-h-screen bg-transparent py-8 px-4 sm:px-6 flex flex-col items-center justify-center relative overflow-hidden">
-      <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-base-100/80 to-secondary/10"></div>
+    <div className="min-h-screen flex">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary/80">
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl" />
+        </div>
         
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMDIiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8L3N2Zz4=')] opacity-5"></div>
-        
-        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-gradient-to-br from-primary/15 to-secondary/5 blur-3xl opacity-40 animate-pulse"></div>
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-gradient-to-br from-secondary/15 to-primary/5 blur-3xl opacity-40 animate-pulse" style={{
-        animationDelay: '1s'
-      }}></div>
-        
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/30 rounded-full blur-sm animate-pulse"></div>
-        <div className="absolute top-3/4 left-2/3 w-3 h-3 bg-secondary/30 rounded-full blur-sm animate-pulse" style={{
-        animationDelay: '0.5s'
-      }}></div>
-        <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-primary/30 rounded-full blur-sm animate-pulse" style={{
-        animationDelay: '1.5s'
-      }}></div>
-        <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-secondary/30 rounded-full blur-sm animate-pulse" style={{
-        animationDelay: '2s'
-      }}></div>
-      </div>
-      
-      <motion.div className="w-full max-w-md mx-auto" initial="hidden" animate="visible" variants={containerVariants}>
-        <motion.div className="mb-6 text-center" variants={itemVariants}>
-          <div className="inline-flex items-center justify-center mb-4">
-            <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/30 z-20 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 animate-gradient-shift"></div>
-              <Clock className="w-8 h-8 text-white relative z-10" />
-              <div className="absolute -inset-1 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-            </div>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary/90 to-primary/80 tracking-tight">
-            Eisenhower Matrix
-          </h1>
-          <p className="text-muted-foreground text-sm mt-2 max-w-xs mx-auto">
-            Organize suas tarefas com a eficiente metodologia da Matriz de Eisenhower.
-          </p>
-        </motion.div>
+        <div className="absolute inset-0 opacity-20">
+          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5" opacity="0.3"/>
+              </pattern>
+            </defs>
+            <rect width="100" height="100" fill="url(#grid)" />
+          </svg>
+        </div>
 
-        <motion.div variants={itemVariants}>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 h-14 rounded-full p-1.5 shadow-xl bg-background/50 backdrop-blur-md border border-white/10">
-              <TabsTrigger value="login" className={`
-                  data-[state=active]:bg-gradient-to-r 
-                  data-[state=active]:from-primary 
-                  data-[state=active]:to-primary/90 
-                  data-[state=active]:text-white 
-                  data-[state=active]:shadow-lg 
-                  data-[state=active]:backdrop-blur-lg
-                  rounded-full transition-all duration-500 font-medium text-base py-3 relative overflow-hidden group
-                `}>
-                <span className="relative z-10">Entrar</span>
-                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary to-primary/80 rounded-full opacity-0 group-data-[state=active]:opacity-100 transition-opacity duration-500"></div>
-              </TabsTrigger>
-              <TabsTrigger value="signup" className={`
-                  data-[state=active]:bg-gradient-to-r 
-                  data-[state=active]:from-primary 
-                  data-[state=active]:to-primary/90 
-                  data-[state=active]:text-white 
-                  data-[state=active]:shadow-lg
-                  data-[state=active]:backdrop-blur-lg
-                  rounded-full transition-all duration-500 font-medium text-base py-3 relative overflow-hidden group
-                `}>
-                <span className="relative z-10">Cadastrar</span>
-                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary to-primary/80 rounded-full opacity-0 group-data-[state=active]:opacity-100 transition-opacity duration-500"></div>
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
-              <motion.div initial={{
-              opacity: 0,
-              y: 20
-            }} animate={{
-              opacity: 1,
-              y: 0
-            }} transition={{
-              duration: 0.3
-            }}>
-                <Card className={`
-                  border-none shadow-2xl 
-                  ${isDarkTheme ? 'bg-background/60' : 'bg-background/95'} 
-                  backdrop-blur-xl rounded-2xl overflow-hidden
-                  border border-white/10
-                `}>
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-2xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80 flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-primary animate-pulse" />
-                      Bem-vindo de volta
-                    </CardTitle>
-                    <CardDescription className="text-muted-foreground/80">
-                      Acesse sua conta para gerenciar suas tarefas
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {loginError && (
-                      <LoginErrorDisplay 
-                        email={loginError.email}
-                        errorCode={loginError.code}
-                        errorMessage={loginError.message}
-                        onTryAgain={handleLoginTryAgain}
-                        onResetPassword={handleResetPasswordFromError}
-                      />
-                    )}
-                    
-                    <Form {...loginForm}>
-                      <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                        <FormField control={loginForm.control} name="email" render={({
-                        field
-                      }) => <FormItem>
-                              <FormLabel>E-mail</FormLabel>
-                              <FormControl>
-                                <div className="relative group">
-                                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                                  <Input placeholder="seu@email.com" className="pl-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" {...field} />
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>} />
-                        <FormField control={loginForm.control} name="password" render={({
-                        field
-                      }) => <FormItem>
-                              <FormLabel>Senha</FormLabel>
-                              <FormControl>
-                                <div className="relative group">
-                                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                                  <Input 
-                                    type={showLoginPassword ? "text" : "password"} 
-                                    placeholder="••••••" 
-                                    className="pl-10 pr-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" 
-                                    {...field} 
-                                  />
-                                  {loginPasswordValue && loginPasswordValue.length > 0 && (
-                                    <button 
-                                      type="button"
-                                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none outline-none hover:bg-transparent focus:bg-transparent active:bg-transparent p-0 m-0"
-                                      onClick={() => setShowLoginPassword(!showLoginPassword)}
-                                      tabIndex={-1}
-                                      style={{ backgroundColor: 'transparent' }}
-                                    >
-                                      {showLoginPassword ? 
-                                        <EyeOff className="h-4 w-4 text-gray-400" /> : 
-                                        <Eye className="h-4 w-4 text-gray-400" />
-                                      }
-                                    </button>
-                                  )}
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>} />
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <input 
-                              type="checkbox" 
-                              id="remember" 
-                              className="h-4 w-4 rounded border-input/50 text-primary focus:ring-primary/20"
-                            />
-                            <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-                              Lembrar-me
-                            </label>
-                          </div>
-                          <button 
-                            type="button"
-                            className="text-sm text-primary hover:text-primary/80 font-medium cursor-pointer transition-colors duration-200 underline-offset-4 hover:underline" 
-                            onClick={() => setResetPasswordOpen(true)}
-                            data-testid="button-forgot-password"
-                          >
-                            Esqueci minha senha
-                          </button>
-                        </div>
-                        
-                        <Button type="submit" className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium text-base relative overflow-hidden group shadow-lg shadow-primary/20 animate-gradient-shift mt-2" disabled={loading}>
-                          <span className="absolute inset-0 w-0 bg-white/20 transition-all duration-300 ease-out group-hover:w-full"></span>
-                          <span className="relative flex items-center justify-center gap-1 font-medium">
-                            {loading ? <span className="flex items-center gap-2">
-                                <div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                                Entrando...
-                              </span> : <>
-                                Entrar
-                                <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                              </>}
-                          </span>
-                        </Button>
-                        
-                        <div className="relative my-6">
-                          <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-input/40" />
-                          </div>
-                          <div className="relative flex justify-center text-xs uppercase">
-                            <span className={`${isDarkTheme ? 'bg-background/70' : 'bg-card'} px-3 text-muted-foreground`}>
-                              ou continue com
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <Button type="button" variant="outline" className="w-full h-12 relative group overflow-hidden border-input/50 hover:border-primary/30 shadow-md transition-all duration-300" onClick={handleGoogleLogin} disabled={googleLoading}>
-                          <span className="absolute inset-0 w-0 bg-gradient-to-r from-red-50/20 via-white/10 to-blue-50/20 transition-all duration-500 ease-out group-hover:w-full"></span>
-                          <span className="relative flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5 mr-3">
-                              <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
-                              <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
-                              <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
-                              <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
-                            </svg>
-                            <span className="font-medium text-base text-slate-900 dark:text-slate-200">Entrar com Google</span>
-                          </span>
-                        </Button>
-                      </form>
-                    </Form>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <motion.div initial={{
-              opacity: 0,
-              y: 20
-            }} animate={{
-              opacity: 1,
-              y: 0
-            }} transition={{
-              duration: 0.3
-            }}>
-                <Card className={`
-                  border-none shadow-2xl 
-                  ${isDarkTheme ? 'bg-background/60' : 'bg-background/95'} 
-                  backdrop-blur-xl rounded-2xl overflow-hidden
-                  border border-white/10
-                `}>
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-2xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80 flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-primary animate-pulse" />
-                      Crie sua conta
-                    </CardTitle>
-                    <CardDescription className="text-muted-foreground/80">
-                      Comece a organizar suas tarefas em poucos minutos
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Form {...signupForm}>
-                      <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-4">
-                        <FormField control={signupForm.control} name="nome" render={({
-                        field
-                      }) => <FormItem>
-                              <FormLabel>Nome</FormLabel>
-                              <FormControl>
-                                <div className="relative group">
-                                  <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                                  <Input placeholder="Seu nome completo" className="pl-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" {...field} />
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>} />
-                        <FormField control={signupForm.control} name="email" render={({
-                        field
-                      }) => <FormItem>
-                              <FormLabel>E-mail</FormLabel>
-                              <FormControl>
-                                <div className="relative group">
-                                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                                  <Input placeholder="seu@email.com" className="pl-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" {...field} />
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>} />
-                        <FormField control={signupForm.control} name="password" render={({
-                        field
-                      }) => <FormItem>
-                              <FormLabel>Senha</FormLabel>
-                              <FormControl>
-                                <div className="relative group">
-                                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                                  <Input 
-                                    type={showSignupPassword ? "text" : "password"} 
-                                    placeholder="••••••" 
-                                    className="pl-10 pr-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" 
-                                    {...field} 
-                                  />
-                                  {signupPasswordValue && signupPasswordValue.length > 0 && (
-                                    <button 
-                                      type="button"
-                                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none outline-none hover:bg-transparent focus:bg-transparent active:bg-transparent p-0 m-0"
-                                      onClick={() => setShowSignupPassword(!showSignupPassword)}
-                                      tabIndex={-1}
-                                      style={{ backgroundColor: 'transparent' }}
-                                    >
-                                      {showSignupPassword ? 
-                                        <EyeOff className="h-4 w-4 text-gray-400" /> : 
-                                        <Eye className="h-4 w-4 text-gray-400" />
-                                      }
-                                    </button>
-                                  )}
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>} />
-                        <FormField control={signupForm.control} name="confirmPassword" render={({
-                        field
-                      }) => <FormItem>
-                              <FormLabel>Confirmar Senha</FormLabel>
-                              <FormControl>
-                                <div className="relative group">
-                                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                                  <Input 
-                                    type={showSignupConfirmPassword ? "text" : "password"} 
-                                    placeholder="••••••" 
-                                    className="pl-10 pr-10 ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" 
-                                    {...field} 
-                                  />
-                                  {signupConfirmPasswordValue && signupConfirmPasswordValue.length > 0 && (
-                                    <button 
-                                      type="button"
-                                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none outline-none hover:bg-transparent focus:bg-transparent active:bg-transparent p-0 m-0"
-                                      onClick={() => setShowSignupConfirmPassword(!showSignupConfirmPassword)}
-                                      tabIndex={-1}
-                                      style={{ backgroundColor: 'transparent' }}
-                                    >
-                                      {showSignupConfirmPassword ? 
-                                        <EyeOff className="h-4 w-4 text-gray-400" /> : 
-                                        <Eye className="h-4 w-4 text-gray-400" />
-                                      }
-                                    </button>
-                                  )}
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>} />
-                            
-                        <div className="pt-2">
-                          <Button type="submit" className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium text-base relative overflow-hidden group shadow-lg shadow-primary/20 animate-gradient-shift" disabled={loading}>
-                            <span className="absolute inset-0 w-0 bg-white/20 transition-all duration-300 ease-out group-hover:w-full"></span>
-                            <span className="relative flex items-center justify-center font-medium">
-                              {loading ? <span className="flex items-center gap-2">
-                                  <div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                                  Criando conta...
-                                </span> : <>
-                                  Criar conta
-                                  <Check className="h-4 w-4 ml-1 group-hover:scale-110 transition-transform" />
-                                </>}
-                            </span>
-                          </Button>
-                        </div>
-                        
-                        <div className="relative my-6">
-                          <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-input/40" />
-                          </div>
-                          <div className="relative flex justify-center text-xs uppercase">
-                            <span className={`${isDarkTheme ? 'bg-background/70' : 'bg-card'} px-3 text-muted-foreground`}>
-                              ou continue com
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <Button type="button" variant="outline" className="w-full h-12 relative group overflow-hidden border-input/50 hover:border-primary/30 shadow-md transition-all duration-300" onClick={handleGoogleLogin} disabled={googleLoading}>
-                          <span className="absolute inset-0 w-0 bg-gradient-to-r from-red-50/20 via-white/10 to-blue-50/20 transition-all duration-500 ease-out group-hover:w-full"></span>
-                          <span className="relative flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5 mr-3">
-                              <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
-                              <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
-                              <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
-                              <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
-                            </svg>
-                            <span className="font-medium text-base text-slate-800 dark:text-slate-200">Cadastrar com Google</span>
-                          </span>
-                        </Button>
-                      </form>
-                    </Form>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </TabsContent>
-          </Tabs>
-        </motion.div>
-      </motion.div>
-      
-      <Dialog open={resetPasswordOpen} onOpenChange={setResetPasswordOpen}>
-        <DialogContent className="sm:max-w-[450px] border-none shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10">
-          <DialogHeader className="text-center pb-2">
-            <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-primary/10 mb-4">
-              <Mail className="h-8 w-8 text-primary" />
+        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20 text-white">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Clock className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-2xl font-bold tracking-tight">Eisenhower Matrix</span>
             </div>
-            <DialogTitle className="text-2xl font-bold">
+            
+            <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
+              Organize seu tempo,<br />
+              <span className="text-white/90">conquiste seus objetivos</span>
+            </h1>
+            
+            <p className="text-lg text-white/80 mb-12 max-w-md leading-relaxed">
+              A metodologia usada por lideres mundiais para priorizar tarefas e maximizar resultados.
+            </p>
+
+            <div className="space-y-5">
+              {features.map((feature, index) => (
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                  className="flex items-center gap-4"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                    <feature.icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">{feature.title}</h3>
+                    <p className="text-sm text-white/70">{feature.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="absolute bottom-8 left-12 xl:left-20 text-white/50 text-sm">
+          2024 Eisenhower Matrix. Todos os direitos reservados.
+        </div>
+      </div>
+
+      <div className={`flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-16 xl:px-24 py-12 ${isDarkTheme ? 'bg-background' : 'bg-slate-50'}`}>
+        <div className="w-full max-w-md mx-auto">
+          <div className="lg:hidden flex items-center gap-3 mb-10">
+            <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center">
+              <Clock className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-xl font-bold text-foreground">Eisenhower Matrix</span>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+                {activeTab === 'login' ? 'Bem-vindo de volta' : 'Crie sua conta'}
+              </h2>
+              <p className="text-muted-foreground">
+                {activeTab === 'login' 
+                  ? 'Entre para acessar suas tarefas' 
+                  : 'Comece a organizar suas tarefas agora'}
+              </p>
+            </div>
+
+            <div className="flex gap-1 p-1 bg-muted/50 rounded-xl mb-8">
+              <button
+                onClick={() => setActiveTab('login')}
+                className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  activeTab === 'login'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                data-testid="tab-login"
+              >
+                Entrar
+              </button>
+              <button
+                onClick={() => setActiveTab('signup')}
+                className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  activeTab === 'signup'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                data-testid="tab-signup"
+              >
+                Cadastrar
+              </button>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {activeTab === 'login' ? (
+                <motion.div
+                  key="login"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {loginError && (
+                    <LoginErrorDisplay 
+                      email={loginError.email}
+                      errorCode={loginError.code}
+                      errorMessage={loginError.message}
+                      onTryAgain={handleLoginTryAgain}
+                      onResetPassword={handleResetPasswordFromError}
+                    />
+                  )}
+                  
+                  <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-5">
+                      <FormField 
+                        control={loginForm.control} 
+                        name="email" 
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-foreground">E-mail</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                  placeholder="seu@email.com" 
+                                  className="h-12 pl-11 bg-background border-border/60 focus:border-primary transition-colors"
+                                  data-testid="input-login-email"
+                                  {...field} 
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} 
+                      />
+                      
+                      <FormField 
+                        control={loginForm.control} 
+                        name="password" 
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-foreground">Senha</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                  type={showLoginPassword ? "text" : "password"} 
+                                  placeholder="Digite sua senha" 
+                                  className="h-12 pl-11 pr-11 bg-background border-border/60 focus:border-primary transition-colors"
+                                  data-testid="input-login-password"
+                                  {...field} 
+                                />
+                                {loginPasswordValue && loginPasswordValue.length > 0 && (
+                                  <button 
+                                    type="button"
+                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                                    tabIndex={-1}
+                                    data-testid="button-toggle-login-password"
+                                  >
+                                    {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} 
+                      />
+                      
+                      <div className="flex items-center justify-between pt-1">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20"
+                            data-testid="checkbox-remember"
+                          />
+                          <span className="text-sm text-muted-foreground">Lembrar-me</span>
+                        </label>
+                        <button 
+                          type="button"
+                          className="text-sm text-primary hover:text-primary/80 font-medium transition-colors" 
+                          onClick={() => setResetPasswordOpen(true)}
+                          data-testid="button-forgot-password"
+                        >
+                          Esqueci a senha
+                        </button>
+                      </div>
+                      
+                      <Button 
+                        type="submit" 
+                        className="w-full h-12 text-base font-medium mt-2"
+                        disabled={loading}
+                        data-testid="button-login-submit"
+                      >
+                        {loading ? (
+                          <span className="flex items-center gap-2">
+                            <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                            Entrando...
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            Entrar
+                            <ArrowRight className="h-4 w-4" />
+                          </span>
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="signup"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Form {...signupForm}>
+                    <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-4">
+                      <FormField 
+                        control={signupForm.control} 
+                        name="nome" 
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-foreground">Nome</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                  placeholder="Seu nome completo" 
+                                  className="h-12 pl-11 bg-background border-border/60 focus:border-primary transition-colors"
+                                  data-testid="input-signup-name"
+                                  {...field} 
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} 
+                      />
+                      
+                      <FormField 
+                        control={signupForm.control} 
+                        name="email" 
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-foreground">E-mail</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                  placeholder="seu@email.com" 
+                                  className="h-12 pl-11 bg-background border-border/60 focus:border-primary transition-colors"
+                                  data-testid="input-signup-email"
+                                  {...field} 
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} 
+                      />
+                      
+                      <FormField 
+                        control={signupForm.control} 
+                        name="password" 
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-foreground">Senha</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                  type={showSignupPassword ? "text" : "password"} 
+                                  placeholder="Minimo 6 caracteres" 
+                                  className="h-12 pl-11 pr-11 bg-background border-border/60 focus:border-primary transition-colors"
+                                  data-testid="input-signup-password"
+                                  {...field} 
+                                />
+                                {signupPasswordValue && signupPasswordValue.length > 0 && (
+                                  <button 
+                                    type="button"
+                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                    onClick={() => setShowSignupPassword(!showSignupPassword)}
+                                    tabIndex={-1}
+                                    data-testid="button-toggle-signup-password"
+                                  >
+                                    {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} 
+                      />
+                      
+                      <FormField 
+                        control={signupForm.control} 
+                        name="confirmPassword" 
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-foreground">Confirmar Senha</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                  type={showSignupConfirmPassword ? "text" : "password"} 
+                                  placeholder="Repita a senha" 
+                                  className="h-12 pl-11 pr-11 bg-background border-border/60 focus:border-primary transition-colors"
+                                  data-testid="input-signup-confirm-password"
+                                  {...field} 
+                                />
+                                {signupConfirmPasswordValue && signupConfirmPasswordValue.length > 0 && (
+                                  <button 
+                                    type="button"
+                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                    onClick={() => setShowSignupConfirmPassword(!showSignupConfirmPassword)}
+                                    tabIndex={-1}
+                                    data-testid="button-toggle-signup-confirm-password"
+                                  >
+                                    {showSignupConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} 
+                      />
+                      
+                      <Button 
+                        type="submit" 
+                        className="w-full h-12 text-base font-medium mt-2"
+                        disabled={loading}
+                        data-testid="button-signup-submit"
+                      >
+                        {loading ? (
+                          <span className="flex items-center gap-2">
+                            <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                            Criando conta...
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            Criar conta
+                            <Check className="h-4 w-4" />
+                          </span>
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/60" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className={`px-4 text-sm text-muted-foreground ${isDarkTheme ? 'bg-background' : 'bg-slate-50'}`}>
+                  ou continue com
+                </span>
+              </div>
+            </div>
+
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full h-12 border-border/60 hover:bg-muted/50 transition-colors"
+              onClick={handleGoogleLogin} 
+              disabled={googleLoading}
+              data-testid="button-google-login"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5 mr-3">
+                <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+                <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+                <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+                <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+              </svg>
+              <span className="font-medium">
+                {activeTab === 'login' ? 'Entrar com Google' : 'Cadastrar com Google'}
+              </span>
+            </Button>
+
+            <p className="text-center text-sm text-muted-foreground mt-8">
+              {activeTab === 'login' ? (
+                <>
+                  Nao tem uma conta?{' '}
+                  <button 
+                    onClick={() => setActiveTab('signup')}
+                    className="text-primary hover:text-primary/80 font-medium transition-colors"
+                    data-testid="link-to-signup"
+                  >
+                    Cadastre-se
+                  </button>
+                </>
+              ) : (
+                <>
+                  Ja tem uma conta?{' '}
+                  <button 
+                    onClick={() => setActiveTab('login')}
+                    className="text-primary hover:text-primary/80 font-medium transition-colors"
+                    data-testid="link-to-login"
+                  >
+                    Entre aqui
+                  </button>
+                </>
+              )}
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      <Dialog open={resetPasswordOpen} onOpenChange={setResetPasswordOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader className="text-center pb-2">
+            <div className="mx-auto w-14 h-14 flex items-center justify-center rounded-full bg-primary/10 mb-4">
+              <Mail className="h-7 w-7 text-primary" />
+            </div>
+            <DialogTitle className="text-xl font-bold">
               Esqueceu sua senha?
             </DialogTitle>
-            <DialogDescription className="text-muted-foreground mt-2 text-base">
-              Sem problemas! Digite seu email abaixo e enviaremos um link para você criar uma nova senha.
+            <DialogDescription className="text-muted-foreground mt-2">
+              Digite seu email e enviaremos um link para criar uma nova senha.
             </DialogDescription>
           </DialogHeader>
           <Form {...resetPasswordForm}>
@@ -594,13 +631,13 @@ const AuthPage: React.FC = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-base font-medium">Seu e-mail</FormLabel>
+                    <FormLabel className="font-medium">Seu e-mail</FormLabel>
                     <FormControl>
-                      <div className="relative group">
-                        <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input 
                           placeholder="seu@email.com" 
-                          className="pl-11 h-12 text-base ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" 
+                          className="h-12 pl-11 bg-background border-border/60 focus:border-primary" 
                           {...field} 
                           data-testid="input-reset-email"
                         />
@@ -611,18 +648,18 @@ const AuthPage: React.FC = () => {
                 )}
               />
               
-              <div className="bg-muted/30 rounded-lg p-4 text-sm text-muted-foreground">
-                <p className="flex items-start gap-2">
-                  <span className="text-primary font-bold mt-0.5">1.</span>
-                  <span>Verifique sua caixa de entrada (e spam)</span>
+              <div className="bg-muted/40 rounded-lg p-4 text-sm text-muted-foreground space-y-2">
+                <p className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">1</span>
+                  Verifique sua caixa de entrada
                 </p>
-                <p className="flex items-start gap-2 mt-2">
-                  <span className="text-primary font-bold mt-0.5">2.</span>
-                  <span>Clique no link do email</span>
+                <p className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">2</span>
+                  Clique no link do email
                 </p>
-                <p className="flex items-start gap-2 mt-2">
-                  <span className="text-primary font-bold mt-0.5">3.</span>
-                  <span>Crie sua nova senha</span>
+                <p className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">3</span>
+                  Crie sua nova senha
                 </p>
               </div>
               
@@ -631,7 +668,7 @@ const AuthPage: React.FC = () => {
                   type="button" 
                   variant="outline" 
                   onClick={() => setResetPasswordOpen(false)}
-                  className="w-full sm:w-auto border-input/50 hover:border-primary/30 transition-all duration-200 h-11"
+                  className="w-full sm:w-auto h-11"
                   data-testid="button-cancel-reset"
                 >
                   Cancelar
@@ -639,18 +676,18 @@ const AuthPage: React.FC = () => {
                 <Button 
                   type="submit"
                   disabled={resetPasswordLoading}
-                  className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 h-11 font-medium"
+                  className="w-full sm:w-auto h-11 font-medium"
                   data-testid="button-send-reset"
                 >
                   {resetPasswordLoading ? (
                     <span className="flex items-center gap-2">
-                      <div className="h-4 w-4 border-2 border-primary-foreground/20 border-t-primary-foreground rounded-full animate-spin"></div>
+                      <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                       Enviando...
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      Enviar link de recuperação
+                      Enviar link
                     </span>
                   )}
                 </Button>
