@@ -123,11 +123,24 @@ const AuthPage: React.FC = () => {
       setResetPasswordOpen(false);
       resetPasswordForm.reset();
       toast({
-        title: "Email enviado",
-        description: "Se o email estiver cadastrado, você receberá as instruções para redefinir sua senha.",
+        title: "Email de recuperação enviado!",
+        description: (
+          <div className="mt-2 space-y-2">
+            <p>Enviamos um link de recuperação para <strong>{values.email}</strong></p>
+            <p className="text-xs text-muted-foreground">
+              Verifique sua caixa de entrada e spam. O link expira em 1 hora.
+            </p>
+          </div>
+        ),
+        duration: 8000,
       });
     } catch (error) {
       console.error("Erro ao enviar email de redefinição:", error);
+      toast({
+        title: "Erro ao enviar email",
+        description: "Não foi possível enviar o email de recuperação. Tente novamente.",
+        variant: "destructive",
+      });
     } finally {
       setResetPasswordLoading(false);
     }
@@ -335,13 +348,25 @@ const AuthPage: React.FC = () => {
                               <FormMessage />
                             </FormItem>} />
                         
-                        <div className="flex items-center justify-end">
-                          <span 
-                            className="text-xs text-muted-foreground/70 hover:text-muted-foreground cursor-pointer transition-colors duration-200" 
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="checkbox" 
+                              id="remember" 
+                              className="h-4 w-4 rounded border-input/50 text-primary focus:ring-primary/20"
+                            />
+                            <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+                              Lembrar-me
+                            </label>
+                          </div>
+                          <button 
+                            type="button"
+                            className="text-sm text-primary hover:text-primary/80 font-medium cursor-pointer transition-colors duration-200 underline-offset-4 hover:underline" 
                             onClick={() => setResetPasswordOpen(true)}
+                            data-testid="button-forgot-password"
                           >
                             Esqueci minha senha
-                          </span>
+                          </button>
                         </div>
                         
                         <Button type="submit" className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium text-base relative overflow-hidden group shadow-lg shadow-primary/20 animate-gradient-shift mt-2" disabled={loading}>
@@ -551,31 +576,34 @@ const AuthPage: React.FC = () => {
       </motion.div>
       
       <Dialog open={resetPasswordOpen} onOpenChange={setResetPasswordOpen}>
-        <DialogContent className="sm:max-w-[425px] border-none shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10">
-          <DialogHeader>
-            <DialogTitle className="text-xl flex items-center gap-2">
-              <Lock className="h-5 w-5 text-foreground" />
-              <span>Redefinir senha</span>
+        <DialogContent className="sm:max-w-[450px] border-none shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10">
+          <DialogHeader className="text-center pb-2">
+            <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-primary/10 mb-4">
+              <Mail className="h-8 w-8 text-primary" />
+            </div>
+            <DialogTitle className="text-2xl font-bold">
+              Esqueceu sua senha?
             </DialogTitle>
-            <DialogDescription className="text-muted-foreground/80">
-              Digite seu email para receber instruções de redefinição de senha.
+            <DialogDescription className="text-muted-foreground mt-2 text-base">
+              Sem problemas! Digite seu email abaixo e enviaremos um link para você criar uma nova senha.
             </DialogDescription>
           </DialogHeader>
           <Form {...resetPasswordForm}>
-            <form onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)} className="space-y-4">
+            <form onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)} className="space-y-5 mt-4">
               <FormField
                 control={resetPasswordForm.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-mail</FormLabel>
+                    <FormLabel className="text-base font-medium">Seu e-mail</FormLabel>
                     <FormControl>
                       <div className="relative group">
-                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-muted-foreground transition-colors duration-200" />
+                        <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
                         <Input 
                           placeholder="seu@email.com" 
-                          className="pl-10 ring-offset-background focus-visible:ring-muted/20 transition-all duration-200 border-input/50 focus:border-muted" 
+                          className="pl-11 h-12 text-base ring-offset-background focus-visible:ring-primary/20 transition-all duration-200 border-input/50 focus:border-primary" 
                           {...field} 
+                          data-testid="input-reset-email"
                         />
                       </div>
                     </FormControl>
@@ -583,27 +611,48 @@ const AuthPage: React.FC = () => {
                   </FormItem>
                 )}
               />
-              <DialogFooter className="pt-4">
+              
+              <div className="bg-muted/30 rounded-lg p-4 text-sm text-muted-foreground">
+                <p className="flex items-start gap-2">
+                  <span className="text-primary font-bold mt-0.5">1.</span>
+                  <span>Verifique sua caixa de entrada (e spam)</span>
+                </p>
+                <p className="flex items-start gap-2 mt-2">
+                  <span className="text-primary font-bold mt-0.5">2.</span>
+                  <span>Clique no link do email</span>
+                </p>
+                <p className="flex items-start gap-2 mt-2">
+                  <span className="text-primary font-bold mt-0.5">3.</span>
+                  <span>Crie sua nova senha</span>
+                </p>
+              </div>
+              
+              <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Button 
                   type="button" 
                   variant="outline" 
                   onClick={() => setResetPasswordOpen(false)}
-                  className="border-input/50 hover:border-muted/30 transition-all duration-200"
+                  className="w-full sm:w-auto border-input/50 hover:border-primary/30 transition-all duration-200 h-11"
+                  data-testid="button-cancel-reset"
                 >
                   Cancelar
                 </Button>
                 <Button 
                   type="submit"
                   disabled={resetPasswordLoading}
-                  className="bg-foreground text-background hover:bg-foreground/90"
+                  className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 h-11 font-medium"
+                  data-testid="button-send-reset"
                 >
                   {resetPasswordLoading ? (
                     <span className="flex items-center gap-2">
-                      <div className="h-4 w-4 border-2 border-background/20 border-t-background rounded-full animate-spin"></div>
+                      <div className="h-4 w-4 border-2 border-primary-foreground/20 border-t-primary-foreground rounded-full animate-spin"></div>
                       Enviando...
                     </span>
                   ) : (
-                    "Enviar email"
+                    <span className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Enviar link de recuperação
+                    </span>
                   )}
                 </Button>
               </DialogFooter>
