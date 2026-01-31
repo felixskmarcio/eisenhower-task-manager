@@ -48,6 +48,17 @@ Run `npm run dev` to start the development server on port 5000.
 ## Deployment
 Configured as a static site deployment. Build output goes to `dist/` folder.
 
+## Security & Administration
+- **User Roles**: ADM (administrator) and USER (standard)
+- **Admin Panel**: Available at `/admin` for ADM users only
+- **User Management**: Create, edit, activate/deactivate users with audit logging
+- **Data Isolation**: Row-level security ensures users only access their own data
+- **Dual Auth**: Password reset works for both Firebase and Supabase users
+
 ## Recent Changes
+- Improved "Forgot Password" flow with better visibility and clearer instructions
+- Added admin panel with user CRUD, pagination, and role management
+- Implemented user access control with data isolation
+- Added audit logging for security tracking
 - Migrated from Lovable to Replit environment
 - Configured Vite for port 5000 with allowed hosts for Replit proxy
