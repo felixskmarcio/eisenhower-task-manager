@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Trash2, X, Save, AlertTriangle, Calendar as CalendarIcon, 
-  Zap, Star, Target, Clock, FileText, Tag as TagIcon, 
+import {
+  Trash2, X, Save, AlertTriangle, Calendar as CalendarIcon,
+  Zap, Star, Target, Clock, FileText, Tag as TagIcon,
   CheckCircle2, AlertCircle, Loader2, ChevronDown, Info
 } from 'lucide-react';
 import TagSelector from './TagSelector';
@@ -46,13 +46,13 @@ interface EditTaskModalProps {
   isDarkMode: boolean;
 }
 
-const EditTaskModal = ({ 
-  isOpen, 
-  onClose, 
+const EditTaskModal = ({
+  isOpen,
+  onClose,
   task,
   onSave,
   onDelete,
-  isDarkMode 
+  isDarkMode
 }: EditTaskModalProps) => {
   const [editedTask, setEditedTask] = useState(task);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -134,34 +134,34 @@ const EditTaskModal = ({
   const getQuadrantInfo = () => {
     const isUrgent = editedTask.urgency > 5;
     const isImportant = editedTask.importance > 5;
-    
-    if (isUrgent && isImportant) return { 
-      name: 'Fazer Agora', 
+
+    if (isUrgent && isImportant) return {
+      name: 'Fazer Agora',
       description: 'Urgente e importante - prioridade máxima',
-      color: 'text-red-400', 
+      color: 'text-red-400',
       bg: 'bg-red-500/10 border-red-500/30',
-      icon: Zap 
+      icon: Zap
     };
-    if (!isUrgent && isImportant) return { 
-      name: 'Agendar', 
+    if (!isUrgent && isImportant) return {
+      name: 'Agendar',
       description: 'Importante mas não urgente - planeje',
-      color: 'text-blue-400', 
+      color: 'text-blue-400',
       bg: 'bg-blue-500/10 border-blue-500/30',
-      icon: Clock 
+      icon: Clock
     };
-    if (isUrgent && !isImportant) return { 
-      name: 'Delegar', 
+    if (isUrgent && !isImportant) return {
+      name: 'Delegar',
       description: 'Urgente mas não importante - delegue',
-      color: 'text-amber-400', 
+      color: 'text-amber-400',
       bg: 'bg-amber-500/10 border-amber-500/30',
-      icon: Target 
+      icon: Target
     };
-    return { 
-      name: 'Eliminar', 
+    return {
+      name: 'Eliminar',
       description: 'Nem urgente nem importante - elimine',
-      color: 'text-gray-400', 
+      color: 'text-gray-400',
       bg: 'bg-gray-500/10 border-gray-500/30',
-      icon: X 
+      icon: X
     };
   };
 
@@ -187,49 +187,48 @@ const EditTaskModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent 
+      <DialogContent
         className={cn(
-          "sm:max-w-[540px] max-h-[90vh] overflow-y-auto p-0",
-          isDarkMode 
-            ? "bg-gray-900 text-gray-100 border-gray-700" 
-            : "bg-white text-gray-900 border-gray-200"
+          "sm:max-w-[540px] max-h-[90vh] overflow-y-auto p-0 gap-0 border-[1px] rounded-none shadow-2xl",
+          isDarkMode
+            ? "bg-[#09090b] text-[#f4f4f5] border-[#27272a]"
+            : "bg-[#f4f4f5] text-[#09090b] border-[#e4e4e7]"
         )}
         onKeyDown={handleKeyDown}
         aria-labelledby="edit-task-title"
         aria-describedby="edit-task-description"
       >
         <div className={cn(
-          "sticky top-0 z-10 px-6 py-4 border-b",
-          isDarkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"
+          "sticky top-0 z-10 px-6 py-4 border-b flex items-center justify-between",
+          isDarkMode ? "bg-[#18181b] border-[#27272a]" : "bg-white border-gray-200"
         )}>
-          <DialogHeader>
-            <DialogTitle 
+          <div className="space-y-1">
+            <DialogTitle
               id="edit-task-title"
-              className="text-xl font-semibold flex items-center gap-2"
+              className="text-xl font-display font-bold uppercase tracking-wider flex items-center gap-2"
             >
-              <FileText className="h-5 w-5 text-violet-500" />
-              Editar Tarefa
+              <span className="text-[#ccff00]">EDITAR TAREFA</span>
             </DialogTitle>
-            <DialogDescription 
+            <DialogDescription
               id="edit-task-description"
-              className={isDarkMode ? "text-gray-400" : "text-gray-500"}
+              className="text-xs font-mono text-[#a1a1aa] uppercase tracking-wide"
             >
-              Atualize os detalhes da sua tarefa. Pressione Ctrl+Enter para salvar.
+              MODIFICANDO PARÂMETROS...
             </DialogDescription>
-          </DialogHeader>
+          </div>
         </div>
 
-        <div className="px-6 py-5 space-y-6">
+        <div className="px-6 py-5 space-y-6 bg-[#09090b]">
           <section aria-labelledby="basic-info-heading">
             <h3 id="basic-info-heading" className="sr-only">Informações básicas</h3>
-            
+
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label 
-                  htmlFor="edit-title" 
-                  className="text-sm font-medium flex items-center gap-1"
+                <Label
+                  htmlFor="edit-title"
+                  className="text-xs font-mono uppercase text-[#a1a1aa] flex items-center gap-1"
                 >
-                  Título <span className="text-red-400">*</span>
+                  Identificador (Título) <span className="text-[#ef4444]">*</span>
                 </Label>
                 <div className="relative">
                   <Input
@@ -244,41 +243,37 @@ const EditTaskModal = ({
                     aria-invalid={!!errors.title}
                     aria-describedby={errors.title ? "title-error" : "title-hint"}
                     className={cn(
-                      "w-full h-11 pr-12 text-base transition-all",
-                      isDarkMode 
-                        ? "bg-gray-800 border-gray-600 focus:border-violet-500 focus:ring-violet-500/20" 
+                      "w-full h-12 bg-transparent border rounded-none font-mono text-sm transition-all pr-12",
+                      isDarkMode
+                        ? "border-[#27272a] text-[#d4d4d8] focus:border-[#ccff00] focus:ring-0 focus:shadow-[0_0_10px_rgba(204,255,0,0.1)]"
                         : "bg-gray-50 border-gray-300 focus:border-violet-500 focus:ring-violet-500/20",
-                      errors.title && touched.title && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                      errors.title && touched.title && "border-[#ef4444] focus:border-[#ef4444] focus:shadow-[0_0_10px_rgba(239,68,68,0.1)]"
                     )}
                   />
                   <span className={cn(
-                    "absolute right-3 top-1/2 -translate-y-1/2 text-xs",
-                    editedTask.title.length > 90 ? "text-amber-400" : "text-gray-400"
+                    "absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono",
+                    editedTask.title.length > 90 ? "text-[#eab308]" : "text-[#52525b]"
                   )}>
                     {editedTask.title.length}/100
                   </span>
                 </div>
                 {errors.title && touched.title ? (
-                  <motion.p 
+                  <motion.p
                     id="title-error"
                     role="alert"
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-red-400 text-xs flex items-center gap-1"
+                    className="text-[#ef4444] text-[10px] font-mono flex items-center gap-1 uppercase"
                   >
                     <AlertCircle className="h-3 w-3" />
                     {errors.title}
                   </motion.p>
-                ) : (
-                  <p id="title-hint" className="text-xs text-gray-500">
-                    Um título claro e objetivo para sua tarefa
-                  </p>
-                )}
+                ) : null}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-description" className="text-sm font-medium">
-                  Descrição
+                <Label htmlFor="edit-description" className="text-xs font-mono uppercase text-[#a1a1aa]">
+                  Parâmetros (Descrição)
                 </Label>
                 <Textarea
                   id="edit-description"
@@ -288,19 +283,16 @@ const EditTaskModal = ({
                   maxLength={500}
                   aria-describedby="description-hint"
                   className={cn(
-                    "w-full resize-none min-h-[100px] transition-all",
-                    isDarkMode 
-                      ? "bg-gray-800 border-gray-600 focus:border-violet-500 focus:ring-violet-500/20" 
-                      : "bg-gray-50 border-gray-300 focus:border-violet-500 focus:ring-violet-500/20"
+                    "w-full resize-none min-h-[100px] transition-all bg-transparent border rounded-none font-mono text-sm",
+                    isDarkMode
+                      ? "border-[#27272a] text-[#d4d4d8] focus:border-[#ccff00] focus:ring-0 placeholder:text-[#52525b]"
+                      : "bg-gray-50 border-gray-300 focus:border-violet-500"
                   )}
                 />
                 <div className="flex justify-between items-center">
-                  <p id="description-hint" className="text-xs text-gray-500">
-                    Opcional - adicione contexto ou detalhes
-                  </p>
                   <span className={cn(
-                    "text-xs",
-                    (editedTask.description?.length || 0) > 450 ? "text-amber-400" : "text-gray-400"
+                    "text-[10px] font-mono",
+                    (editedTask.description?.length || 0) > 450 ? "text-[#eab308]" : "text-[#52525b]"
                   )}>
                     {editedTask.description?.length || 0}/500
                   </span>
@@ -313,84 +305,83 @@ const EditTaskModal = ({
             "grid grid-cols-2 gap-4",
             "sm:grid-cols-2"
           )}>
-            <section 
+            <section
               aria-labelledby="date-heading"
               className={cn(
-                "rounded-lg p-4 border",
-                isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-gray-200"
+                "p-4 border",
+                isDarkMode ? "bg-[#18181b]/50 border-[#27272a]" : "bg-gray-50 border-gray-200"
               )}
             >
-              <h3 id="date-heading" className="text-sm font-medium mb-3 flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-blue-400" />
+              <h3 id="date-heading" className="text-xs font-mono uppercase text-[#a1a1aa] mb-3 flex items-center gap-2">
+                <CalendarIcon className="h-3 w-3" />
                 Data de Início
               </h3>
-              <Popover>
-                <PopoverTrigger asChild>
+              <div className="flex flex-col gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      aria-label={editedTask.start_date ? `Data selecionada: ${format(new Date(editedTask.start_date), "PPP", { locale: ptBR })}` : "Selecionar data"}
+                      className={cn(
+                        "w-full justify-start text-left font-mono h-9 text-xs rounded-none border",
+                        !editedTask.start_date && "text-[#52525b]",
+                        isDarkMode
+                          ? "bg-transparent border-[#27272a] hover:bg-[#27272a] hover:text-[#ccff00]"
+                          : "bg-white border-gray-300 hover:bg-gray-100"
+                      )}
+                    >
+                      <span className="truncate">
+                        {editedTask.start_date
+                          ? format(new Date(editedTask.start_date), "dd/MM/yyyy", { locale: ptBR })
+                          : "DEFINIR DATA"
+                        }
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 border-[#27272a] bg-[#09090b] rounded-none" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={editedTask.start_date ? new Date(editedTask.start_date) : undefined}
+                      onSelect={(date) => setEditedTask(prev => ({ ...prev, start_date: date?.toISOString() || null }))}
+                      initialFocus
+                      className="p-3 bg-[#09090b] text-[#d4d4d8] border-[#27272a] font-mono"
+                    />
+                  </PopoverContent>
+                </Popover>
+                {editedTask.start_date && (
                   <Button
-                    variant="outline"
-                    aria-label={editedTask.start_date ? `Data selecionada: ${format(new Date(editedTask.start_date), "PPP", { locale: ptBR })}` : "Selecionar data"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal h-10",
-                      !editedTask.start_date && "text-gray-500",
-                      isDarkMode 
-                        ? "bg-gray-900 border-gray-600 hover:bg-gray-800" 
-                        : "bg-white border-gray-300 hover:bg-gray-100"
-                    )}
+                    variant="ghost"
+                    size="sm"
+                    className="text-[10px] h-6 px-2 text-[#ef4444] hover:text-[#ef4444] hover:bg-[#ef4444]/10 border border-[#27272a] rounded-none uppercase font-mono w-full"
+                    onClick={() => setEditedTask(prev => ({ ...prev, start_date: null }))}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4 text-blue-400 flex-shrink-0" />
-                    <span className="truncate">
-                      {editedTask.start_date 
-                        ? format(new Date(editedTask.start_date), "dd/MM/yyyy", { locale: ptBR })
-                        : "Selecionar"
-                      }
-                    </span>
+                    Limpar
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={editedTask.start_date ? new Date(editedTask.start_date) : undefined}
-                    onSelect={(date) => setEditedTask(prev => ({ ...prev, start_date: date?.toISOString() || null }))}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              {editedTask.start_date && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-xs h-6 px-2 mt-2 text-gray-400 hover:text-gray-300"
-                  onClick={() => setEditedTask(prev => ({ ...prev, start_date: null }))}
-                >
-                  Limpar data
-                </Button>
-              )}
+                )}
+              </div>
             </section>
 
-            <section 
+            <section
               aria-labelledby="status-heading"
               className={cn(
-                "rounded-lg p-4 border",
-                isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-gray-200"
+                "p-4 border",
+                isDarkMode ? "bg-[#18181b]/50 border-[#27272a]" : "bg-gray-50 border-gray-200"
               )}
             >
-              <h3 id="status-heading" className="text-sm font-medium mb-3 flex items-center gap-2">
-                <CheckCircle2 className={cn(
-                  "h-4 w-4",
-                  editedTask.completed ? "text-emerald-400" : "text-gray-400"
-                )} />
+              <h3 id="status-heading" className="text-xs font-mono uppercase text-[#a1a1aa] mb-3 flex items-center gap-2">
+                <CheckCircle2 className="h-3 w-3" />
                 Status
               </h3>
               <div className={cn(
-                "flex items-center justify-between p-3 rounded-lg",
-                isDarkMode ? "bg-gray-900" : "bg-white border border-gray-200"
+                "flex items-center justify-between p-2 border",
+                isDarkMode ? "bg-[#09090b] border-[#27272a]" : "bg-white border-gray-200"
               )}>
                 <div className="flex flex-col">
                   <span className={cn(
-                    "text-sm font-medium",
-                    editedTask.completed ? "text-emerald-400" : (isDarkMode ? "text-gray-300" : "text-gray-700")
+                    "text-xs font-mono uppercase",
+                    editedTask.completed ? "text-[#22c55e]" : "text-[#52525b]"
                   )}>
-                    {editedTask.completed ? "Concluída" : "Pendente"}
+                    {editedTask.completed ? "CONCLUÍDO" : "PENDENTE"}
                   </span>
                 </div>
                 <Switch
@@ -398,169 +389,128 @@ const EditTaskModal = ({
                   checked={editedTask.completed}
                   onCheckedChange={(checked) => setEditedTask(prev => ({ ...prev, completed: checked }))}
                   aria-label={editedTask.completed ? "Marcar como pendente" : "Marcar como concluída"}
-                  className="data-[state=checked]:bg-emerald-500"
+                  className="data-[state=checked]:bg-[#ccff00] data-[state=unchecked]:bg-[#27272a]"
                 />
               </div>
             </section>
           </div>
 
-          <section 
+          <section
             aria-labelledby="priority-heading"
             className={cn(
-              "rounded-lg p-4 border",
-              isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-gray-200"
+              "p-4 border",
+              isDarkMode ? "bg-[#18181b]/50 border-[#27272a]" : "bg-gray-50 border-gray-200"
             )}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 id="priority-heading" className="text-sm font-medium flex items-center gap-2">
-                <Target className="h-4 w-4 text-orange-400" />
+              <h3 id="priority-heading" className="text-xs font-mono uppercase text-[#a1a1aa] flex items-center gap-2">
+                <Target className="h-3 w-3" />
                 Prioridade
               </h3>
-              <motion.div 
+              <motion.div
                 key={quadrant.name}
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 className={cn(
-                  "px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 border",
-                  quadrant.bg
+                  "px-2 py-1 text-[10px] font-mono font-bold uppercase border flex items-center gap-1.5",
+                  // Override standard colors for industrial theme
+                  quadrant.name === 'Fazer Agora' ? 'text-[#ef4444] border-[#ef4444] bg-[#ef4444]/10' :
+                    quadrant.name === 'Agendar' ? 'text-[#3b82f6] border-[#3b82f6] bg-[#3b82f6]/10' :
+                      quadrant.name === 'Delegar' ? 'text-[#eab308] border-[#eab308] bg-[#eab308]/10' :
+                        'text-[#52525b] border-[#52525b] bg-[#52525b]/10'
                 )}
               >
-                <QuadrantIcon className={cn("h-3.5 w-3.5", quadrant.color)} />
-                <span className={quadrant.color}>{quadrant.name}</span>
+                {quadrant.name}
               </motion.div>
             </div>
 
-            <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div role="group" aria-labelledby="urgency-label">
                 <div className="flex items-center justify-between mb-2">
-                  <label id="urgency-label" className="flex items-center gap-2">
-                    <Zap className={cn("h-4 w-4", urgencyColors.text)} />
-                    <span className="text-sm font-medium">Urgência</span>
+                  <label id="urgency-label" className="flex items-center gap-2 text-xs font-mono uppercase text-[#a1a1aa]">
+                    Urgência
                   </label>
                   <span className={cn(
-                    "px-2.5 py-1 rounded-full text-xs font-bold tabular-nums",
-                    urgencyColors.bg, urgencyColors.text
+                    "px-2 py-0.5 text-[10px] font-mono font-bold border",
+                    editedTask.urgency > 7 ? 'text-[#ef4444] border-[#ef4444] bg-[#ef4444]/10' :
+                      editedTask.urgency > 4 ? 'text-[#eab308] border-[#eab308] bg-[#eab308]/10' :
+                        'text-[#22c55e] border-[#22c55e] bg-[#22c55e]/10'
                   )}>
-                    {editedTask.urgency}/10
+                    VAL: {editedTask.urgency}
                   </span>
                 </div>
                 <div className="relative pt-1">
-                  <div className={cn(
-                    "absolute inset-x-0 h-2 rounded-full",
-                    isDarkMode ? "bg-gray-700" : "bg-gray-200"
-                  )} />
-                  <motion.div 
-                    className="absolute h-2 rounded-full"
-                    initial={false}
-                    animate={{ 
-                      width: `${editedTask.urgency * 10}%`,
-                      backgroundColor: urgencyColors.bar
-                    }}
-                    transition={{ duration: 0.2 }}
-                  />
                   <Slider
                     min={1}
                     max={10}
                     step={1}
                     value={[editedTask.urgency]}
                     onValueChange={(value) => setEditedTask(prev => ({ ...prev, urgency: value[0] }))}
-                    aria-label="Nível de urgência"
-                    aria-valuemin={1}
-                    aria-valuemax={10}
-                    aria-valuenow={editedTask.urgency}
-                    aria-valuetext={`Urgência ${editedTask.urgency} de 10`}
-                    className="relative z-10 [&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:border-2 [&_[role=slider]]:border-white [&_[role=slider]]:shadow-md [&_[role=slider]]:transition-transform [&_[role=slider]:focus]:scale-110"
+                    className="relative z-10 cursor-pointer"
                   />
-                </div>
-                <div className="flex justify-between mt-1.5 text-[10px] text-gray-500">
-                  <span>Baixa</span>
-                  <span>Média</span>
-                  <span>Alta</span>
                 </div>
               </div>
 
               <div role="group" aria-labelledby="importance-label">
                 <div className="flex items-center justify-between mb-2">
-                  <label id="importance-label" className="flex items-center gap-2">
-                    <Star className={cn("h-4 w-4", importanceColors.text)} />
-                    <span className="text-sm font-medium">Importância</span>
+                  <label id="importance-label" className="flex items-center gap-2 text-xs font-mono uppercase text-[#a1a1aa]">
+                    Importância
                   </label>
                   <span className={cn(
-                    "px-2.5 py-1 rounded-full text-xs font-bold tabular-nums",
-                    importanceColors.bg, importanceColors.text
+                    "px-2 py-0.5 text-[10px] font-mono font-bold border",
+                    editedTask.importance > 7 ? 'text-[#3b82f6] border-[#3b82f6] bg-[#3b82f6]/10' :
+                      editedTask.importance > 4 ? 'text-[#6366f1] border-[#6366f1] bg-[#6366f1]/10' :
+                        'text-[#a855f7] border-[#a855f7] bg-[#a855f7]/10'
                   )}>
-                    {editedTask.importance}/10
+                    VAL: {editedTask.importance}
                   </span>
                 </div>
                 <div className="relative pt-1">
-                  <div className={cn(
-                    "absolute inset-x-0 h-2 rounded-full",
-                    isDarkMode ? "bg-gray-700" : "bg-gray-200"
-                  )} />
-                  <motion.div 
-                    className="absolute h-2 rounded-full"
-                    initial={false}
-                    animate={{ 
-                      width: `${editedTask.importance * 10}%`,
-                      backgroundColor: importanceColors.bar
-                    }}
-                    transition={{ duration: 0.2 }}
-                  />
                   <Slider
                     min={1}
                     max={10}
                     step={1}
                     value={[editedTask.importance]}
                     onValueChange={(value) => setEditedTask(prev => ({ ...prev, importance: value[0] }))}
-                    aria-label="Nível de importância"
-                    aria-valuemin={1}
-                    aria-valuemax={10}
-                    aria-valuenow={editedTask.importance}
-                    aria-valuetext={`Importância ${editedTask.importance} de 10`}
-                    className="relative z-10 [&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:border-2 [&_[role=slider]]:border-white [&_[role=slider]]:shadow-md [&_[role=slider]]:transition-transform [&_[role=slider]:focus]:scale-110"
+                    className="relative z-10 cursor-pointer"
                   />
                 </div>
-                <div className="flex justify-between mt-1.5 text-[10px] text-gray-500">
-                  <span>Baixa</span>
-                  <span>Média</span>
-                  <span>Alta</span>
-                </div>
               </div>
+            </div>
 
-              <div className={cn(
-                "flex items-start gap-2 p-3 rounded-lg text-xs",
-                isDarkMode ? "bg-gray-900/50" : "bg-gray-100"
-              )}>
-                <Info className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" />
-                <p className="text-gray-400">
-                  {quadrant.description}
-                </p>
-              </div>
+            <div className={cn(
+              "mt-4 flex items-start gap-2 p-2 border text-[10px] font-mono",
+              isDarkMode ? "bg-[#09090b] border-[#27272a] text-[#52525b]" : "bg-gray-100"
+            )}>
+              <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
+              <p>
+                STATUS: {quadrant.description.toUpperCase()}
+              </p>
             </div>
           </section>
 
-          <section 
+          <section
             aria-labelledby="tags-heading"
             className={cn(
-              "rounded-lg p-4 border",
-              isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-gray-200"
+              "p-4 border",
+              isDarkMode ? "bg-[#18181b]/50 border-[#27272a]" : "bg-gray-50 border-gray-200"
             )}
           >
-            <h3 id="tags-heading" className="text-sm font-medium mb-3 flex items-center gap-2">
-              <TagIcon className="h-4 w-4 text-pink-400" />
-              Tags
+            <h3 id="tags-heading" className="text-xs font-mono uppercase text-[#a1a1aa] mb-3 flex items-center gap-2">
+              <TagIcon className="h-3 w-3" />
+              Categorização (Tags)
             </h3>
-            <TagSelector 
-              selectedTags={editedTask.tags || []} 
+            <TagSelector
+              selectedTags={editedTask.tags || []}
               onTagsChange={(tags) => setEditedTask(prev => ({ ...prev, tags }))}
-              isDarkMode={isDarkMode}
+              isDarkMode={true}
             />
           </section>
         </div>
 
         <div className={cn(
           "sticky bottom-0 px-6 py-4 border-t",
-          isDarkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"
+          isDarkMode ? "bg-[#18181b] border-[#27272a]" : "bg-white border-gray-200"
         )}>
           <AnimatePresence mode="wait">
             {showDeleteConfirm ? (
@@ -572,29 +522,29 @@ const EditTaskModal = ({
                 className="flex flex-col gap-3"
               >
                 <div className={cn(
-                  "flex items-center gap-2 p-3 rounded-lg",
-                  "bg-red-500/10 border border-red-500/30"
+                  "flex items-center gap-2 p-3 border",
+                  "bg-[#ef4444]/10 border-[#ef4444]"
                 )}>
-                  <AlertTriangle className="h-5 w-5 text-red-400 flex-shrink-0" />
-                  <p className="text-sm text-red-400">
-                    Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.
+                  <AlertTriangle className="h-4 w-4 text-[#ef4444] flex-shrink-0" />
+                  <p className="text-xs font-mono text-[#ef4444] uppercase">
+                    Confirmar protocolo de exclusão? Irreversível.
                   </p>
                 </div>
                 <div className="flex justify-end gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setShowDeleteConfirm(false)}
-                    className={isDarkMode ? "border-gray-600 text-gray-300 hover:bg-gray-800" : ""}
+                    className={isDarkMode ? "rounded-none border-[#27272a] text-[#a1a1aa] hover:bg-[#27272a] hover:text-white font-mono uppercase text-xs" : ""}
                   >
                     Cancelar
                   </Button>
-                  <Button 
+                  <Button
                     variant="destructive"
                     onClick={handleDelete}
-                    className="bg-red-600 hover:bg-red-700"
+                    className="rounded-none bg-[#ef4444] hover:bg-[#dc2626] font-mono text-xs uppercase"
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Confirmar Exclusão
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    DELETAR
                   </Button>
                 </div>
               </motion.div>
@@ -606,44 +556,42 @@ const EditTaskModal = ({
                 exit={{ opacity: 0, y: -10 }}
                 className="flex justify-between items-center gap-3"
               >
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  className="rounded-none text-[#ef4444] hover:text-[#ef4444] hover:bg-[#ef4444]/10 font-mono text-xs uppercase"
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
+                  <Trash2 className="h-3 w-3 mr-1" />
                   Excluir
                 </Button>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={onClose}
                     className={cn(
-                      isDarkMode 
-                        ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white" 
-                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                      "rounded-none border-[#27272a] text-[#a1a1aa] hover:bg-[#27272a] hover:text-white font-mono uppercase text-xs px-4"
                     )}
                   >
                     Cancelar
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleSubmit}
                     disabled={!!errors.title || isSubmitting}
                     className={cn(
-                      "min-w-[100px] bg-violet-600 hover:bg-violet-700 text-white",
+                      "min-w-[100px] rounded-none bg-[#ccff00] text-black hover:bg-[#bbe600] font-mono font-bold uppercase text-xs px-6",
                       "disabled:opacity-50 disabled:cursor-not-allowed",
                       "transition-all duration-200"
                     )}
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Salvando...
+                        <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                        SALVANDO...
                       </>
                     ) : (
                       <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Salvar
+                        <Save className="h-3 w-3 mr-2" />
+                        SALVAR
                       </>
                     )}
                   </Button>

@@ -13,6 +13,7 @@ export interface Task {
   completed_at?: string | null;
   tags?: string[];
   user_id?: string;
+  time_spent?: number;
 }
 
 export interface DatabaseResponse<T> {

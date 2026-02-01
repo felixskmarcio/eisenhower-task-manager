@@ -38,6 +38,11 @@ import {
   useDroppable,
   useDraggable,
 } from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 interface Task {
@@ -83,14 +88,14 @@ export const Matrix = () => {
   const [isBreak, setIsBreak] = useState(false);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const [timerElapsed, setTimerElapsed] = useState<number>(0);
-  const [taskTimeSpent, setTaskTimeSpent] = useState<{[key: string]: number}>({});
+  const [taskTimeSpent, setTaskTimeSpent] = useState<{ [key: string]: number }>({});
   const [selectedTimerTask, setSelectedTimerTask] = useState<Task | null>(null);
-  
+
   // Estado para drag-and-drop com @dnd-kit
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [overQuadrant, setOverQuadrant] = useState<number | null>(null);
-  
+
   // Sensores para diferentes tipos de entrada
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -134,7 +139,7 @@ export const Matrix = () => {
     setIsBreak(false);
     setTimeLeft(25 * 60);
     setTimerElapsed(0);
-    
+
     // Inicializar ou recuperar o tempo já gasto na tarefa
     const currentTask = tasks.find(t => t.id === taskId);
     setTaskTimeSpent(prev => ({
@@ -158,7 +163,7 @@ export const Matrix = () => {
 
       // Atualizar apenas o tempo decorrido sem modificar o estado das tarefas a cada segundo
       setTimerElapsed(prev => prev + 1);
-      
+
       // Atualiza o tempo gasto na tarefa atual em um objeto separado
       setTaskTimeSpent(prev => ({
         ...prev,
@@ -183,17 +188,17 @@ export const Matrix = () => {
       clearInterval(intervalId);
       setIntervalId(null);
     }
-    
+
     if (activeTimer && timerElapsed > 0) {
       // Atualizar o tempo total gasto na tarefa quando o timer parar
       const totalTimeSpent = taskTimeSpent[activeTimer] || 0;
-      
+
       const updatedTasks = tasks.map((task) =>
         task.id === activeTimer
           ? { ...task, timeSpent: totalTimeSpent, isTimerActive: false }
           : task.isTimerActive ? { ...task, isTimerActive: false } : task
       );
-      
+
       setTasks(updatedTasks);
       // Salvar as tarefas atualizadas no localStorage
       saveTasksToLocalStorage(updatedTasks);
@@ -201,15 +206,15 @@ export const Matrix = () => {
       const updatedTasks = tasks.map((task) =>
         task.isTimerActive ? { ...task, isTimerActive: false } : task
       );
-      
+
       setTasks(updatedTasks);
       // Salvar as tarefas atualizadas no localStorage
       saveTasksToLocalStorage(updatedTasks);
     }
-    
+
     setActiveTimer(null);
     setTimerElapsed(0);
-    
+
     toast({
       title: 'Timer parado',
       description: 'Tempo registrado com sucesso!',
@@ -277,7 +282,7 @@ export const Matrix = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [activeView, setActiveView] = useState<'matrix' | 'tasks' | 'completed'>('matrix');
-  const [newTask, setNewTask] = useState<NewTask>({    
+  const [newTask, setNewTask] = useState<NewTask>({
     title: '',
     description: undefined,
     urgency: 5,
@@ -285,7 +290,7 @@ export const Matrix = () => {
     tags: [],
     start_date: null
   });
-  
+
   const [tagFilters, setTagFilters] = useState<{
     project: string | null;
     context: string | null;
@@ -320,17 +325,17 @@ export const Matrix = () => {
       quadrant: calculateQuadrant(editedTask.urgency, editedTask.importance),
       createdAt: tasks.find(t => t.id === editedTask.id)?.createdAt || new Date(),
       completedAt: editedTask.completed ? (tasks.find(t => t.id === editedTask.id)?.completedAt || new Date()) : null,
-      start_date: editedTask.start_date ? 
-        (typeof editedTask.start_date === 'string' ? 
-          editedTask.start_date : 
-          editedTask.start_date.toISOString()) : 
+      start_date: editedTask.start_date ?
+        (typeof editedTask.start_date === 'string' ?
+          editedTask.start_date :
+          editedTask.start_date.toISOString()) :
         null
     };
-    
+
     // Atualizar estado local imediatamente
     const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
     updateTasks(updatedTasks);
-    
+
     // Sincronizar com banco de dados
     const userId = user?.uid || (user as any)?.id || 'anonymous-user';
     try {
@@ -345,7 +350,7 @@ export const Matrix = () => {
         tags: updatedTask.tags,
         start_date: updatedTask.start_date
       }, userId);
-      
+
       if (error) {
         console.error('Erro ao atualizar tarefa no banco:', error);
         toast({
@@ -378,33 +383,33 @@ export const Matrix = () => {
     { name: 'Nick Nelson', status: 'completed' },
     { name: 'Amanda Anderson', status: 'completed' },
   ]);
-  
+
   const quadrants = [
-    { 
-      title: 'Fazer', 
-      description: 'Importante e Urgente',
-      color: 'bg-gradient-to-br from-[#44253b]/95 to-[#2a1423]/98 backdrop-blur-md',
+    {
+      title: 'FAZER_AGORA',
+      description: 'URGENTE + IMPORTANTE',
+      color: 'bg-[#18181b]/80 backdrop-blur-sm',
       borderColor: 'border-[#ff79c6]',
       textColor: 'text-[#ff79c6]'
     },
-    { 
-      title: 'Agendar', 
-      description: 'Importante, mas Não Urgente',
-      color: 'bg-gradient-to-br from-[#253844]/95 to-[#142a2a]/98 backdrop-blur-md',
+    {
+      title: 'AGENDAR',
+      description: '!URGENTE + IMPORTANTE',
+      color: 'bg-[#18181b]/80 backdrop-blur-sm',
       borderColor: 'border-[#8be9fd]',
       textColor: 'text-[#8be9fd]'
     },
-    { 
-      title: 'Delegar', 
-      description: 'Não Importante, mas Urgente',
-      color: 'bg-gradient-to-br from-[#443825]/95 to-[#2a2314]/98 backdrop-blur-md',
+    {
+      title: 'DELEGAR',
+      description: 'URGENTE + !IMPORTANTE',
+      color: 'bg-[#18181b]/80 backdrop-blur-sm',
       borderColor: 'border-[#f1fa8c]',
       textColor: 'text-[#f1fa8c]'
     },
-    { 
-      title: 'Eliminar', 
-      description: 'Não Importante e Não Urgente',
-      color: 'bg-gradient-to-br from-[#252844]/95 to-[#14142a]/98 backdrop-blur-md',
+    {
+      title: 'ELIMINAR',
+      description: '!URGENTE + !IMPORTANTE',
+      color: 'bg-[#18181b]/80 backdrop-blur-sm',
       borderColor: 'border-[#bd93f9]',
       textColor: 'text-[#bd93f9]'
     }
@@ -415,7 +420,7 @@ export const Matrix = () => {
     const { active } = event;
     const taskId = active.id as string;
     const task = tasks.find(t => t.id === taskId);
-    
+
     if (task) {
       setActiveId(taskId);
       setActiveTask(task);
@@ -437,16 +442,16 @@ export const Matrix = () => {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (over && activeTask) {
       const quadrantId = over.id as string;
       const newQuadrant = parseInt(quadrantId.replace('quadrant-', ''));
-      
+
       if (!isNaN(newQuadrant) && activeTask.quadrant !== newQuadrant) {
         // Calcular novos valores de urgência/importância baseado no quadrante
         let newUrgency = activeTask.urgency;
         let newImportance = activeTask.importance;
-        
+
         // Ajustar urgência e importância baseado no novo quadrante
         switch (newQuadrant) {
           case 0: // Fazer - Urgente e Importante
@@ -466,22 +471,22 @@ export const Matrix = () => {
             newImportance = Math.min(5, activeTask.importance);
             break;
         }
-        
-        const updatedTasks = tasks.map(task => 
-          task.id === activeTask.id 
-            ? { ...task, quadrant: newQuadrant, urgency: newUrgency, importance: newImportance } 
+
+        const updatedTasks = tasks.map(task =>
+          task.id === activeTask.id
+            ? { ...task, quadrant: newQuadrant, urgency: newUrgency, importance: newImportance }
             : task
         );
-        
+
         updateTasks(updatedTasks);
-        
+
         const quadrantNames = [
           'Fazer (Urgente e Importante)',
           'Agendar (Importante)',
           'Delegar (Urgente)',
           'Eliminar'
         ];
-        
+
         // Sincronizar com banco de dados
         const userId = user?.uid || (user as any)?.id || 'anonymous-user';
         try {
@@ -490,7 +495,7 @@ export const Matrix = () => {
             urgency: newUrgency,
             importance: newImportance
           }, userId);
-          
+
           if (error) {
             console.error('Erro ao sincronizar movimento:', error);
           } else {
@@ -499,14 +504,14 @@ export const Matrix = () => {
         } catch (err) {
           console.error('Erro ao sincronizar:', err);
         }
-        
+
         toast({
           title: 'Tarefa movida',
           description: `"${activeTask.title}" movida para ${quadrantNames[newQuadrant]}`,
         });
       }
     }
-    
+
     setActiveId(null);
     setActiveTask(null);
     setOverQuadrant(null);
@@ -520,7 +525,7 @@ export const Matrix = () => {
 
   // Função para gerar UUIDs válidos
   const generateUUID = (): string => {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const r = Math.random() * 16 | 0;
       const v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
@@ -540,7 +545,7 @@ export const Matrix = () => {
       completedAt: null,
       start_date: newTask.start_date
     };
-    
+
     // Atualizar estado local imediatamente para UX responsiva
     const updatedTasks = [...tasks, createdTask];
     setTasks(updatedTasks);
@@ -554,7 +559,7 @@ export const Matrix = () => {
       tags: [],
       start_date: null
     });
-    
+
     // Salvar no banco de dados em background
     const userId = user?.uid || (user as any)?.id || 'anonymous-user';
     try {
@@ -568,7 +573,7 @@ export const Matrix = () => {
         tags: createdTask.tags,
         start_date: createdTask.start_date
       }, userId);
-      
+
       if (error) {
         console.error('Erro ao salvar tarefa no banco:', error);
         toast({
@@ -602,10 +607,10 @@ export const Matrix = () => {
   const toggleTaskCompletion = async (taskId: string) => {
     const taskToUpdate = tasks.find(t => t.id === taskId);
     if (!taskToUpdate) return;
-    
+
     const newCompleted = !taskToUpdate.completed;
     const completedAt = newCompleted ? new Date() : null;
-    
+
     // Atualizar estado local imediatamente
     const updatedTasks = tasks.map(task => {
       if (task.id === taskId) {
@@ -619,7 +624,7 @@ export const Matrix = () => {
     });
     setTasks(updatedTasks);
     saveTasksToLocalStorage(updatedTasks);
-    
+
     // Sincronizar com banco de dados
     const userId = user?.uid || (user as any)?.id || 'anonymous-user';
     try {
@@ -633,13 +638,13 @@ export const Matrix = () => {
       console.error('Erro ao sincronizar status:', err);
     }
   };
-  
+
   const deleteTask = async (taskId: string) => {
     // Atualizar estado local imediatamente
     const updatedTasks = tasks.filter(task => task.id !== taskId);
     setTasks(updatedTasks);
     saveTasksToLocalStorage(updatedTasks);
-    
+
     // Sincronizar com banco de dados
     const userId = user?.uid || (user as any)?.id || 'anonymous-user';
     try {
@@ -669,13 +674,13 @@ export const Matrix = () => {
   // Estado para o diálogo de confirmação de exclusão
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
-  
+
   // Função para confirmar a exclusão
   const confirmDeleteTask = (taskId: string) => {
     setTaskToDelete(taskId);
     setIsDeleteDialogOpen(true);
   };
-  
+
   // Função para realizar a exclusão após confirmação
   const handleConfirmDelete = () => {
     if (taskToDelete) {
@@ -684,24 +689,24 @@ export const Matrix = () => {
     }
     setIsDeleteDialogOpen(false);
   };
-  
+
   // Função para cancelar a exclusão
   const handleCancelDelete = () => {
     setTaskToDelete(null);
     setIsDeleteDialogOpen(false);
   };
-  
+
   // Prevenir que o diálogo feche ao clicar fora dele
   const preventDialogClose = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
   // Componente de tarefa arrastável com useDraggable
-  const DraggableTaskCard = React.memo(({ task, isTimerActive, timeLeft, taskTimeSpent, onSelectForTimer, isSelectedForTimer }: { 
-    task: Task; 
-    isTimerActive: boolean; 
-    timeLeft?: number; 
-    taskTimeSpent: { [key: string]: number }; 
+  const DraggableTaskCard = React.memo(({ task, isTimerActive, timeLeft, taskTimeSpent, onSelectForTimer, isSelectedForTimer }: {
+    task: Task;
+    isTimerActive: boolean;
+    timeLeft?: number;
+    taskTimeSpent: { [key: string]: number };
     onSelectForTimer: (task: Task) => void;
     isSelectedForTimer: boolean;
   }) => {
@@ -722,25 +727,25 @@ export const Matrix = () => {
     } : undefined;
 
     return (
-      <div 
+      <div
         ref={setNodeRef}
         style={style}
-        className={`matrix-card mb-2 ${task.completed ? 'opacity-60' : ''} ${isDragging ? 'shadow-xl' : ''}`}
+        className={`matrix-card mb-2 ${task.completed ? 'opacity-60' : ''} ${isDragging ? 'shadow-xl z-50' : ''}`}
         id={`task-${task.id}`}
       >
-        <div className="p-2 bg-base-200 rounded-md hover:bg-base-300 transition-all duration-300 group">
+        <div className="p-3 bg-[#09090b] border border-[#27272a] hover:border-[#ccff00]/50 transition-all duration-300 group rounded-none">
           {/* Cabeçalho da tarefa */}
           <div className="flex items-start justify-between">
             {/* Handle de arrastar */}
-            <div 
-              {...attributes} 
+            <div
+              {...attributes}
               {...listeners}
               className="flex-shrink-0 cursor-grab active:cursor-grabbing mr-1 mt-1 opacity-0 group-hover:opacity-60 transition-opacity touch-none"
               aria-label="Arrastar tarefa"
             >
               <GripVertical className="h-4 w-4 text-base-content/50" />
             </div>
-            
+
             <div className="flex items-start flex-1 min-w-0">
               {/* Botão de completar */}
               <div className="flex-shrink-0 mt-0.5">
@@ -756,7 +761,7 @@ export const Matrix = () => {
                   )}
                 </button>
               </div>
-              
+
               {/* Conteúdo principal */}
               <div className="flex-1 min-w-0">
                 {inlineEditingTaskId === task.id ? (
@@ -799,26 +804,25 @@ export const Matrix = () => {
                   </div>
                 ) : (
                   <>
-                    <h4 
-                      className={`font-bold text-md tracking-tight truncate cursor-pointer hover:underline ${
-                        task.completed 
-                          ? 'line-through text-gray-400' 
-                          : ''
-                      }`}
+                    <h4
+                      className={`font-bold text-md tracking-tight truncate cursor-pointer hover:underline ${task.completed
+                        ? 'line-through text-gray-400'
+                        : ''
+                        }`}
                       style={{
-                        color: task.completed ? undefined : 
+                        color: task.completed ? undefined :
                           task.urgency > 7 ? 'var(--color-high-priority)' :
-                          task.urgency > 4 ? 'var(--color-medium-priority)' :
-                          'var(--color-low-priority)'
+                            task.urgency > 4 ? 'var(--color-medium-priority)' :
+                              'var(--color-low-priority)'
                       }}
                       onDoubleClick={() => startInlineEdit(task)}
                       title="Duplo clique para edição rápida"
                     >
                       {task.title}
                     </h4>
-                    
+
                     {task.description && (
-                      <p 
+                      <p
                         className="text-xs mt-1 text-base-content/70 line-clamp-2 leading-snug cursor-pointer"
                         onDoubleClick={() => startInlineEdit(task)}
                       >
@@ -827,7 +831,7 @@ export const Matrix = () => {
                     )}
                   </>
                 )}
-                
+
                 {task.start_date && (
                   <div className="flex items-center mt-1.5 text-xs text-base-content/60">
                     <CalendarIcon className="w-3 h-3 mr-1" />
@@ -861,7 +865,7 @@ export const Matrix = () => {
                 <Trash2 className="h-3.5 w-3.5 text-error" />
               </button>
             </div>
-            
+
             {/* Timer */}
             <div className="flex items-center">
               {(task.timeSpent || (activeTimer === task.id && taskTimeSpent[task.id])) && (
@@ -870,7 +874,7 @@ export const Matrix = () => {
                   {Math.floor((activeTimer === task.id ? taskTimeSpent[task.id] : task.timeSpent) / 60)}m
                 </span>
               )}
-              
+
               {activeTimer === task.id ? (
                 <div className="flex items-center">
                   <span className="text-xs mr-1 font-mono">{formatTime(timeLeft)}</span>
@@ -902,15 +906,244 @@ export const Matrix = () => {
 
   DraggableTaskCard.displayName = 'DraggableTaskCard';
 
+  const SortableTaskCard = ({
+    task,
+    isTimerActive,
+    timeLeft,
+    taskTimeSpent,
+    onSelectForTimer,
+    isSelectedForTimer
+  }: {
+    task: Task;
+    isTimerActive: boolean;
+    timeLeft: number;
+    taskTimeSpent: { [key: string]: number };
+    onSelectForTimer: (task: Task) => void;
+    isSelectedForTimer: boolean;
+  }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging
+    } = useSortable({ id: task.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`matrix-card mb-2 ${task.completed ? 'opacity-60' : ''} ${isDragging ? 'shadow-xl z-50' : ''}`}
+        id={`task-${task.id}`}
+        {...attributes}
+      >
+        <div className="p-3 bg-[#09090b] border border-[#27272a] hover:border-[#ccff00]/50 transition-all duration-300 group rounded-none">
+          {/* Cabeçalho da tarefa */}
+          <div className="flex items-start justify-between">
+            {/* Handle de arrastar */}
+            <div
+              {...listeners}
+              className="mr-2 mt-1 cursor-grab active:cursor-grabbing text-[#52525b] hover:text-[#a1a1aa]"
+            >
+              <GripVertical className="h-4 w-4" />
+            </div>
+
+            <div className="flex items-start flex-1 min-w-0">
+              {/* Botão de completar */}
+              <div className="flex-shrink-0 mr-2 mt-0.5">
+                <button
+                  onClick={() => toggleTaskCompletion(task.id)}
+                  className="btn btn-circle btn-xs bg-transparent hover:bg-white/10 border-none h-5 w-5 min-h-0"
+                  aria-label={task.completed ? "Marcar como não concluída" : "Marcar como concluída"}
+                >
+                  {task.completed ? (
+                    <CheckCircle className="h-4 w-4 text-[#ccff00]" />
+                  ) : (
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-[#52525b] hover:border-[#ccff00] transition-colors"></div>
+                  )}
+                </button>
+              </div>
+
+              <div className="flex-1 min-w-0 flex flex-col gap-1">
+                {/* 1. Tags Row */}
+                {task.tags && task.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-0.5">
+                    {task.tags.map(tagId => {
+                      const tag = availableTags.find(t => t.id === tagId);
+                      if (!tag) return null;
+                      return (
+                        <span
+                          key={tag.id}
+                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border"
+                          style={{
+                            backgroundColor: `${tag.color}10`,
+                            color: tag.color,
+                            borderColor: `${tag.color}20`
+                          }}
+                        >
+                          {tag.name}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Inline Editing Form */}
+                {inlineEditingTaskId === task.id ? (
+                  <div className="flex flex-col gap-2 w-full animate-in fade-in zoom-in-95 duration-200">
+                    <input
+                      type="text"
+                      value={inlineEditTitle}
+                      onChange={(e) => setInlineEditTitle(e.target.value)}
+                      className="w-full bg-[#18181b] border border-[#27272a] text-white text-sm px-2 py-1 focus:outline-none focus:border-[#ccff00] focus:ring-1 focus:ring-[#ccff00]"
+                      placeholder="Título da tarefa"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveInlineEdit(task.id);
+                        if (e.key === 'Escape') cancelInlineEdit();
+                      }}
+                    />
+                    <textarea
+                      value={inlineEditDescription}
+                      onChange={(e) => setInlineEditDescription(e.target.value)}
+                      className="w-full bg-[#18181b] border border-[#27272a] text-gray-400 text-xs px-2 py-1 focus:outline-none focus:border-[#ccff00] focus:ring-1 focus:ring-[#ccff00] min-h-[60px]"
+                      placeholder="Descrição (opcional)"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') cancelInlineEdit();
+                      }}
+                    />
+                    <div className="flex justify-end gap-2 mt-1">
+                      <button
+                        onClick={cancelInlineEdit}
+                        className="px-2 py-1 text-xs text-gray-400 hover:text-white"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={() => saveInlineEdit(task.id)}
+                        className="px-2 py-1 text-xs bg-[#ccff00] text-black font-bold hover:bg-[#bbe600]"
+                      >
+                        Salvar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* 2. Title Row */}
+                    <div
+                      onDoubleClick={() => startInlineEdit(task)}
+                    >
+                      <h4
+                        className={`text-sm font-medium text-gray-200 break-words cursor-pointer ${task.completed ? 'line-through text-gray-500' : ''}`}
+                        title={task.title}
+                      >
+                        {task.title}
+                      </h4>
+                    </div>
+
+                    {/* 3. Description Row */}
+                    {task.description && (
+                      <p
+                        className="text-xs text-gray-500 line-clamp-2 cursor-pointer"
+                        onDoubleClick={() => startInlineEdit(task)}
+                      >
+                        {task.description}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-1 ml-2">
+              <button
+                onClick={() => handleEditTask(task)}
+                className="text-gray-500 hover:text-white transition-colors p-1"
+                title="Editar"
+              >
+                <Activity className="w-3 h-3" />
+              </button>
+              <button
+                onClick={() => confirmDeleteTask(task.id)}
+                className="text-gray-500 hover:text-red-400 transition-colors p-1"
+                title="Excluir"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+
+              {/* Timer Button */}
+              {activeTimer === task.id ? (
+                <button
+                  onClick={stopTimer}
+                  className="ml-1 w-6 h-6 rounded-none bg-red-500/20 text-red-500 flex items-center justify-center border border-red-500 hover:bg-red-500 hover:text-white transition-all"
+                  title="Parar Timer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => onSelectForTimer(task)}
+                  disabled={task.completed}
+                  className={`ml-1 w-6 h-6 rounded-none flex items-center justify-center border transition-all
+                       ${isSelectedForTimer
+                      ? 'bg-[#ccff00]/20 text-[#ccff00] border-[#ccff00]'
+                      : 'bg-transparent text-gray-600 border-gray-700 hover:border-[#ccff00] hover:text-[#ccff00]'
+                    } ${task.completed ? 'opacity-30 cursor-not-allowed' : ''}`}
+                  title="Iniciar Timer"
+                >
+                  <Clock className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Footer: Date and Timer Status */}
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#27272a]">
+            <div className="flex items-center gap-2 text-[10px] text-gray-500">
+              {task.start_date && (
+                <div className="flex items-center gap-1">
+                  <CalendarIcon className="w-3 h-3" />
+                  <span>{new Date(task.start_date).toLocaleDateString('pt-BR')}</span>
+                </div>
+              )}
+            </div>
+
+            {(task.timeSpent || (activeTimer === task.id && taskTimeSpent[task.id])) ? (
+              <div className="flex items-center gap-1 text-[10px] font-mono text-[#ccff00]">
+                <Clock className="w-3 h-3" />
+                <span>
+                  {Math.floor((activeTimer === task.id ? taskTimeSpent[task.id] : (task.timeSpent || 0)) / 60)}m
+                </span>
+                {activeTimer === task.id && (
+                  <span className="animate-pulse ml-1">
+                    {formatTime(timeLeft)}
+                  </span>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const BarChart = () => {
     const maxValue = Math.max(...salesData);
-    
+
     return (
       <div className="flex items-end h-24 gap-1">
         {salesData.map((value, index) => (
-          <div 
-            key={index} 
-            className="bg-white w-3 rounded-t-sm" 
+          <div
+            key={index}
+            className="bg-white w-3 rounded-t-sm"
             style={{ height: `${(value / maxValue) * 100}%` }}
           />
         ))}
@@ -921,12 +1154,12 @@ export const Matrix = () => {
   const DaySelector = () => {
     const days = [12, 13, 14, 15, 16, 17, 18];
     const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    
+
     return (
       <div className="flex justify-between">
         {days.map((day, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             onClick={() => setSelectedDate(day)}
             className={`flex flex-col items-center cursor-pointer ${selectedDate === day ? 'bg-[#bd93f9] text-white rounded-md' : ''} p-2`}
           >
@@ -974,51 +1207,72 @@ export const Matrix = () => {
     const { isOver, setNodeRef } = useDroppable({
       id: `quadrant-${quadrantIndex}`,
     });
-    
+
     const isDragOver = isOver || overQuadrant === quadrantIndex;
-    
+
     return (
       <motion.div
         ref={setNodeRef}
-        className={`quadrant-card q${quadrantIndex + 1} h-full flex flex-col ${isDragOver ? 'drop-ready ring-2 ring-primary/50' : ''}`}
+        className={`quadrant-card q${quadrantIndex + 1} h-full flex flex-col border border-[#27272a] bg-[#18181b] ${isDragOver ? 'ring-1 ring-[#ccff00] border-[#ccff00]' : ''}`}
         animate={isDragOver ? {
           scale: 1.01,
-          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)"
+          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)"
         } : {
           scale: 1,
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.06)"
+          boxShadow: "none"
         }}
         transition={{ type: 'spring', damping: 20, stiffness: 300 }}
       >
-        <div className={`p-4 bg-base-200 bg-opacity-50 glass-effect`}>
-          <h2 className="text-xl font-bold mb-1 gradient-heading">{title}</h2>
-          <p className="text-sm opacity-75">{description}</p>
-          <div className="mt-3 text-xs grid grid-cols-2 gap-2">
-            <div className="flex items-center">
-              <span className={`inline-block w-3 h-3 rounded-full mr-1 bg-opacity-80 ${colorClass}`}></span>
-              <span>{urgentLabel}</span>
-            </div>
-            <div className="flex items-center">
-              <span className={`inline-block w-3 h-3 rounded-full mr-1 bg-opacity-80 ${colorClass}`}></span>
-              <span>{importantLabel}</span>
-            </div>
+        <div className={`p-4 border-b border-[#27272a] bg-[#18181b] flex justify-between items-center`}>
+          <div>
+            <h2 className="text-lg font-display font-bold uppercase tracking-wider text-white mb-1">{title}</h2>
+            <p className="text-xs text-[#a1a1aa] font-mono">{description}</p>
           </div>
+          <div className="flex items-center gap-1">
+            <span className={`w-2 h-2 rounded-none ${colorClass.includes('red') ? 'bg-[#ff5555]' : colorClass.includes('blue') ? 'bg-[#8be9fd]' : colorClass.includes('yellow') ? 'bg-[#f1fa8c]' : 'bg-[#bd93f9]'}`}></span>
+          </div>
+        </div>
+
+        <div className="flex-1 p-2 overflow-y-auto custom-scrollbar bg-[#09090b]/50 relative">
           <AnimatePresence>
             {isDragOver && activeId && (
-              <motion.div 
-                className="drop-indicator mt-2 p-2 rounded-md border-2 border-dashed border-primary bg-primary/10 text-center"
+              <motion.div
+                className="drop-indicator mb-2 p-2 border border-dashed border-[#ccff00] bg-[#ccff00]/10 text-center"
                 initial={{ opacity: 0, y: -5, height: 0 }}
                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                 exit={{ opacity: 0, y: -5, height: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <p className="text-xs text-primary font-medium">Solte aqui para mover</p>
+                <p className="text-xs text-[#ccff00] font-mono uppercase">Solte para mover</p>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-        <div className="flex-1 p-2 overflow-y-auto custom-scrollbar bg-base-100 bg-opacity-90">
           {children}
+        </div>
+
+        <div className="p-3 border-t border-[#27272a] bg-[#18181b]">
+          <button
+            onClick={() => {
+              let urgency = 5;
+              let importance = 5;
+
+              if (quadrantIndex === 0) { urgency = 8; importance = 8; }
+              else if (quadrantIndex === 1) { urgency = 3; importance = 8; }
+              else if (quadrantIndex === 2) { urgency = 8; importance = 3; }
+              else { urgency = 3; importance = 3; }
+
+              setNewTask({
+                ...newTask,
+                urgency,
+                importance
+              });
+              setIsAddModalOpen(true);
+            }}
+            className="w-full py-2 btn-industrial btn-industrial-outline text-[10px] flex items-center justify-center gap-2 group hover:bg-[#ccff00]/10 hover:text-[#ccff00] hover:border-[#ccff00]/50 transition-all border border-transparent"
+          >
+            <Plus className="w-3 h-3 group-hover:scale-110 transition-transform" />
+            <span className="font-mono uppercase tracking-wider">ADICIONAR</span>
+          </button>
         </div>
       </motion.div>
     );
@@ -1028,25 +1282,25 @@ export const Matrix = () => {
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  
+
   // Estado para edição inline rápida
   const [inlineEditingTaskId, setInlineEditingTaskId] = useState<string | null>(null);
   const [inlineEditTitle, setInlineEditTitle] = useState('');
   const [inlineEditDescription, setInlineEditDescription] = useState('');
-  
+
   // Função para iniciar edição inline
   const startInlineEdit = (task: Task) => {
     setInlineEditingTaskId(task.id);
     setInlineEditTitle(task.title);
     setInlineEditDescription(task.description || '');
   };
-  
+
   // Função para salvar edição inline
   const saveInlineEdit = (taskId: string) => {
     if (!inlineEditTitle.trim()) return;
-    
-    setTasks(prev => prev.map(task => 
-      task.id === taskId 
+
+    setTasks(prev => prev.map(task =>
+      task.id === taskId
         ? { ...task, title: inlineEditTitle, description: inlineEditDescription }
         : task
     ));
@@ -1054,57 +1308,57 @@ export const Matrix = () => {
     setInlineEditTitle('');
     setInlineEditDescription('');
   };
-  
+
   // Função para cancelar edição inline
   const cancelInlineEdit = () => {
     setInlineEditingTaskId(null);
     setInlineEditTitle('');
     setInlineEditDescription('');
   };
-  
+
   // Seletor de tags rápidas como chips
   const QuickTagSelector = () => {
-  return (
+    return (
       <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-1 tag-selector w-full">
         <div className="flex items-center justify-center">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap bg-gray-100/50 dark:bg-gray-800/50 px-3 py-1.5 rounded-full">Projeto:</span>
         </div>
         <div className="flex flex-wrap justify-center gap-2 flex-1">
           {availableTags.map(tag => (
-          <button
+            <button
               key={tag.id}
               onClick={() => handleTagFilter('project', tagFilters.project === tag.id ? null : tag.id)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 transition-all duration-200
-                ${tagFilters.project === tag.id 
-                  ? 'ring-2 ring-offset-2 dark:ring-offset-gray-900 shadow-lg scale-105' 
+                ${tagFilters.project === tag.id
+                  ? 'ring-2 ring-offset-2 dark:ring-offset-gray-900 shadow-lg scale-105'
                   : 'opacity-90 hover:opacity-100 hover:shadow-md hover:scale-103'}`}
-              style={{ 
-                background: tagFilters.project === tag.id 
-                  ? `linear-gradient(135deg, ${tag.color}30, ${tag.color}60)` 
+              style={{
+                background: tagFilters.project === tag.id
+                  ? `linear-gradient(135deg, ${tag.color}30, ${tag.color}60)`
                   : `linear-gradient(135deg, ${tag.color}15, ${tag.color}30)`,
                 color: tagFilters.project === tag.id ? `${tag.color}` : `${tag.color}`,
-                boxShadow: tagFilters.project === tag.id 
-                  ? `0 4px 12px ${tag.color}30` 
+                boxShadow: tagFilters.project === tag.id
+                  ? `0 4px 12px ${tag.color}30`
                   : `0 2px 6px ${tag.color}20`,
                 borderWidth: '0',
                 backdropFilter: 'blur(8px)'
               }}
             >
-              <span 
-                className="w-3 h-3 rounded-full flex-shrink-0" 
-                style={{ 
+              <span
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{
                   background: `linear-gradient(135deg, ${tag.color}, ${tag.color}cc)`,
                   boxShadow: `0 2px 4px ${tag.color}40`
-                }} 
+                }}
               />
               <span style={{ fontWeight: 500 }}>{tag.name}</span>
-          </button>
+            </button>
           ))}
         </div>
       </div>
     );
   };
-  
+
   // Função para filtrar tarefas por tags
   const handleTagFilter = (type: 'project' | 'context' | 'lifearea', value: string | null) => {
     setTagFilters(prev => ({
@@ -1112,7 +1366,7 @@ export const Matrix = () => {
       [type]: value
     }));
   };
-  
+
   // Função para adicionar nova tarefa
   const handleNewTaskAdded = (task: Omit<Task, 'id' | 'quadrant' | 'completed' | 'createdAt' | 'completedAt'>) => {
     const newTaskQuadrant = calculateQuadrant(task.urgency, task.importance);
@@ -1130,49 +1384,54 @@ export const Matrix = () => {
       description: 'Nova tarefa criada com sucesso!'
     });
   };
-  
+
   // Função para renderizar tarefas em cada quadrante
   const renderTasks = (quadrantNumber: number) => {
     const filteredTasks = tasks.filter(task => {
       // Filtrar por quadrante e se não está concluída
       const matchesQuadrant = task.quadrant === quadrantNumber - 1;
       const matchesCompletion = !task.completed;
-      
+
       // Filtrar por tags se houver tags selecionadas
-      const matchesTags = selectedTags.length === 0 || 
-                           (task.tags && task.tags.some(tag => selectedTags.includes(tag)));
-      
+      const matchesTags = selectedTags.length === 0 ||
+        (task.tags && task.tags.some(tag => selectedTags.includes(tag)));
+
       // Filtrar por tipo de tag (projeto, contexto, área de vida)
-      const matchesProjectFilter = !tagFilters.project || 
-                                   (task.tags && task.tags.includes(tagFilters.project));
-      const matchesContextFilter = !tagFilters.context || 
-                                   (task.tags && task.tags.includes(tagFilters.context));
-      const matchesLifeareaFilter = !tagFilters.lifearea || 
-                                   (task.tags && task.tags.includes(tagFilters.lifearea));
-      
-      return matchesQuadrant && matchesCompletion && matchesTags && 
-             matchesProjectFilter && matchesContextFilter && matchesLifeareaFilter;
+      const matchesProjectFilter = !tagFilters.project ||
+        (task.tags && task.tags.includes(tagFilters.project));
+      const matchesContextFilter = !tagFilters.context ||
+        (task.tags && task.tags.includes(tagFilters.context));
+      const matchesLifeareaFilter = !tagFilters.lifearea ||
+        (task.tags && task.tags.includes(tagFilters.lifearea));
+
+      return matchesQuadrant && matchesCompletion && matchesTags &&
+        matchesProjectFilter && matchesContextFilter && matchesLifeareaFilter;
     });
-    
+
     return (
       <div className="space-y-2">
-        {filteredTasks.length === 0 ? (
-          <div className="text-center p-4 text-muted-foreground text-sm">
-            Nenhuma tarefa neste quadrante
-          </div>
-        ) : (
-          filteredTasks.map(task => (
-            <DraggableTaskCard 
-              key={task.id} 
-              task={task} 
-              isTimerActive={activeTimer === task.id}
-              timeLeft={timeLeft}
-              taskTimeSpent={taskTimeSpent}
-              onSelectForTimer={handleSelectTaskForTimer}
-              isSelectedForTimer={selectedTimerTask?.id === task.id}
-            />
-          ))
-        )}
+        <SortableContext
+          items={filteredTasks.map(t => t.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {filteredTasks.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-[#52525b] border-2 border-dashed border-[#27272a] p-8 m-2">
+              <p className="text-xs font-mono uppercase">Sem operações</p>
+            </div>
+          ) : (
+            filteredTasks.map(task => (
+              <SortableTaskCard
+                key={task.id}
+                task={task}
+                isTimerActive={activeTimer === task.id}
+                timeLeft={timeLeft}
+                taskTimeSpent={taskTimeSpent}
+                onSelectForTimer={handleSelectTaskForTimer}
+                isSelectedForTimer={selectedTimerTask?.id === task.id}
+              />
+            ))
+          )}
+        </SortableContext>
       </div>
     );
   };
@@ -1211,14 +1470,14 @@ export const Matrix = () => {
     if (task) {
       const currentTimeSpent = task.timeSpent || 0;
       const newTimeSpent = currentTimeSpent + timeSpent;
-      
+
       const updatedTasks = tasks.map((t) =>
         t.id === taskId ? { ...t, timeSpent: newTimeSpent, isTimerActive: false } : t
       );
-      
+
       setTasks(updatedTasks);
       saveTasksToLocalStorage(updatedTasks);
-      
+
       // Sincronizar com banco de dados
       const userId = user?.uid || (user as any)?.id || 'anonymous-user';
       try {
@@ -1226,7 +1485,7 @@ export const Matrix = () => {
       } catch (err) {
         console.error('Erro ao sincronizar tempo:', err);
       }
-      
+
       toast({
         title: 'Sessão concluída!',
         description: `+${Math.floor(timeSpent / 60)} minutos registrados para "${task.title}"`,
@@ -1278,350 +1537,388 @@ export const Matrix = () => {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-    <div className="w-full mx-auto relative">
-      {/* Wrapper para aplicar o efeito de blur quando o modal estiver aberto */}
-      <div className={isDeleteDialogOpen ? 'blur-sm pointer-events-none transition-all duration-300' : ''}>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center md:text-left">
-              Matriz de Eisenhower
-            </h2>
-            <p className="text-muted-foreground text-sm md:text-base text-center md:text-left max-w-xl mb-2">
-              Organize suas tarefas baseado em importância e urgência para maximizar sua produtividade
-            </p>
-            
-            {/* Quick Tag Selector */}
-            <div className="md:block hidden text-gray-700 dark:text-gray-300 backdrop-blur-md bg-white/50 dark:bg-gray-800/30 hover:bg-white/60 dark:hover:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-4 shadow-lg transition-all duration-200 w-full max-w-3xl mx-auto mb-4">
-              <QuickTagSelector />
-            </div>
-      </div>
+      <div className="w-full mx-auto relative">
+        {/* Wrapper para aplicar o efeito de blur quando o modal estiver aberto */}
+        <div className={isDeleteDialogOpen ? 'blur-sm pointer-events-none transition-all duration-300' : ''}>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center md:text-left">
+                Matriz de Eisenhower
+              </h2>
+              <p className="text-muted-foreground text-sm md:text-base text-center md:text-left max-w-xl mb-2">
+                Organize suas tarefas baseado em importância e urgência para maximizar sua produtividade
+              </p>
 
-          <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2 md:gap-3 justify-center sm:justify-end">
-            <div className="md:hidden w-full mb-4">
-              <div className="text-gray-700 dark:text-gray-300 backdrop-blur-md bg-white/50 dark:bg-gray-800/30 hover:bg-white/60 dark:hover:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-4 shadow-lg transition-all duration-200">
+              {/* Quick Tag Selector */}
+              <div className="md:block hidden text-gray-700 dark:text-gray-300 backdrop-blur-md bg-white/50 dark:bg-gray-800/30 hover:bg-white/60 dark:hover:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-4 shadow-lg transition-all duration-200 w-full max-w-3xl mx-auto mb-4">
                 <QuickTagSelector />
               </div>
             </div>
-            
-            <div className="flex justify-center gap-2 w-full sm:w-auto">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => setIsAddModalOpen(true)}
-                      className="p-2.5 bg-primary text-white rounded-lg transition-all duration-300 hover:bg-primary/90 hover:shadow-md shadow-sm flex items-center gap-1.5 w-full sm:w-auto justify-center"
-                      title="Adicionar nova tarefa"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span className="text-sm font-medium">Nova Tarefa</span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <p>Nova Tarefa</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+
+            <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2 md:gap-3 justify-center sm:justify-end">
+              <div className="md:hidden w-full mb-4">
+                <div className="text-gray-700 dark:text-gray-300 backdrop-blur-md bg-white/50 dark:bg-gray-800/30 hover:bg-white/60 dark:hover:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-4 shadow-lg transition-all duration-200">
+                  <QuickTagSelector />
+                </div>
+              </div>
+
+              <div className="flex justify-center gap-2 w-full sm:w-auto">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="p-2.5 bg-primary text-white rounded-lg transition-all duration-300 hover:bg-primary/90 hover:shadow-md shadow-sm flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                        title="Adicionar nova tarefa"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span className="text-sm font-medium">Nova Tarefa</span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p>Nova Tarefa</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
-                  </div>
+          </div>
+
+          <Tabs defaultValue="matriz" className="w-full">
+            <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-8 border rounded-lg p-1 bg-muted/20 backdrop-blur-sm shadow-sm">
+              <TabsTrigger value="matriz" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
+                <div className="flex items-center gap-1.5">
+                  <LayoutGrid className="h-4 w-4" />
+                  <span className="hidden sm:inline">Matriz</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="concluidas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">Concluídas</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="todas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
+                <div className="flex items-center gap-1.5">
+                  <BarChart2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Todas</span>
+                </div>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="matriz" className="space-y-4">
+              {/* Mobile layout - Vertical stacking */}
+              <div className="grid grid-cols-1 gap-5 md:hidden">
+                <QuadrantContainer
+                  title="Urgente e Importante"
+                  description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
+                  urgentLabel="Urgente"
+                  importantLabel="Importante"
+                  colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
+                  quadrantIndex={0}
+                >
+                  {renderTasks(1)}
+                </QuadrantContainer>
+
+                <QuadrantContainer
+                  title="Importante, Não Urgente"
+                  description="Planeje: Preparação, prevenção, planejamento e relacionamentos"
+                  urgentLabel="Não urgente"
+                  importantLabel="Importante"
+                  colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
+                  quadrantIndex={1}
+                >
+                  {renderTasks(2)}
+                </QuadrantContainer>
+
+                <QuadrantContainer
+                  title="Urgente, Não Importante"
+                  description="Delegue: Interrupções, reuniões, e-mails, chamadas"
+                  urgentLabel="Urgente"
+                  importantLabel="Não importante"
+                  colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
+                  quadrantIndex={2}
+                >
+                  {renderTasks(3)}
+                </QuadrantContainer>
+
+                <QuadrantContainer
+                  title="Não Urgente, Não Importante"
+                  description="Elimine: Distrações, tarefas triviais, tempo perdido"
+                  urgentLabel="Não urgente"
+                  importantLabel="Não importante"
+                  colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
+                  quadrantIndex={3}
+                >
+                  {renderTasks(4)}
+                </QuadrantContainer>
+              </div>
+
+              {/* Desktop layout - 2x2 grid */}
+              <div className="hidden md:grid md:grid-cols-2 gap-6">
+                <QuadrantContainer
+                  title="Urgente e Importante"
+                  description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
+                  urgentLabel="Urgente"
+                  importantLabel="Importante"
+                  colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
+                  quadrantIndex={0}
+                >
+                  {renderTasks(1)}
+                </QuadrantContainer>
+
+                <QuadrantContainer
+                  title="Importante, Não Urgente"
+                  description="Planeje: Preparação, prevenção, planejamento e relacionamentos"
+                  urgentLabel="Não urgente"
+                  importantLabel="Importante"
+                  colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
+                  quadrantIndex={1}
+                >
+                  {renderTasks(2)}
+                </QuadrantContainer>
+
+                <QuadrantContainer
+                  title="Urgente, Não Importante"
+                  description="Delegue: Interrupções, reuniões, e-mails, chamadas"
+                  urgentLabel="Urgente"
+                  importantLabel="Não importante"
+                  colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
+                  quadrantIndex={2}
+                >
+                  {renderTasks(3)}
+                </QuadrantContainer>
+
+                <QuadrantContainer
+                  title="Não Urgente, Não Importante"
+                  description="Elimine: Distrações, tarefas triviais, tempo perdido"
+                  urgentLabel="Não urgente"
+                  importantLabel="Não importante"
+                  colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
+                  quadrantIndex={3}
+                >
+                  {renderTasks(4)}
+                </QuadrantContainer>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="concluidas">
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold drop-shadow-sm" style={{ color: 'var(--color-accent)' }}>Tarefas Concluídas</h2>
+                <div className="flex-1 p-3 min-h-[300px] overflow-y-auto custom-scrollbar bg-[#09090b]/50">
+                  <SortableContext
+                    items={tasks.filter(task => task.completed).map(t => t.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2 min-h-[100px]">
+                      {tasks
+                        .filter(task => task.completed)
+                        .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
+                        .map(task => (
+                          <DraggableTaskCard
+                            key={task.id}
+                            task={task}
+                            isTimerActive={activeTimer === task.id}
+                            timeLeft={timeLeft}
+                            taskTimeSpent={taskTimeSpent}
+                            onSelectForTimer={handleSelectTaskForTimer}
+                            isSelectedForTimer={selectedTimerTask?.id === task.id}
+                          />
+                        ))}
+                      {tasks.filter(task => task.completed).length === 0 && (
+                        <div className="h-full flex flex-col items-center justify-center text-[#52525b] border-2 border-dashed border-[#27272a] p-8 m-2">
+                          <p className="text-sm font-mono uppercase">Sem operações</p>
+                        </div>
+                      )}
+                    </div>
+                  </SortableContext>
                 </div>
 
-        <Tabs defaultValue="matriz" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-8 border rounded-lg p-1 bg-muted/20 backdrop-blur-sm shadow-sm">
-            <TabsTrigger value="matriz" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
-              <div className="flex items-center gap-1.5">
-                <LayoutGrid className="h-4 w-4" />
-                <span className="hidden sm:inline">Matriz</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger value="concluidas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
-              <div className="flex items-center gap-1.5">
-                <CheckCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Concluídas</span>
+                <div className="p-3 border-t border-[#27272a] bg-[#18181b]">
+                  <button
+                    onClick={() => {
+                      // Define default values based on quadrant
+                      let urgency = 5;
+                      let importance = 5;
+
+                      // This logic might need adjustment if this button is not quadrant-specific
+                      // For now, setting default values for a general "Add Task"
+                      // If it's meant to be for a specific quadrant, `quadrantIndex` would be needed.
+                      // Assuming default values for a general add task for now.
+
+                      setNewTask({
+                        ...newTask,
+                        urgency,
+                        importance
+                      });
+                      setIsAddModalOpen(true);
+                    }}
+                    className={`w-full py-2 btn-industrial btn-industrial-outline text-xs flex items-center justify-center gap-2`}
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="font-mono uppercase">ADICIONAR TAREFA</span>
+                  </button>
                 </div>
-            </TabsTrigger>
-            <TabsTrigger value="todas" className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md">
-              <div className="flex items-center gap-1.5">
-                <BarChart2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Todas</span>
               </div>
-            </TabsTrigger>
-          </TabsList>
+            </TabsContent>
 
-          <TabsContent value="matriz" className="space-y-4">
-            {/* Mobile layout - Vertical stacking */}
-            <div className="grid grid-cols-1 gap-5 md:hidden">
-              <QuadrantContainer
-                title="Urgente e Importante"
-                description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
-                urgentLabel="Urgente"
-                importantLabel="Importante"
-                colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
-                quadrantIndex={0}
-              >
-                {renderTasks(1)}
-              </QuadrantContainer>
-              
-              <QuadrantContainer
-                title="Importante, Não Urgente"
-                description="Planeje: Preparação, prevenção, planejamento e relacionamentos"
-                urgentLabel="Não urgente"
-                importantLabel="Importante"
-                colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
-                quadrantIndex={1}
-              >
-                {renderTasks(2)}
-              </QuadrantContainer>
-              
-              <QuadrantContainer
-                title="Urgente, Não Importante"
-                description="Delegue: Interrupções, reuniões, e-mails, chamadas"
-                urgentLabel="Urgente"
-                importantLabel="Não importante"
-                colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
-                quadrantIndex={2}
-              >
-                {renderTasks(3)}
-              </QuadrantContainer>
-              
-              <QuadrantContainer
-                title="Não Urgente, Não Importante"
-                description="Elimine: Distrações, tarefas triviais, tempo perdido"
-                urgentLabel="Não urgente"
-                importantLabel="Não importante"
-                colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
-                quadrantIndex={3}
-              >
-                {renderTasks(4)}
-              </QuadrantContainer>
-            </div>
-            
-            {/* Desktop layout - 2x2 grid */}
-            <div className="hidden md:grid md:grid-cols-2 gap-6">
-              <QuadrantContainer
-                title="Urgente e Importante"
-                description="Faça primeiro: Crises, problemas urgentes, tarefas com prazo"
-                urgentLabel="Urgente"
-                importantLabel="Importante"
-                colorClass="bg-gradient-to-br from-red-50 to-orange-50 border-red-200/30"
-                quadrantIndex={0}
-              >
-                {renderTasks(1)}
-              </QuadrantContainer>
-              
-              <QuadrantContainer
-                title="Importante, Não Urgente"
-                description="Planeje: Preparação, prevenção, planejamento e relacionamentos"
-                urgentLabel="Não urgente"
-                importantLabel="Importante"
-                colorClass="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200/30"
-                quadrantIndex={1}
-              >
-                {renderTasks(2)}
-              </QuadrantContainer>
-              
-              <QuadrantContainer
-                title="Urgente, Não Importante"
-                description="Delegue: Interrupções, reuniões, e-mails, chamadas"
-                urgentLabel="Urgente"
-                importantLabel="Não importante"
-                colorClass="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200/30"
-                quadrantIndex={2}
-              >
-                {renderTasks(3)}
-              </QuadrantContainer>
-              
-              <QuadrantContainer
-                title="Não Urgente, Não Importante"
-                description="Elimine: Distrações, tarefas triviais, tempo perdido"
-                urgentLabel="Não urgente"
-                importantLabel="Não importante"
-                colorClass="bg-gradient-to-br from-green-50 to-teal-50 border-green-200/30"
-                quadrantIndex={3}
-              >
-                {renderTasks(4)}
-              </QuadrantContainer>
-          </div>
-        </TabsContent>
+            <TabsContent value="todas">
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold drop-shadow-sm" style={{ color: 'var(--color-accent)' }}>Todas as Tarefas</h2>
+                <div className="grid gap-3">
+                  {tasks
+                    .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
+                    .map(task => (
+                      <DraggableTaskCard
+                        key={task.id}
+                        task={task}
+                        isTimerActive={activeTimer === task.id}
+                        timeLeft={timeLeft}
+                        taskTimeSpent={taskTimeSpent}
+                        onSelectForTimer={handleSelectTaskForTimer}
+                        isSelectedForTimer={selectedTimerTask?.id === task.id}
+                      />
+                    ))}
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
 
-          <TabsContent value="concluidas">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold drop-shadow-sm" style={{ color: 'var(--color-accent)' }}>Tarefas Concluídas</h2>
-            <div className="grid gap-3">
-              {tasks
-                .filter(task => task.completed)
-                .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
-                .map(task => (
-                  <DraggableTaskCard 
-                    key={task.id} 
-                    task={task} 
-                    isTimerActive={activeTimer === task.id}
-                    timeLeft={timeLeft}
-                    taskTimeSpent={taskTimeSpent}
-                    onSelectForTimer={handleSelectTaskForTimer}
-                    isSelectedForTimer={selectedTimerTask?.id === task.id}
-                  />
-                ))}
-            </div>
-          </div>
-        </TabsContent>
+        {isAddModalOpen && (
+          <AddTaskModal
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onAddTask={handleAddTask}
+            newTask={newTask}
+            setNewTask={setNewTask}
+            isDarkMode={isDarkMode}
+          />
+        )}
 
-          <TabsContent value="todas">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold drop-shadow-sm" style={{ color: 'var(--color-accent)' }}>Todas as Tarefas</h2>
-            <div className="grid gap-3">
-              {tasks
-                .sort((a, b) => (b.createdAt.getTime() || 0) - (a.createdAt.getTime() || 0))
-                .map(task => (
-                  <DraggableTaskCard 
-                    key={task.id} 
-                    task={task} 
-                    isTimerActive={activeTimer === task.id}
-                    timeLeft={timeLeft}
-                    taskTimeSpent={taskTimeSpent}
-                    onSelectForTimer={handleSelectTaskForTimer}
-                    isSelectedForTimer={selectedTimerTask?.id === task.id}
-                  />
-                ))}
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-      </div>
+        {isEditModalOpen && selectedTask && (
+          <EditTaskModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onSave={handleSaveTask}
+            task={{
+              id: selectedTask.id,
+              title: selectedTask.title,
+              description: selectedTask.description || '',
+              urgency: selectedTask.urgency,
+              importance: selectedTask.importance,
+              completed: selectedTask.completed,
+              tags: selectedTask.tags,
+              start_date: selectedTask.start_date
+            }}
+            isDarkMode={isDarkMode}
+          />
+        )}
 
-      {isAddModalOpen && (
-      <AddTaskModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-          onAddTask={handleAddTask}
-        newTask={newTask}
-        setNewTask={setNewTask}
-          isDarkMode={isDarkMode}
-      />
-      )}
+        {/* Botão de ação flutuante para dispositivos móveis */}
 
-      {isEditModalOpen && selectedTask && (
-        <EditTaskModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          onSave={handleSaveTask}
-          task={{
-            id: selectedTask.id,
-            title: selectedTask.title,
-            description: selectedTask.description || '',
-            urgency: selectedTask.urgency,
-            importance: selectedTask.importance,
-            completed: selectedTask.completed,
-            tags: selectedTask.tags,
-            start_date: selectedTask.start_date
-          }}
-          isDarkMode={isDarkMode}
-        />
-      )}
 
-      {/* Botão de ação flutuante para dispositivos móveis */}
-      
-      
-      {/* Modal de confirmação de exclusão personalizado */}
-      {isDeleteDialogOpen && taskToDelete && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center" 
-          onClick={(e) => {
-            // Fechar o modal quando clicar no backdrop (fora do modal)
-            if (e.target === e.currentTarget) {
-              handleCancelDelete();
-            }
-          }}
-        >
-          <div 
-            className="bg-background border border-gray-700 rounded-lg shadow-lg p-6 max-w-md mx-auto relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
+        {/* Modal de confirmação de exclusão personalizado */}
+        {isDeleteDialogOpen && taskToDelete && (
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+            onClick={(e) => {
+              // Fechar o modal quando clicar no backdrop (fora do modal)
+              if (e.target === e.currentTarget) {
                 handleCancelDelete();
-              }}
-              className="absolute right-4 top-4 text-gray-400 hover:text-gray-100 rounded-full p-1 hover:bg-gray-800/50 transition-colors"
-              title="Fechar"
-              aria-label="Fechar diálogo"
+              }
+            }}
+          >
+            <div
+              className="bg-background border border-gray-700 rounded-lg shadow-lg p-6 max-w-md mx-auto relative"
+              onClick={(e) => e.stopPropagation()}
             >
-              <X size={18} />
-            </button>
-            
-            <div className="mb-4">
-              <h2 className="flex items-center gap-2 text-red-400 text-lg font-semibold">
-                <AlertTriangle size={18} />
-                Confirmar exclusão
-              </h2>
-              
-              {/* Informações da tarefa que será excluída */}
-              <div className="mt-4 mb-3 p-3 border border-gray-700/60 rounded-md bg-gray-800/20">
-                <p className="font-medium mb-1 text-base">
-                  {tasks.find(t => t.id === taskToDelete)?.title || "Tarefa"}
-                </p>
-                {tasks.find(t => t.id === taskToDelete)?.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {tasks.find(t => t.id === taskToDelete)?.description}
-                  </p>
-                )}
-              </div>
-              
-              <p className="text-sm text-muted-foreground mt-2">
-                Tem certeza que deseja excluir esta tarefa? Esta ação não poderá ser desfeita.
-              </p>
-            </div>
-            
-            <div className="flex sm:justify-end gap-2 mt-6">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleCancelDelete();
                 }}
-                className="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-white border-0 focus:ring-1 focus:ring-gray-400 text-sm font-medium"
+                className="absolute right-4 top-4 text-gray-400 hover:text-gray-100 rounded-full p-1 hover:bg-gray-800/50 transition-colors"
+                title="Fechar"
+                aria-label="Fechar diálogo"
               >
-                Cancelar
+                <X size={18} />
               </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleConfirmDelete();
-                }}
-                className="px-4 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white border-0 text-sm font-medium"
-              >
-                Excluir
-              </button>
+
+              <div className="mb-4">
+                <h2 className="flex items-center gap-2 text-red-400 text-lg font-semibold">
+                  <AlertTriangle size={18} />
+                  Confirmar exclusão
+                </h2>
+
+                {/* Informações da tarefa que será excluída */}
+                <div className="mt-4 mb-3 p-3 border border-gray-700/60 rounded-md bg-gray-800/20">
+                  <p className="font-medium mb-1 text-base">
+                    {tasks.find(t => t.id === taskToDelete)?.title || "Tarefa"}
+                  </p>
+                  {tasks.find(t => t.id === taskToDelete)?.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {tasks.find(t => t.id === taskToDelete)?.description}
+                    </p>
+                  )}
+                </div>
+
+                <p className="text-sm text-muted-foreground mt-2">
+                  Tem certeza que deseja excluir esta tarefa? Esta ação não poderá ser desfeita.
+                </p>
+              </div>
+
+              <div className="flex sm:justify-end gap-2 mt-6">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCancelDelete();
+                  }}
+                  className="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-white border-0 focus:ring-1 focus:ring-gray-400 text-sm font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleConfirmDelete();
+                  }}
+                  className="px-4 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white border-0 text-sm font-medium"
+                >
+                  Excluir
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      
-      {/* Overlay de arrasto - mostra a tarefa sendo arrastada */}
-      <DragOverlay dropAnimation={{
-        duration: 200,
-        easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-      }}>
-        {activeTask ? (
-          <div className="matrix-card bg-base-200 rounded-md shadow-2xl border-2 border-primary/50 p-3 opacity-90">
-            <div className="flex items-center gap-2">
-              <GripVertical className="h-4 w-4 text-primary" />
-              <h4 className="font-bold text-sm truncate">{activeTask.title}</h4>
+        )}
+
+        {/* Overlay de arrasto - mostra a tarefa sendo arrastada */}
+        <DragOverlay dropAnimation={{
+          duration: 200,
+          easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+        }}>
+          {activeTask ? (
+            <div className="matrix-card bg-base-200 rounded-md shadow-2xl border-2 border-primary/50 p-3 opacity-90">
+              <div className="flex items-center gap-2">
+                <GripVertical className="h-4 w-4 text-primary" />
+                <h4 className="font-bold text-sm truncate">{activeTask.title}</h4>
+              </div>
+              {activeTask.description && (
+                <p className="text-xs mt-1 text-base-content/70 truncate">{activeTask.description}</p>
+              )}
             </div>
-            {activeTask.description && (
-              <p className="text-xs mt-1 text-base-content/70 truncate">{activeTask.description}</p>
-            )}
-          </div>
-        ) : null}
-      </DragOverlay>
-      
-      {/* Timer Widget Flutuante */}
-      <TimerWidget
-        activeTask={selectedTimerTask}
-        onTimerComplete={handleTimerWidgetComplete}
-        onTimerStart={handleTimerWidgetStart}
-        onTimerStop={handleTimerWidgetStop}
-        tasks={tasks}
-      />
-    </div>
+          ) : null}
+        </DragOverlay>
+
+        {/* Timer Widget Flutuante */}
+        <TimerWidget
+          activeTask={selectedTimerTask}
+          onTimerComplete={handleTimerWidgetComplete}
+          onTimerStart={handleTimerWidgetStart}
+          onTimerStop={handleTimerWidgetStop}
+          tasks={tasks}
+        />
+      </div>
     </DndContext>
   );
 };

@@ -48,12 +48,12 @@ const BREAK_DURATIONS = {
   long: 15 * 60,
 };
 
-export function TimerWidget({ 
-  activeTask, 
-  onTimerComplete, 
-  onTimerStart, 
+export function TimerWidget({
+  activeTask,
+  onTimerComplete,
+  onTimerStart,
   onTimerStop,
-  tasks 
+  tasks
 }: TimerWidgetProps) {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
@@ -84,7 +84,7 @@ export function TimerWidget({
       lastDate: new Date().toDateString(),
     };
   });
-  
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -106,13 +106,13 @@ export function TimerWidget({
   const playSound = useCallback(() => {
     if (soundEnabled && audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
+      audioRef.current.play().catch(() => { });
     }
   }, [soundEnabled]);
 
   const startTimer = useCallback(() => {
     if (!activeTask) return;
-    
+
     setIsRunning(true);
     setIsPaused(false);
     setTimeLeft(selectedDuration);
@@ -143,7 +143,7 @@ export function TimerWidget({
 
   const resumeTimer = useCallback(() => {
     if (!isRunning || !isPaused) return;
-    
+
     setIsPaused(false);
     intervalRef.current = setInterval(() => {
       setTimeLeft((prev) => {
@@ -164,10 +164,10 @@ export function TimerWidget({
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    
+
     if (activeTask && elapsedTime > 0 && !isBreak) {
       onTimerComplete(activeTask.id, elapsedTime);
-      
+
       // Update stats
       setStats((prev) => ({
         ...prev,
@@ -178,7 +178,7 @@ export function TimerWidget({
         },
       }));
     }
-    
+
     setIsRunning(false);
     setIsPaused(false);
     setTimeLeft(selectedDuration);
@@ -191,14 +191,14 @@ export function TimerWidget({
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-    
+
     const breakDuration = BREAK_DURATIONS[type];
     setBreakType(type);
     setIsBreak(true);
     setTimeLeft(breakDuration);
     setTotalTime(breakDuration);
     setIsPaused(false);
-    
+
     // Update session count when starting break (means focus session completed)
     setStats((prev) => ({
       ...prev,
@@ -232,7 +232,7 @@ export function TimerWidget({
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      
+
       if (activeTask) {
         onTimerComplete(activeTask.id, elapsedTime);
         setStats((prev) => ({
@@ -244,7 +244,7 @@ export function TimerWidget({
           },
         }));
       }
-      
+
       setIsRunning(false);
     }
   }, [timeLeft, isRunning, isPaused, isBreak, activeTask, elapsedTime, onTimerComplete]);
@@ -273,7 +273,7 @@ export function TimerWidget({
 
   if (isMinimized) {
     return (
-      <div 
+      <div
         className="fixed bottom-4 right-4 z-50"
         data-testid="timer-widget-minimized"
       >
@@ -281,16 +281,16 @@ export function TimerWidget({
           size="icon"
           variant="default"
           className={cn(
-            "h-14 w-14 rounded-full shadow-lg",
-            isRunning && !isPaused && "animate-pulse",
-            isBreak ? "bg-green-600 hover:bg-green-700" : "bg-primary"
+            "h-14 w-14 rounded-none shadow-2xl border border-[#ccff00]/50",
+            isRunning && !isPaused && "animate-pulse shadow-[0_0_15px_rgba(204,255,0,0.3)]",
+            "bg-[#09090b] text-[#ccff00] hover:bg-[#18181b]"
           )}
           onClick={() => setIsMinimized(false)}
           data-testid="button-expand-timer"
         >
           <div className="flex flex-col items-center">
             <Clock className="h-5 w-5" />
-            <span className="text-[10px] font-mono">{formatTime(timeLeft)}</span>
+            <span className="text-[10px] font-mono font-bold mt-1">{formatTime(timeLeft)}</span>
           </div>
         </Button>
       </div>
@@ -298,23 +298,23 @@ export function TimerWidget({
   }
 
   return (
-    <Card 
-      className="fixed bottom-4 right-4 z-50 w-80 shadow-2xl border-2"
+    <Card
+      className="fixed bottom-4 right-4 z-50 w-80 shadow-2xl border bg-[#09090b] border-[#27272a] rounded-none"
       data-testid="timer-widget"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b">
+      <div className="flex items-center justify-between p-3 border-b border-[#27272a] bg-[#18181b]">
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-primary" />
-          <span className="font-semibold text-sm">
-            {isBreak ? `Pausa ${breakType === 'short' ? 'Curta' : 'Longa'}` : 'Pomodoro Timer'}
+          <Clock className="h-4 w-4 text-[#ccff00]" />
+          <span className="font-display font-bold text-sm uppercase tracking-wider text-[#f4f4f5]">
+            {isBreak ? `Pausa ${breakType === 'short' ? 'Curta' : 'Longa'}` : 'Pomodoro Protocol'}
           </span>
         </div>
         <div className="flex items-center gap-1">
           <Button
             size="icon"
             variant="ghost"
-            className="h-7 w-7"
+            className="h-7 w-7 rounded-none text-[#a1a1aa] hover:text-white hover:bg-[#27272a]"
             onClick={() => setSoundEnabled(!soundEnabled)}
             data-testid="button-toggle-sound"
           >
@@ -323,7 +323,7 @@ export function TimerWidget({
           <Button
             size="icon"
             variant="ghost"
-            className="h-7 w-7"
+            className="h-7 w-7 rounded-none text-[#a1a1aa] hover:text-white hover:bg-[#27272a]"
             onClick={() => setIsMinimized(true)}
             data-testid="button-minimize-timer"
           >
@@ -333,44 +333,42 @@ export function TimerWidget({
       </div>
 
       {/* Timer Display */}
-      <div className="p-4">
+      <div className="p-6 bg-[#09090b]">
         <div className="flex flex-col items-center">
           {/* Circular Progress */}
-          <div className="relative w-32 h-32 mb-3">
-            <svg className="w-full h-full transform -rotate-90">
+          <div className="relative w-40 h-40 mb-6">
+            <div className="absolute inset-0 rounded-full border border-[#27272a]/50"></div>
+            <svg className="w-full h-full transform -rotate-90 drop-shadow-[0_0_8px_rgba(204,255,0,0.1)]">
               {/* Background circle */}
               <circle
-                cx="64"
-                cy="64"
-                r="45"
+                cx="80"
+                cy="80"
+                r="64"
                 fill="none"
-                stroke="currentColor"
-                strokeWidth="8"
-                className="text-muted/20"
+                stroke="#18181b"
+                strokeWidth="4"
+                className="opacity-50"
               />
               {/* Progress circle */}
               <circle
-                cx="64"
-                cy="64"
-                r="45"
+                cx="80"
+                cy="80"
+                r="64"
                 fill="none"
-                stroke="currentColor"
-                strokeWidth="8"
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                className={cn(
-                  "transition-all duration-1000",
-                  isBreak ? "text-green-500" : "text-primary"
-                )}
+                stroke={isBreak ? "#22c55e" : "#ccff00"}
+                strokeWidth="4"
+                strokeLinecap="square"
+                strokeDasharray={2 * Math.PI * 64}
+                strokeDashoffset={2 * Math.PI * 64 - (progress / 100) * (2 * Math.PI * 64)}
+                className="transition-all duration-1000"
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-mono font-bold" data-testid="text-timer-display">
+              <span className={`text-4xl font-mono font-bold tracking-tight ${isBreak ? "text-[#22c55e]" : "text-[#ccff00]"}`} data-testid="text-timer-display">
                 {formatTime(timeLeft)}
               </span>
               {isRunning && !isBreak && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs font-mono text-[#a1a1aa] mt-1 bg-[#27272a] px-2 py-0.5 rounded-none">
                   +{formatTime(elapsedTime)}
                 </span>
               )}
@@ -379,28 +377,36 @@ export function TimerWidget({
 
           {/* Active Task */}
           {activeTask && (
-            <div className="text-center mb-3">
-              <p className="text-sm text-muted-foreground">Trabalhando em:</p>
-              <p className="font-medium text-sm truncate max-w-[250px]" data-testid="text-active-task">
+            <div className="text-center mb-6 w-full px-2">
+              <div className="inline-flex items-center gap-2 mb-1 px-2 py-0.5 border border-[#27272a] bg-[#18181b]">
+                <div className="w-1.5 h-1.5 bg-[#ccff00] animate-pulse"></div>
+                <span className="text-[10px] font-mono uppercase text-[#a1a1aa] tracking-widest">Target Ativo</span>
+              </div>
+              <p className="font-display font-medium text-sm text-[#f4f4f5] truncate mt-1" data-testid="text-active-task">
                 {activeTask.title}
               </p>
             </div>
           )}
 
           {/* Controls */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-3 mb-2 w-full justify-center">
             {!isRunning ? (
               <>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" data-testid="button-duration-selector">
-                      <Settings className="h-4 w-4 mr-1" />
-                      {selectedDuration / 60} min
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      data-testid="button-duration-selector"
+                      className="rounded-none border-[#27272a] bg-transparent text-[#a1a1aa] hover:bg-[#27272a] hover:text-white font-mono h-10 min-w-[80px]"
+                    >
+                      <Settings className="h-3 w-3 mr-2" />
+                      {selectedDuration / 60}m
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel>Duração do Foco</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+                  <DropdownMenuContent className="rounded-none border-[#27272a] bg-[#09090b] text-[#d4d4d8]">
+                    <DropdownMenuLabel className="font-mono uppercase text-xs text-[#a1a1aa]">Duração do Foco</DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-[#27272a]" />
                     {TIMER_DURATIONS.map((duration) => (
                       <DropdownMenuItem
                         key={duration.value}
@@ -410,9 +416,10 @@ export function TimerWidget({
                           setTotalTime(duration.value);
                         }}
                         data-testid={`menu-duration-${duration.value / 60}`}
+                        className="font-mono text-xs focus:bg-[#27272a] focus:text-[#ccff00] cursor-pointer rounded-none"
                       >
                         {duration.label}
-                        {selectedDuration === duration.value && ' ✓'}
+                        {selectedDuration === duration.value && <span className="ml-auto text-[#ccff00]">◄</span>}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
@@ -421,26 +428,34 @@ export function TimerWidget({
                   onClick={startTimer}
                   disabled={!activeTask}
                   data-testid="button-start-timer"
+                  className="rounded-none bg-[#ccff00] text-black hover:bg-[#bbe600] font-mono font-bold uppercase tracking-wider h-10 px-6 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Play className="h-4 w-4 mr-1" />
+                  <Play className="h-3 w-3 mr-2 fill-current" />
                   Iniciar
                 </Button>
               </>
             ) : (
               <>
                 {isPaused ? (
-                  <Button onClick={resumeTimer} variant="default" data-testid="button-resume-timer">
-                    <Play className="h-4 w-4 mr-1" />
-                    Retomar
+                  <Button onClick={resumeTimer} className="rounded-none bg-[#ccff00] text-black hover:bg-[#bbe600] font-mono font-bold uppercase h-10 flex-1" data-testid="button-resume-timer">
+                    <Play className="h-3 w-3 mr-2 fill-current" />
+                    RETOMAR
                   </Button>
                 ) : (
-                  <Button onClick={pauseTimer} variant="outline" data-testid="button-pause-timer">
-                    <Pause className="h-4 w-4 mr-1" />
-                    Pausar
+                  <Button onClick={pauseTimer} variant="outline" className="rounded-none border-[#ccff00] text-[#ccff00] bg-transparent hover:bg-[#ccff00]/10 font-mono uppercase h-10 flex-1" data-testid="button-pause-timer">
+                    <Pause className="h-3 w-3 mr-2 fill-current" />
+                    PAUSAR
                   </Button>
                 )}
-                <Button onClick={stopTimer} variant="destructive" size="icon" data-testid="button-stop-timer">
-                  <Square className="h-4 w-4" />
+                <Button
+                  onClick={stopTimer}
+                  variant="destructive"
+                  className="rounded-none h-10 px-3 bg-[#ef4444] hover:bg-[#dc2626] font-mono font-bold uppercase tracking-wider"
+                  data-testid="button-stop-timer"
+                  title="Finalizar e Salvar Sessão"
+                >
+                  <Square className="h-3 w-3 mr-2 fill-current" />
+                  FINALIZAR
                 </Button>
               </>
             )}
@@ -448,26 +463,26 @@ export function TimerWidget({
 
           {/* Break Buttons */}
           {!isRunning && !isBreak && (
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 gap-3 w-full mt-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => startBreak('short')}
-                className="text-green-600"
+                className="rounded-none border-[#27272a] text-[#22c55e] hover:bg-[#22c55e]/10 hover:border-[#22c55e] font-mono text-xs h-8"
                 data-testid="button-short-break"
               >
-                <Coffee className="h-4 w-4 mr-1" />
-                Pausa 5min
+                <Coffee className="h-3 w-3 mr-2" />
+                5m Pausa
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => startBreak('long')}
-                className="text-green-600"
+                className="rounded-none border-[#27272a] text-[#22c55e] hover:bg-[#22c55e]/10 hover:border-[#22c55e] font-mono text-xs h-8"
                 data-testid="button-long-break"
               >
-                <Coffee className="h-4 w-4 mr-1" />
-                Pausa 15min
+                <Coffee className="h-3 w-3 mr-2" />
+                15m Pausa
               </Button>
             </div>
           )}
@@ -475,33 +490,37 @@ export function TimerWidget({
       </div>
 
       {/* Stats Section */}
-      <div className="border-t p-3 bg-muted/30">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-muted-foreground">Estatísticas</span>
-          <Badge variant="secondary" className="text-xs" data-testid="badge-sessions-today">
-            {stats.sessionsToday} sessões hoje
+      <div className="border-t border-[#27272a] p-4 bg-[#18181b]">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] font-mono uppercase text-[#a1a1aa] tracking-widest">Estatísticas do Dia</span>
+          <Badge variant="outline" className="text-[10px] font-mono rounded-none border-[#27272a] text-[#ccff00] bg-[#09090b]" data-testid="badge-sessions-today">
+            {stats.sessionsToday} SESSÕES
           </Badge>
         </div>
-        
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="flex items-center justify-between p-2 rounded bg-background">
-            <span className="text-muted-foreground">Total Foco:</span>
-            <span className="font-medium" data-testid="text-total-focus">{formatTimeHours(stats.totalFocusTime)}</span>
+
+        <div className="grid grid-cols-2 gap-px bg-[#27272a] mb-3 border border-[#27272a]">
+          <div className="flex flex-col p-2 bg-[#09090b]">
+            <span className="text-[10px] text-[#52525b] uppercase font-mono mb-1">Total Foco</span>
+            <span className="font-mono text-sm text-[#f4f4f5]" data-testid="text-total-focus">{formatTimeHours(stats.totalFocusTime)}</span>
           </div>
-          <div className="flex items-center justify-between p-2 rounded bg-background">
-            <span className="text-muted-foreground">Sessões:</span>
-            <span className="font-medium" data-testid="text-total-sessions">{stats.totalSessions}</span>
+          <div className="flex flex-col p-2 bg-[#09090b]">
+            <span className="text-[10px] text-[#52525b] uppercase font-mono mb-1">Sessões</span>
+            <span className="font-mono text-sm text-[#f4f4f5]" data-testid="text-total-sessions">{stats.totalSessions}</span>
           </div>
         </div>
 
         {/* Time per quadrant */}
-        <div className="mt-2 space-y-1">
-          <span className="text-xs font-medium text-muted-foreground">Tempo por Quadrante:</span>
-          <div className="grid grid-cols-2 gap-1">
+        <div>
+          <span className="text-[10px] font-mono uppercase text-[#a1a1aa] tracking-widest mb-2 block">Distribuição por Quadrante</span>
+          <div className="grid grid-cols-2 gap-2">
             {[0, 1, 2, 3].map((q) => (
-              <div key={q} className="flex items-center justify-between text-xs p-1 rounded bg-background">
-                <span className={quadrantColors[q]}>{quadrantNames[q]}:</span>
-                <span className="font-mono" data-testid={`text-quadrant-${q}-time`}>
+              <div key={q} className="flex items-center justify-between text-[10px] p-1.5 border border-[#27272a] bg-[#09090b]">
+                <span className={`font-mono uppercase ${q === 0 ? 'text-[#ef4444]' :
+                  q === 1 ? 'text-[#3b82f6]' :
+                    q === 2 ? 'text-[#eab308]' :
+                      'text-[#71717a]'
+                  }`}>{quadrantNames[q]}</span>
+                <span className="font-mono text-[#d4d4d8]" data-testid={`text-quadrant-${q}-time`}>
                   {formatTimeHours(stats.timePerQuadrant[q] || 0)}
                 </span>
               </div>

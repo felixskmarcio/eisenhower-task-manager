@@ -1,11 +1,10 @@
 import React from 'react';
-import { Star, CheckCircle, Share, Settings, Home, BarChart2, Tag, CheckSquare, LogOut, InfoIcon, PlayCircle, Shield } from "lucide-react";
+import { Settings, Home, BarChart2, Tag, LogOut, InfoIcon, PlayCircle, Shield, Terminal } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { AnimatedNavigationTabs } from "@/components/ui/animated-navigation-tabs";
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import NavigationLink from './NavigationLink';
-import AppLogo from '@/components/ui/app-logo';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -48,7 +47,7 @@ const Layout = ({
     icon: Shield
   }];
 
-  // Items públicos que não requerem autenticação
+  // Items públicos
   const publicItems = [{
     id: 101,
     tile: "Início",
@@ -67,66 +66,73 @@ const Layout = ({
   }];
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="w-full border-b shadow-sm bg-background/95 backdrop-blur-sm sticky top-0 z-20">
+    <div className="min-h-screen flex flex-col bg-[#09090b] text-[#f4f4f5] font-sans selection:bg-[#ccff00] selection:text-black">
+      {/* Industrial Grid Background */}
+      <div className="fixed inset-0 z-0 industrial-grid opacity-20 pointer-events-none" />
+
+      <header className="w-full border-b border-[#27272a] bg-[#09090b]/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between py-2 sm:py-3 px-3 sm:px-4">
-            <NavigationLink to={user ? "/dashboard" : "/"} className="group flex items-center gap-1.5 sm:gap-2" showLoadingScreen={true}>
-              <AppLogo size="sm" animated={true} className="hidden sm:block" />
-              
-              <div className="flex sm:flex-col gap-1 sm:gap-0 items-baseline sm:items-start">
-                <span className="text-base sm:text-xl font-bold text-primary tracking-tight group-hover:text-primary/90 transition-colors duration-300">Eisenhower</span>
-                <div className="h-1 w-1 rounded-full bg-primary/70 mx-0.5 group-hover:bg-primary transition-colors duration-300 hidden sm:block" />
-                <span className="text-xs sm:text-sm font-medium text-muted-foreground tracking-wide group-hover:text-primary/70 transition-colors duration-300">Task Manager</span>
+          <div className="flex items-center justify-between h-16 px-4">
+            <NavigationLink to={user ? "/dashboard" : "/"} className="flex items-center gap-2 group" showLoadingScreen={true}>
+              <div className="w-8 h-8 bg-[#ccff00] flex items-center justify-center">
+                <Terminal className="w-5 h-5 text-black" />
               </div>
+              <span className="font-bold tracking-tight text-white text-lg uppercase font-display">EISENHOWER<span className="text-[#ccff00]">.SYS</span></span>
             </NavigationLink>
-            
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-4">
               {user ? (
                 <>
-                  <AnimatedNavigationTabs items={navItems} />
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={signOut} 
-                    className="ml-2 flex items-center gap-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span className="hidden sm:inline">Sair</span>
-                  </Button>
+                  <div className="hidden md:block">
+                    <AnimatedNavigationTabs items={navItems} />
+                  </div>
+
+                  <div className="flex items-center gap-3 pl-2 border-l border-[#27272a] ml-2">
+                    <div className="bg-[#18181b] border border-[#27272a] px-3 py-1 flex items-center gap-2 hidden sm:flex">
+                      <div className="w-1.5 h-1.5 bg-[#ccff00] rounded-sm animate-pulse" />
+                      <span className="font-mono text-[10px] text-[#ccff00]">ONLINE</span>
+                    </div>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={signOut}
+                      className="rounded-none h-8 font-mono text-xs hover:bg-[#27272a] hover:text-white text-[#ccff00] border border-transparent hover:border-[#27272a]"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      SAIR_
+                    </Button>
+                  </div>
                 </>
               ) : (
                 <>
-                  <AnimatedNavigationTabs items={publicItems} />
-                  <Button asChild variant="default" size="sm" className="ml-2">
-                    <NavigationLink to="/login" showLoadingScreen={true}>Entrar</NavigationLink>
-                  </Button>
+                  <div className="hidden md:block">
+                    <AnimatedNavigationTabs items={publicItems} />
+                  </div>
+                  <NavigationLink to="/login" showLoadingScreen={true}>
+                    <Button className="rounded-none h-8 bg-[#ccff00] hover:bg-[#b3e600] text-black font-mono text-xs font-bold px-4">
+                      ACESSAR_SISTEMA
+                    </Button>
+                  </NavigationLink>
                 </>
               )}
             </div>
           </div>
         </div>
       </header>
-      
-      <main className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-8 mb-16">
+
+      <main className="flex-1 container mx-auto px-4 py-8 mb-16 relative z-10">
         {children}
       </main>
-      
-      <footer className="w-full py-3 sm:py-4 text-center text-xs text-muted-foreground border-t mt-auto bg-background/90 backdrop-blur-sm hidden sm:block">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <AppLogo size="sm" animated={true} className="scale-75" />
-              <span className="font-medium text-primary/70">Eisenhower Task Manager</span>
-              <span className="text-primary/40">•</span>
-              <span>Versão 1.3.0</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <NavigationLink to="/introduction" className="text-muted-foreground hover:text-primary transition-colors" showLoadingScreen={true}>Sobre</NavigationLink>
-              <NavigationLink to="/demo" className="text-muted-foreground hover:text-primary transition-colors" showLoadingScreen={true}>Demonstração</NavigationLink>
-              <p>© 2025 Todos os direitos reservados</p>
-            </div>
+
+      <footer className="w-full py-6 border-t border-[#27272a] bg-[#09090b] relative z-10">
+        <div className="container mx-auto px-4 text-center">
+          <div className="flex justify-center items-center gap-2 mb-2 opacity-50">
+            <span className="font-mono text-xs text-[#a1a1aa]">SYSTEM STATUS: NOMINAL</span>
           </div>
+          <p className="font-mono text-[10px] text-[#52525b] uppercase">
+            © 2025 Eisenhower Task Manager. Todos os direitos reservados. Protocolo Seguro v2.4
+          </p>
         </div>
       </footer>
     </div>
