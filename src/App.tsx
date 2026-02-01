@@ -19,8 +19,8 @@ import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
 import Introduction from "./pages/Introduction";
-import Demo from "./pages/Demo";
 import Landing from "./pages/Landing";
+
 import './styles/index.css';
 import './styles/settings.css';
 import './styles/loading.css';
@@ -43,7 +43,7 @@ const queryClient = new QueryClient({
 // Componente para renderizar a tela de carregamento com o conteúdo da aplicação
 const AppContent = () => {
   const { isLoading } = useLoading();
-  
+
   return (
     <>
       {isLoading && <LoadingScreen />}
@@ -64,13 +64,7 @@ const AppContent = () => {
                   </Layout>
                 </PublicRoute>
               } />
-              <Route path="/demo" element={
-                <PublicRoute allowAuthenticated={true}>
-                  <Layout>
-                    <Demo />
-                  </Layout>
-                </PublicRoute>
-              } />
+
               {/* Nova Landing Page como rota raiz pública */}
               <Route path="/" element={
                 <PublicRoute allowAuthenticated={false}>
@@ -124,7 +118,7 @@ const AppContent = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-    
+
             <Toaster />
             <GlobalErrorHandler />
           </TooltipProvider>

@@ -24,7 +24,7 @@ export const IndustrialTabs: React.FC<IndustrialTabsProps> = ({ activeTab, onCha
                     />
                 )}
                 <span className={`relative z-10 font-bold ${activeTab === 'login' ? 'text-black' : 'text-[#71717a] hover:text-[#f4f4f5]'}`}>
-                    01 // LOGIN
+                    01 // ENTRAR
                 </span>
             </button>
 
@@ -41,7 +41,7 @@ export const IndustrialTabs: React.FC<IndustrialTabsProps> = ({ activeTab, onCha
                     />
                 )}
                 <span className={`relative z-10 font-bold ${activeTab === 'signup' ? 'text-black' : 'text-[#71717a] hover:text-[#f4f4f5]'}`}>
-                    02 // REGISTER
+                    02 // REGISTRAR
                 </span>
             </button>
         </div>

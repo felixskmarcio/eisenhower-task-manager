@@ -3,7 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ArrowRight, Loader2, AlertTriangle, Terminal } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, AlertTriangle, Terminal } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form';
@@ -18,28 +19,27 @@ import {
   DialogTitle,
 } from "../components/ui/dialog";
 import LoginErrorDisplay from '../components/LoginErrorDisplay';
-import { useLocation } from 'react-router-dom';
 import { GoogleIcon } from '../components/icons/GoogleIcon';
 import { AuthHero } from '../components/auth/AuthHero';
 import { IndustrialTabs } from '../components/auth/IndustrialTabs';
 
 const loginSchema = z.object({
-  email: z.string().email('INVALID EMAIL FORMAT'),
-  password: z.string().min(6, 'MIN LENGTH 6 CHARS')
+  email: z.string().email('FORMATO DE EMAIL INVÁLIDO'),
+  password: z.string().min(6, 'MÍNIMO 6 CARACTERES')
 });
 
 const signupSchema = z.object({
-  nome: z.string().min(3, 'MIN LEGNTH 3 CHARS'),
-  email: z.string().email('INVALID EMAIL FORMAT'),
-  password: z.string().min(6, 'MIN LENGTH 6 CHARS'),
-  confirmPassword: z.string().min(6, 'MIN LENGTH 6 CHARS')
+  nome: z.string().min(3, 'MÍNIMO 3 CARACTERES'),
+  email: z.string().email('FORMATO DE EMAIL INVÁLIDO'),
+  password: z.string().min(6, 'MÍNIMO 6 CARACTERES'),
+  confirmPassword: z.string().min(6, 'MÍNIMO 6 CARACTERES')
 }).refine(data => data.password === data.confirmPassword, {
   path: ['confirmPassword'],
-  message: 'PASSWORD MISMATCH'
+  message: 'SENHAS NÃO CONFEREM'
 });
 
 const resetPasswordSchema = z.object({
-  email: z.string().email('INVALID EMAIL FORMAT')
+  email: z.string().email('FORMATO DE EMAIL INVÁLIDO')
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -94,9 +94,9 @@ const AuthPage: React.FC = () => {
       await resetPassword(values.email);
       setResetPasswordOpen(false);
       resetPasswordForm.reset();
-      toast({ title: "RECOVERY LINK SENT" });
+      toast({ title: "LINK DE RECUPERAÇÃO ENVIADO" });
     } catch (error) {
-      toast({ title: "ERROR SENDING MAIL", variant: "destructive" });
+      toast({ title: "ERRO AO ENVIAR EMAIL", variant: "destructive" });
     } finally {
       setResetPasswordLoading(false);
     }
@@ -120,12 +120,17 @@ const AuthPage: React.FC = () => {
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-24 py-12 relative">
         <div className="absolute top-0 right-0 p-6 flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${loading ? 'bg-yellow-500 animate-pulse' : 'bg-[#ccff00]'}`} />
-          <span className="font-mono text-xs text-[#52525b]">STATUS: {loading ? 'PROCESSING' : 'READY'}</span>
+          <span className="font-mono text-xs text-[#52525b]">STATUS: {loading ? 'PROCESSANDO' : 'PRONTO'}</span>
         </div>
 
         <div className="w-full max-w-md mx-auto">
           {/* Header */}
-          <div className="mb-12">
+          <div className="mb-8">
+            <Link to="/" className="inline-flex items-center gap-2 text-[#52525b] hover:text-[#ccff00] transition-colors mb-8 group">
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <span className="font-mono text-xs uppercase tracking-wider">Voltar</span>
+            </Link>
+
             <div className="flex items-center gap-3 mb-6 lg:hidden">
               <div className="w-10 h-10 bg-[#ccff00] flex items-center justify-center">
                 <Terminal className="w-5 h-5 text-black" />
@@ -134,10 +139,10 @@ const AuthPage: React.FC = () => {
             </div>
 
             <h2 className="text-4xl font-bold text-white mb-2 uppercase tracking-wide">
-              {activeTab === 'login' ? 'Authenticate' : 'Initialize'}
+              {activeTab === 'login' ? 'Autenticação' : 'Inicialização'}
             </h2>
             <p className="font-mono text-sm text-[#71717a]">
-              {activeTab === 'login' ? '> Enter credentials to access system' : '> Create new user profile'}
+              {activeTab === 'login' ? '> Insira credenciais para acesso' : '> Criar novo perfil de usuário'}
             </p>
           </div>
 
@@ -156,7 +161,7 @@ const AuthPage: React.FC = () => {
               {loginError && (
                 <div className="bg-red-900/20 border border-red-900 text-red-500 p-4 mb-6 font-mono text-xs flex items-center gap-3">
                   <AlertTriangle className="w-4 h-4" />
-                  <span>ERROR: {loginError.message?.toUpperCase() || 'Auth Failed'}</span>
+                  <span>ERRO: {loginError.message?.toUpperCase() || 'FALHA NA AUTENTICAÇÃO'}</span>
                 </div>
               )}
 
@@ -171,10 +176,10 @@ const AuthPage: React.FC = () => {
                       name="nome"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[10px] font-mono uppercase tracking-widest text-[#71717a]">Operator Name</FormLabel>
+                          <FormLabel className="text-[10px] font-mono uppercase tracking-widest text-[#71717a]">Nome do Operador</FormLabel>
                           <FormControl>
                             <div className="input-industrial">
-                              <Input placeholder="ENTER FULL NAME" className="border-none bg-transparent h-12 rounded-none placeholder:text-[#3f3f46]" {...field} />
+                              <Input placeholder="DIGITE NOME COMPLETO" className="border-none bg-transparent h-12 rounded-none placeholder:text-[#3f3f46]" {...field} />
                             </div>
                           </FormControl>
                           <FormMessage className="font-mono text-xs text-red-500" />
@@ -188,10 +193,10 @@ const AuthPage: React.FC = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-mono uppercase tracking-widest text-[#71717a]">Email Address</FormLabel>
+                        <FormLabel className="text-[10px] font-mono uppercase tracking-widest text-[#71717a]">Endereço de Email</FormLabel>
                         <FormControl>
                           <div className="input-industrial">
-                            <Input placeholder="USER@DOMAIN.COM" className="border-none bg-transparent h-12 rounded-none placeholder:text-[#3f3f46]" {...field} />
+                            <Input placeholder="USUARIO@DOMINIO.COM" className="border-none bg-transparent h-12 rounded-none placeholder:text-[#3f3f46]" {...field} />
                           </div>
                         </FormControl>
                         <FormMessage className="font-mono text-xs text-red-500" />
@@ -204,7 +209,7 @@ const AuthPage: React.FC = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-mono uppercase tracking-widest text-[#71717a]">Passcode</FormLabel>
+                        <FormLabel className="text-[10px] font-mono uppercase tracking-widest text-[#71717a]">Senha de Acesso</FormLabel>
                         <FormControl>
                           <div className="input-industrial">
                             <Input type="password" placeholder="••••••••" className="border-none bg-transparent h-12 rounded-none placeholder:text-[#3f3f46]" {...field} />
@@ -216,7 +221,7 @@ const AuthPage: React.FC = () => {
                               onClick={() => setResetPasswordOpen(true)}
                               className="text-[10px] font-mono text-[#52525b] hover:text-[#ccff00] cursor-pointer hover:underline uppercase"
                             >
-                              Forgot Passcode?
+                              Esqueceu a senha?
                             </span>
                           </div>
                         )}
@@ -231,7 +236,7 @@ const AuthPage: React.FC = () => {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[10px] font-mono uppercase tracking-widest text-[#71717a]">Confirm Passcode</FormLabel>
+                          <FormLabel className="text-[10px] font-mono uppercase tracking-widest text-[#71717a]">Confirmar Senha</FormLabel>
                           <FormControl>
                             <div className="input-industrial">
                               <Input type="password" placeholder="••••••••" className="border-none bg-transparent h-12 rounded-none placeholder:text-[#3f3f46]" {...field} />
@@ -250,7 +255,7 @@ const AuthPage: React.FC = () => {
                   >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                       <span className="flex items-center gap-2">
-                        {activeTab === 'login' ? 'ACCESS SYSTEM' : 'INITIALIZE PROFILE'}
+                        {activeTab === 'login' ? 'ACESSAR SISTEMA' : 'INICIALIZAR PERFIL'}
                         <ArrowRight className="w-4 h-4" />
                       </span>
                     )}
@@ -264,7 +269,7 @@ const AuthPage: React.FC = () => {
                 </div>
                 <div className="relative flex justify-center">
                   <span className="px-4 text-[10px] bg-[#09090b] text-[#52525b] font-mono uppercase tracking-widest">
-                    Or Authenticate With
+                    OU AUTENTICAR COM
                   </span>
                 </div>
               </div>
@@ -279,7 +284,7 @@ const AuthPage: React.FC = () => {
                 <div className="bg-white p-1 rounded-sm">
                   <GoogleIcon className="h-4 w-4" />
                 </div>
-                <span className="text-xs tracking-wider">GOOGLE SECURE AUTH</span>
+                <span className="text-xs tracking-wider">GOOGLE AUTH SEGURO</span>
               </Button>
 
             </motion.div>
@@ -288,7 +293,7 @@ const AuthPage: React.FC = () => {
 
         {/* Footer info */}
         <div className="absolute bottom-6 left-12 right-12 flex justify-between text-[10px] font-mono text-[#3f3f46] hidden lg:flex">
-          <span>SECURE CONNECTION ENCRYPTED</span>
+          <span>CONEXÃO SEGURA CRIPTOGRAFADA</span>
           <span>ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
         </div>
       </div>
@@ -296,9 +301,9 @@ const AuthPage: React.FC = () => {
       <Dialog open={resetPasswordOpen} onOpenChange={setResetPasswordOpen}>
         <DialogContent className="sm:max-w-md bg-[#09090b] border border-[#27272a] text-white">
           <DialogHeader>
-            <DialogTitle className="font-bold text-xl uppercase tracking-wide">Reset Protocol</DialogTitle>
+            <DialogTitle className="font-bold text-xl uppercase tracking-wide">Protocolo de Redefinição</DialogTitle>
             <DialogDescription className="font-mono text-xs text-[#a1a1aa]">
-              Enter authorized email to receive reset link.
+              Insira o email autorizado para receber o link de reset.
             </DialogDescription>
           </DialogHeader>
           <Form {...resetPasswordForm}>
@@ -317,8 +322,8 @@ const AuthPage: React.FC = () => {
                 )}
               />
               <DialogFooter>
-                <Button type="button" variant="ghost" className="rounded-none text-[#a1a1aa] hover:text-white" onClick={() => setResetPasswordOpen(false)}>ABORT</Button>
-                <Button type="submit" className="btn-industrial btn-industrial-primary h-10 px-6">TRANSMIT</Button>
+                <Button type="button" variant="ghost" className="rounded-none text-[#a1a1aa] hover:text-white" onClick={() => setResetPasswordOpen(false)}>ABORTAR</Button>
+                <Button type="submit" className="btn-industrial btn-industrial-primary h-10 px-6">TRANSMITIR</Button>
               </DialogFooter>
             </form>
           </Form>

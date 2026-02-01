@@ -8,14 +8,14 @@ import { Link } from 'react-router-dom';
 const Introduction = () => {
   return (
     <div className="container mx-auto px-4 py-8">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="max-w-4xl mx-auto"
       >
         <div className="text-center mb-10">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.6 }}
@@ -23,7 +23,7 @@ const Introduction = () => {
           >
             Matriz de Eisenhower
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
@@ -39,9 +39,9 @@ const Introduction = () => {
             <TabsTrigger value="quadrants" className="text-sm md:text-base">Os 4 Quadrantes</TabsTrigger>
             <TabsTrigger value="benefits" className="text-sm md:text-base">Benefícios</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="what" className="space-y-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
@@ -63,7 +63,7 @@ const Introduction = () => {
                 <li>Urgentes, mas não importantes</li>
                 <li>Nem urgentes, nem importantes</li>
               </ul>
-              
+
               <div className="mt-6">
                 <div className="grid grid-cols-2 gap-4 border rounded-lg overflow-hidden">
                   <div className="bg-red-500/10 p-4 border-r border-b">
@@ -86,15 +86,15 @@ const Introduction = () => {
               </div>
             </motion.div>
           </TabsContent>
-          
+
           <TabsContent value="quadrants" className="space-y-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
               className="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.5 }}
@@ -117,7 +117,7 @@ const Introduction = () => {
                 </div>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
@@ -140,7 +140,7 @@ const Introduction = () => {
                 </div>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
@@ -163,7 +163,7 @@ const Introduction = () => {
                 </div>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
@@ -187,9 +187,9 @@ const Introduction = () => {
               </motion.div>
             </motion.div>
           </TabsContent>
-          
+
           <TabsContent value="benefits" className="space-y-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -199,9 +199,9 @@ const Introduction = () => {
                 <Star className="mr-2 text-primary h-6 w-6" />
                 Benefícios da Matriz de Eisenhower
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
@@ -215,8 +215,8 @@ const Introduction = () => {
                     Concentra seu tempo nas tarefas que realmente importam, melhorando sua eficiência geral.
                   </p>
                 </motion.div>
-                
-                <motion.div 
+
+                <motion.div
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2, duration: 0.5 }}
@@ -230,8 +230,8 @@ const Introduction = () => {
                     Elimina a sobrecarga de tarefas, proporcionando uma abordagem mais organizada e menos estressante.
                   </p>
                 </motion.div>
-                
-                <motion.div 
+
+                <motion.div
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
@@ -245,8 +245,8 @@ const Introduction = () => {
                     Fornece um framework claro para avaliar o valor de cada tarefa antes de comprometer seu tempo.
                   </p>
                 </motion.div>
-                
-                <motion.div 
+
+                <motion.div
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
@@ -261,7 +261,7 @@ const Introduction = () => {
                   </p>
                 </motion.div>
               </div>
-              
+
               <div className="mt-8 bg-primary/10 p-5 rounded-lg">
                 <h3 className="text-lg font-semibold mb-3">Como aplicar na prática:</h3>
                 <ol className="list-decimal ml-6 space-y-2 text-muted-foreground">
@@ -275,19 +275,14 @@ const Introduction = () => {
             </motion.div>
           </TabsContent>
         </Tabs>
-        
-        <motion.div 
+
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.5 }}
           className="mt-10 text-center"
         >
-          <Link to="/demo">
-            <Button size="lg" className="group">
-              Ver demonstração
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
-          </Link>
+
           <p className="text-muted-foreground mt-4 text-sm">
             Ou <Link to="/login" className="text-primary hover:underline">faça login</Link> para começar a usar agora mesmo.
           </p>

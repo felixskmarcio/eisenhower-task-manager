@@ -30,26 +30,26 @@ export const AuthHero: React.FC = () => {
                 <div>
                     <div className="inline-flex items-center gap-2 border border-[#27272a] px-3 py-1 bg-[#18181b] mb-12">
                         <div className="w-2 h-2 bg-[#ccff00]"></div>
-                        <span className="font-mono text-xs tracking-wider uppercase text-[#a1a1aa]">System v1.3.0</span>
+                        <span className="font-mono text-xs tracking-wider uppercase text-[#a1a1aa]">SISTEMA v1.3.0</span>
                     </div>
 
                     <h1 className="text-6xl font-bold leading-[0.9] tracking-tighter mb-8">
-                        ORDER<br />
-                        FROM<br />
-                        <span className="text-[#ccff00]">CHAOS</span>
+                        ORDEM<br />
+                        NO<br />
+                        <span className="text-[#ccff00]">CAOS</span>
                     </h1>
 
                     <p className="text-xl font-light text-[#a1a1aa] max-w-md font-mono border-l-2 border-[#27272a] pl-6 leading-relaxed">
-            /* The definitive tool for high-performance priority management. Executing Eisenhower Matrix protocols. */
+            /* A ferramenta definitiva para gestão de prioridades de alta performance. Executando protocolos da Matriz de Eisenhower. */
                     </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-px bg-[#27272a] border border-[#27272a]">
                     {[
-                        { title: "PRIORITY", icon: CheckSquare, val: "01" },
-                        { title: "VELOCITY", icon: Activity, val: "02" },
-                        { title: "SECURITY", icon: ShieldCheck, val: "03" },
-                        { title: "UPTIME", icon: Clock, val: "99%" }
+                        { title: "PRIORIDADE", icon: CheckSquare, val: "01" },
+                        { title: "VELOCIDADE", icon: Activity, val: "02" },
+                        { title: "SEGURANÇA", icon: ShieldCheck, val: "03" },
+                        { title: "DISPONIBILIDADE", icon: Clock, val: "99%" }
                     ].map((item) => (
                         <div key={item.title} className="bg-[#09090b] p-6 hover:bg-[#18181b] transition-colors group cursor-default">
                             <div className="flex justify-between items-start mb-4">
