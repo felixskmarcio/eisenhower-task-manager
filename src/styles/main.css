@@ -32,8 +32,8 @@ h1, h2, h3, h4, h5 {
   color: var(--color-light);
 }
 
-/* Botão de Nova Tarefa */
-.button-primary, .btn-primary, button[type="submit"] {
+/* Botões - Hierarquia de especificidade melhorada */
+.btn {
   background-color: var(--color-accent);
   color: var(--color-primary);
   border: none;
@@ -42,11 +42,35 @@ h1, h2, h3, h4, h5 {
   font-weight: bold;
   box-shadow: var(--shadow-soft);
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.button-primary:hover, .btn-primary:hover, button[type="submit"]:hover {
+.btn:hover {
   background-color: var(--color-accent-soft);
   box-shadow: var(--shadow-medium);
+}
+
+.btn-primary {
+  background-color: var(--color-accent);
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-light);
+}
+
+.btn-danger {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+button[type="submit"] {
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: bold;
 }
 
 /* Abas (Matriz, Concluídas, Todas) */
@@ -106,26 +130,33 @@ h1, h2, h3, h4, h5 {
   font-size: 0.9rem;
 }
 
-/* Cartões de tarefas */
-.task-card, .card {
+/* Cartões de tarefas - Consolidado e específico */
+.task-card {
   background-color: var(--color-dark);
   border-radius: 6px;
   padding: 16px;
   margin-bottom: 12px;
   box-shadow: var(--shadow-soft);
+  border: 1px solid var(--color-gray);
+  transition: all 0.2s ease;
 }
 
-.task-title, .card-title {
+.task-card:hover {
+  box-shadow: var(--shadow-medium);
+  border-color: var(--color-accent);
+}
+
+.task-title {
   color: var(--color-light);
   font-weight: bold;
 }
 
-.task-description, .card-description {
+.task-description {
   color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
 
-.task-meta, .card-meta {
+.task-meta {
   color: var(--color-text-secondary);
   font-size: 0.8rem;
   margin-top: 8px;
@@ -177,4 +208,233 @@ input:focus, textarea:focus, select:focus {
 /* Placeholder */
 ::placeholder {
   color: var(--color-text-secondary);
+}
+
+/* Cartões específicos do Matrix */
+.matrix-card {
+  background-color: var(--color-dark);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--color-gray);
+  transition: all 0.2s ease;
+}
+
+.matrix-card:hover {
+  border-color: var(--color-accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.quadrant-card {
+  border-radius: 8px;
+  border: 1px solid var(--color-gray);
+  background-color: var(--color-dark);
+  transition: all 0.2s ease;
+}
+
+.quadrant-card:hover {
+  border-color: var(--color-accent);
+}
+
+/* Cores específicas dos quadrantes */
+.quadrant-fazer {
+  background-color: var(--color-fazer);
+  border-left: 4px solid var(--color-accent);
+}
+
+.quadrant-agendar {
+  background-color: var(--color-agendar);
+  border-left: 4px solid var(--color-blue-mid);
+}
+
+.quadrant-delegar {
+  background-color: var(--color-delegar);
+  border-left: 4px solid var(--color-gray);
+}
+
+.quadrant-eliminar {
+  background-color: var(--color-eliminar);
+  border-left: 4px solid var(--color-text-secondary);
+}
+
+/* Classes utilitárias industriais para substituir classes inline */
+.bg-industrial-bg {
+  background-color: var(--industrial-bg);
+}
+
+.bg-industrial-surface {
+  background-color: var(--industrial-surface);
+}
+
+.border-industrial-border {
+  border-color: var(--industrial-border);
+}
+
+.text-industrial-text {
+  color: var(--industrial-text);
+}
+
+.text-industrial-text-muted {
+  color: var(--industrial-text-muted);
+}
+
+.text-industrial-accent {
+  color: var(--industrial-accent);
+}
+
+.border-industrial-accent {
+  border-color: var(--industrial-accent);
+}
+
+.ring-industrial-accent {
+  box-shadow: 0 0 0 1px var(--industrial-accent);
+}
+
+/* Cores dos indicadores de quadrante */
+.indicator-red {
+  background-color: #ff5555;
+}
+
+.indicator-blue {
+  background-color: #8be9fd;
+}
+
+.indicator-yellow {
+  background-color: #f1fa8c;
+}
+
+.indicator-purple {
+  background-color: #bd93f9;
+}
+
+/* Classes para elementos do Matrix */
+.matrix-task-card {
+  background-color: var(--industrial-bg);
+  border: 1px solid var(--industrial-border);
+  transition: all 0.3s ease;
+}
+
+.matrix-task-card:hover {
+  border-color: rgba(204, 255, 0, 0.5);
+}
+
+.matrix-input {
+  background-color: var(--industrial-surface);
+  border: 1px solid var(--industrial-border);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.matrix-input:focus {
+  border-color: var(--industrial-accent);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--industrial-accent);
+}
+
+.matrix-textarea {
+  background-color: var(--industrial-surface);
+  border: 1px solid var(--industrial-border);
+  color: #9ca3af;
+  transition: all 0.2s ease;
+}
+
+.matrix-textarea:focus {
+  border-color: var(--industrial-accent);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--industrial-accent);
+}
+
+.matrix-btn-accent {
+  background-color: var(--industrial-accent);
+  color: black;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.matrix-btn-accent:hover {
+  background-color: #bbe600;
+}
+
+.matrix-tag-active {
+  background-color: rgba(204, 255, 0, 0.2);
+  color: var(--industrial-accent);
+  border-color: var(--industrial-accent);
+}
+
+.matrix-tag-inactive {
+  background-color: transparent;
+  color: #4b5563;
+  border-color: #374151;
+  transition: all 0.2s ease;
+}
+
+.matrix-tag-inactive:hover {
+  border-color: var(--industrial-accent);
+  color: var(--industrial-accent);
+}
+
+.matrix-divider {
+  border-top: 1px solid var(--industrial-border);
+}
+
+.matrix-timer-text {
+  color: var(--industrial-accent);
+  font-family: monospace;
+  font-size: 10px;
+}
+
+.matrix-empty-state {
+  color: #52525b;
+  border: 2px dashed var(--industrial-border);
+}
+
+.matrix-drop-indicator {
+  border: 1px dashed var(--industrial-accent);
+  background-color: rgba(204, 255, 0, 0.1);
+  color: var(--industrial-accent);
+}
+
+.matrix-calendar-selected {
+  background-color: #bd93f9;
+  color: white;
+}
+
+.matrix-grip-handle {
+  cursor: grab;
+}
+
+.matrix-grip-handle:active {
+  cursor: grabbing;
+}
+  border-radius: 0.375rem;
+}
+
+.matrix-grip-handle {
+  color: #52525b;
+  cursor: grab;
+  transition: color 0.2s ease;
+}
+
+.matrix-grip-handle:hover {
+  color: #a1a1aa;
+}
+
+.matrix-text-muted {
+  color: #52525b;
+}
+
+.matrix-text-muted-hover {
+  color: #a1a1aa;
+}
+
+.matrix-text-gray {
+  color: #9ca3af;
+}
+
+.matrix-text-xs {
+  font-size: 10px;
+}
+
+.matrix-grip-handle:active {
+  cursor: grabbing;
 } 

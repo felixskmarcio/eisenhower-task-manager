@@ -353,7 +353,7 @@ const Landing = () => {
               <span className="font-mono text-xs text-[#a1a1aa]">SYSTEM STATUS: NOMINAL</span>
             </div>
             <p className="font-mono text-[10px] text-[#52525b] uppercase">
-              © 2025 Eisenhower Task Manager. Todos os direitos reservados. Protocolo Seguro v2.4
+              © 2026 Eisenhower Task Manager. Todos os direitos reservados. Protocolo Seguro v2.4
             </p>
           </div>
         </footer>

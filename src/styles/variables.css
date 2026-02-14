@@ -19,4 +19,12 @@
   --color-agendar: #2D3E54;           /* Azul escuro para "Agendar" */
   --color-delegar: #3F3A2D;           /* Marrom escuro para "Delegar" */
   --color-eliminar: #252934;          /* Quase preto para "Eliminar" */
+  
+  /* Cores industriais para o design system */
+  --industrial-bg: #09090b;
+  --industrial-surface: #18181b;
+  --industrial-border: #27272a;
+  --industrial-text: #f4f4f5;
+  --industrial-text-muted: #a1a1aa;
+  --industrial-accent: #ccff00;
 } 
