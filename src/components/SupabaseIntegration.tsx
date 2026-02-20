@@ -470,8 +470,8 @@ const SupabaseIntegration = () => {
         console.error("Erro no signOut do Supabase:", signOutError);
       }
       
-      const cleanupSuccess = clearSupabaseStorage();
-      console.log("Resultado da limpeza:", cleanupSuccess ? "Sucesso" : "Falha");
+      clearSupabaseStorage();
+      console.log("Limpeza do storage realizada");
       
       setSupabaseUrl('');
       setSupabaseKey('');
