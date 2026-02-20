@@ -15,3 +15,26 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   }
 });
+
+export const clearSupabaseStorage = (): boolean => {
+  try {
+    localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('sb-' + SUPABASE_URL.split('//')[1].split('.')[0] + '-auth-token');
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const isSupabaseConnected = async (): Promise<boolean> => {
+  try {
+    const { error } = await supabase.from('profiles').select('id').limit(1);
+    return !error;
+  } catch {
+    return false;
+  }
+};
+
+export const resetToDefaultCredentials = () => {
+  clearSupabaseStorage();
+};
