@@ -4,18 +4,13 @@
 @import './navigation.css';
 @import './task-title.css';
 @import './loading.css';
+@import './main.css';
 
 :root {
   --font-display: 'Outfit', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --industrial-bg: #09090b;
-  --industrial-surface: #18181b;
-  --industrial-border: #27272a;
-  --industrial-text: #f4f4f5;
-  --industrial-text-muted: #a1a1aa;
-  --industrial-accent: #ccff00;
-  /* Electric Lime */
+  /* Variáveis industriais agora vêm do variables.css (via main.css) */
 }
 
 /* Typography Overrides */
@@ -141,7 +136,7 @@ body {
 /* Keep drag and drop styles essential for the app functionality */
 [draggable="true"] {
   cursor: grab;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
   position: relative;
   will-change: transform, opacity;
 }
@@ -151,8 +146,8 @@ body {
 }
 
 [draggable="true"].dragging {
-  opacity: 0.7;
-  transform: scale(1.03) rotate(1deg);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+  opacity: 0.5;
+  transform: scale(0.98);
+  box-shadow: 0 0 0 2px var(--industrial-accent, #ccff00);
   z-index: 50;
 }

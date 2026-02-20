@@ -1,7 +1,7 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { InfoIcon, PlayCircle, ArrowRight, LogIn, Mail, Phone, MapPin, Github, Linkedin, Twitter, Send, User, MessageSquare, Terminal, Cpu, Activity, ShieldCheck, Database, LayoutGrid } from 'lucide-react';
+import { InfoIcon, PlayCircle, ArrowRight, LogIn, Mail, Phone, MapPin, Github, Linkedin, Twitter, Send, User, MessageSquare, Terminal, Activity, ShieldCheck, Database, LayoutGrid } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -57,41 +57,19 @@ const Landing = () => {
             </div>
 
             <nav className="hidden md:flex items-center gap-6">
-              <div className="flex items-center gap-6 border-r border-[#27272a] pr-6 mr-2">
-                <a href="#features" className="text-xs font-mono text-[#a1a1aa] hover:text-white uppercase transition-colors">Recursos</a>
-                <a href="#contact" className="text-xs font-mono text-[#a1a1aa] hover:text-white uppercase transition-colors">Comunicação</a>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Link to="/login">
-                  <Button variant="ghost" className="rounded-none h-8 font-mono text-xs hover:bg-[#27272a] hover:text-white text-[#ccff00]">
-                    ENTRAR_
-                  </Button>
-                </Link>
-                <Link to="/login" state={{ activateSignup: true }}>
-                  <Button className="rounded-none h-8 bg-[#ccff00] hover:bg-[#b3e600] text-black font-mono text-xs font-bold px-4">
-                    INICIAR_ACESSO
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="flex items-center gap-3 pl-2 border-l border-[#27272a]">
-                <div className="bg-[#18181b] border border-[#27272a] px-3 py-1 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-[#ccff00] rounded-sm animate-pulse" />
-                  <span className="font-mono text-[10px] text-[#ccff00]">SYS.ONLINE</span>
-                </div>
-                <div className="bg-[#18181b] border border-[#27272a] px-3 py-1">
-                  <span className="font-mono text-[10px] text-[#71717a]">V.2.4.0-RC</span>
-                </div>
-              </div>
+              <Link to="/login">
+                <Button variant="ghost" className="rounded-none h-8 font-mono text-xs hover:bg-[#27272a] hover:text-white text-[#ccff00]">
+                  ENTRAR_
+                </Button>
+              </Link>
             </nav>
           </div>
         </header>
 
         {/* Hero Section */}
-        <section className="pt-36 pb-20 md:pt-48 md:pb-32 border-b border-[#27272a]">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <section className="pt-32 pb-24 md:pt-40 md:pb-28 border-b border-[#27272a]">
+          <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               <div className="space-y-8">
                 <div className="inline-flex items-center gap-2 px-3 py-1 border border-[#27272a] bg-[#18181b]">
                   <span className="font-mono text-[10px] text-[#ccff00] uppercase tracking-wider">Protocolo de Produtividade</span>
@@ -108,7 +86,7 @@ const Landing = () => {
                 </motion.h1>
 
                 <motion.p
-                  className="text-[#a1a1aa] text-lg font-mono max-w-xl leading-relaxed border-l-2 border-[#ccff00] pl-6"
+                  className="text-[#a1a1aa] text-base md:text-lg font-mono max-w-xl leading-relaxed border-l-2 border-[#ccff00] pl-6"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.8 }}
@@ -118,7 +96,7 @@ const Landing = () => {
                 </motion.p>
 
                 <motion.div
-                  className="flex flex-wrap gap-4 pt-4"
+                  className="flex flex-wrap gap-3 pt-6"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
@@ -170,45 +148,51 @@ const Landing = () => {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-20 bg-[#09090b]">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-              <div>
-                <span className="font-mono text-xs text-[#ccff00] mb-2 block">&gt; FUNCIONALIDADES DO SISTEMA</span>
-                <h2 className="text-3xl md:text-4xl font-bold text-white uppercase font-display tracking-tight">Módulos Operacionais</h2>
+        <section id="features" className="py-20 md:py-28 bg-[#09090b]">
+          <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-8">
+              <div className="max-w-2xl">
+                <span className="font-mono text-xs text-[#ccff00] mb-3 block tracking-wide">&gt; FUNCIONALIDADES DO SISTEMA</span>
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white uppercase font-display tracking-tight leading-tight">
+                  Módulos Operacionais
+                </h2>
               </div>
-              <div className="md:max-w-xs text-right">
-                <p className="font-mono text-xs text-[#71717a]">Ferramentas projetadas para controle absoluto sobre o fluxo de trabalho.</p>
+              <div className="lg:max-w-md lg:text-right">
+                <p className="font-mono text-sm text-[#c1c1c1] leading-relaxed">
+                  Ferramentas projetadas para controle absoluto sobre o fluxo de trabalho.
+                </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {[
                 {
-                  icon: <LayoutGrid className="w-6 h-6 text-[#ccff00]" />,
+                  icon: <LayoutGrid className="w-10 h-10 text-[#ccff00]" />,
                   title: "Matriz Tática",
                   desc: "Visualização em quatro quadrantes para tomada de decisão imediata sobre prioridades."
                 },
                 {
-                  icon: <ShieldCheck className="w-6 h-6 text-[#ccff00]" />,
+                  icon: <ShieldCheck className="w-10 h-10 text-[#ccff00]" />,
                   title: "Autenticação Segura",
                   desc: "Proteção de dados com criptografia de ponta e login via provedores confiáveis."
                 },
                 {
-                  icon: <Database className="w-6 h-6 text-[#ccff00]" />,
+                  icon: <Database className="w-10 h-10 text-[#ccff00]" />,
                   title: "Sync em Nuvem",
                   desc: "Persistência de dados em tempo real. Acesse suas operações de qualquer terminal."
                 }
               ].map((feature, idx) => (
-                <Card key={idx} className="bg-[#18181b] border border-[#27272a] rounded-none hover:border-[#ccff00] transition-colors group">
-                  <CardHeader>
-                    <div className="w-12 h-12 bg-[#27272a] flex items-center justify-center mb-4 group-hover:bg-[#ccff00] transition-colors">
-                      <div className="group-hover:text-black transition-colors">
+                <Card key={idx} className="bg-[#18181b] border border-[#27272a] rounded-none hover:border-[#ccff00] transition-all duration-300 group p-6">
+                  <CardHeader className="p-0">
+                    <div className="w-20 h-20 bg-[#27272a] flex items-center justify-center mb-4 transition-all duration-300 rounded-sm">
+                      <div className="transition-colors">
                         {feature.icon}
                       </div>
                     </div>
-                    <CardTitle className="text-xl font-bold text-white uppercase font-display">{feature.title}</CardTitle>
-                    <CardDescription className="font-mono text-xs text-[#a1a1aa] mt-2">
+                    <CardTitle className="text-xl font-bold text-white uppercase font-display tracking-wide mb-3">
+                      {feature.title}
+                    </CardTitle>
+                    <CardDescription className="font-mono text-sm text-[#c1c1c1] leading-relaxed">
                       {feature.desc}
                     </CardDescription>
                   </CardHeader>
@@ -220,8 +204,8 @@ const Landing = () => {
 
         {/* Contact Section */}
         <section id="contact" className="py-20 border-t border-[#27272a] bg-[#0c0c0e]">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               <div>
                 <span className="font-mono text-xs text-[#ccff00] mb-2 block">&gt; CANAL DE COMUNICAÇÃO</span>
                 <h2 className="text-3xl md:text-4xl font-bold text-white uppercase font-display tracking-tight mb-6">Iniciar Transmissão</h2>
@@ -229,34 +213,34 @@ const Landing = () => {
                   Envie relatórios de bugs, solicitações de recursos ou dúvidas operacionais. Nossa equipe responderá assim que possível.
                 </p>
 
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div className="flex items-start gap-4">
-                    <div className="bg-[#18181b] p-3 border border-[#27272a]">
+                    <div className="bg-[#18181b] p-2.5 border border-[#27272a]">
                       <Mail className="w-5 h-5 text-[#ccff00]" />
                     </div>
                     <div>
                       <h4 className="font-bold text-white uppercase text-sm mb-1">Ponto de Contato Eletrônico</h4>
-                      <p className="font-mono text-xs text-[#a1a1aa]">felixskmarcio2@gmail.com</p>
+                      <p className="font-mono text-xs text-[#c1c1c1]">felixskmarcio2@gmail.com</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="bg-[#18181b] p-3 border border-[#27272a]">
+                    <div className="bg-[#18181b] p-2.5 border border-[#27272a]">
                       <Phone className="w-5 h-5 text-[#ccff00]" />
                     </div>
                     <div>
                       <h4 className="font-bold text-white uppercase text-sm mb-1">Linha Direta</h4>
-                      <p className="font-mono text-xs text-[#a1a1aa]">+55 82 9.9827-4851</p>
+                      <p className="font-mono text-xs text-[#c1c1c1]">+55 82 9.9827-4851</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="bg-[#18181b] p-3 border border-[#27272a]">
+                    <div className="bg-[#18181b] p-2.5 border border-[#27272a]">
                       <MapPin className="w-5 h-5 text-[#ccff00]" />
                     </div>
                     <div>
                       <h4 className="font-bold text-white uppercase text-sm mb-1">Base de Operações</h4>
-                      <p className="font-mono text-xs text-[#a1a1aa]">Penedo, AL - BRASIL</p>
+                      <p className="font-mono text-xs text-[#c1c1c1]">Penedo, AL - BRASIL</p>
                     </div>
                   </div>
                 </div>
@@ -346,15 +330,26 @@ const Landing = () => {
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-[#27272a] bg-[#09090b] py-8">
-          <div className="container mx-auto px-4 text-center">
-            <div className="flex justify-center items-center gap-2 mb-4 opacity-50">
-              <Cpu className="w-4 h-4 text-[#a1a1aa]" />
-              <span className="font-mono text-xs text-[#a1a1aa]">SYSTEM STATUS: NOMINAL</span>
+        <footer className="border-t border-[#27272a] bg-[#09090b] py-12 md:py-16">
+          <div className="container mx-auto px-6 md:px-8 lg:px-12 max-w-7xl">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 bg-[#27272a] flex items-center justify-center rounded-sm">
+                  <Terminal className="w-4 h-4 text-[#ccff00]" />
+                </div>
+                <div className="font-mono text-sm text-white uppercase tracking-wide">
+                  Eisenhower Task Manager
+                </div>
+              </div>
+              <div className="text-center md:text-right">
+                <p className="font-mono text-xs text-[#52525b] uppercase tracking-wider">
+                  © 2026 Eisenhower Task Manager. Todos os direitos reservados.
+                </p>
+                <p className="font-mono text-[10px] text-[#71717a] uppercase mt-1">
+                  Protocolo Seguro v2.4
+                </p>
+              </div>
             </div>
-            <p className="font-mono text-[10px] text-[#52525b] uppercase">
-              © 2026 Eisenhower Task Manager. Todos os direitos reservados. Protocolo Seguro v2.4
-            </p>
           </div>
         </footer>
       </div>

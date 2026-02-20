@@ -9,26 +9,35 @@ body {
 }
 
 /* Container principal */
-.container, main {
+.container,
+main {
   background-color: var(--color-primary);
 }
 
 /* Barra de navegação/menu superior */
-nav, .nav-menu, header {
+nav,
+.nav-menu,
+header {
   background-color: var(--color-secondary);
   box-shadow: var(--shadow-soft);
 }
 
-nav a, .nav-item {
+nav a,
+.nav-item {
   color: var(--color-light);
 }
 
-nav a.active, .nav-item.active {
+nav a.active,
+.nav-item.active {
   color: var(--color-accent);
 }
 
 /* Título da página */
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
   color: var(--color-light);
 }
 
@@ -74,23 +83,27 @@ button[type="submit"] {
 }
 
 /* Abas (Matriz, Concluídas, Todas) */
-.tabs, .tab-container {
+.tabs,
+.tab-container {
   border-bottom: 1px solid var(--color-gray);
 }
 
-.tab, .tab-item {
+.tab,
+.tab-item {
   color: var(--color-text-secondary);
   padding: 8px 16px;
   border-radius: 4px 4px 0 0;
 }
 
-.tab.active, .tab-item.active {
+.tab.active,
+.tab-item.active {
   background-color: var(--color-secondary);
   color: var(--color-light);
 }
 
 /* Quadrantes da Matriz */
-.quadrant, .matrix-quadrant {
+.quadrant,
+.matrix-quadrant {
   border-radius: 8px;
   padding: 16px;
   margin: 8px;
@@ -98,36 +111,614 @@ button[type="submit"] {
 }
 
 /* Estilos específicos para cada quadrante */
-.quadrant.fazer, .quadrant-fazer, .quadrant-important-urgent {
+.quadrant.fazer,
+.quadrant-fazer,
+.quadrant-important-urgent {
   background-color: var(--color-fazer);
   border-left: 4px solid var(--color-accent);
 }
 
-.quadrant.agendar, .quadrant-agendar, .quadrant-important-not-urgent {
+.quadrant.agendar,
+.quadrant-agendar,
+.quadrant-important-not-urgent {
   background-color: var(--color-agendar);
   border-left: 4px solid var(--color-blue-mid);
 }
 
-.quadrant.delegar, .quadrant-delegar, .quadrant-not-important-urgent {
+.quadrant.delegar,
+.quadrant-delegar,
+.quadrant-not-important-urgent {
   background-color: var(--color-delegar);
   border-left: 4px solid var(--color-gray);
 }
 
-.quadrant.eliminar, .quadrant-eliminar, .quadrant-not-important-not-urgent {
+.quadrant.eliminar,
+.quadrant-eliminar,
+.quadrant-not-important-not-urgent {
   background-color: var(--color-eliminar);
   border-left: 4px solid var(--color-text-secondary);
 }
 
 /* Título dos quadrantes */
-.quadrant-title, .quadrant h3 {
+.quadrant-title,
+.quadrant h3 {
   color: var(--color-light);
   font-size: 1.25rem;
   margin-bottom: 8px;
 }
 
-.quadrant-subtitle, .quadrant p {
+.quadrant-subtitle,
+.quadrant p {
   color: var(--color-text-secondary);
   font-size: 0.9rem;
+}
+
+/* ===== REDESIGN PREMIUM - QUADRANTES ===== */
+
+/* Quadrant Container - Base Premium */
+.quadrant-card {
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.quadrant-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+  opacity: 0.5;
+}
+
+.quadrant-card:hover {
+  border-color: var(--glass-border);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* === Quadrante Q1 - Fazer (Urgente+Importante) === */
+.quadrant-card.q1 {
+  border-color: var(--quadrant-fazer-border);
+  box-shadow:
+    0 0 0 1px var(--quadrant-fazer-border),
+    0 4px 24px var(--quadrant-fazer-glow),
+    inset 0 1px 0 rgba(255, 85, 85, 0.08);
+}
+
+.quadrant-card.q1:hover {
+  border-color: rgba(255, 85, 85, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 85, 85, 0.35),
+    0 8px 40px rgba(255, 85, 85, 0.2),
+    inset 0 1px 0 rgba(255, 85, 85, 0.1);
+}
+
+.quadrant-card.q1 .quadrant-header {
+  background: linear-gradient(135deg, rgba(255, 85, 85, 0.18) 0%, rgba(255, 85, 85, 0.08) 100%);
+  border-bottom-color: var(--quadrant-fazer-border);
+}
+
+.quadrant-card.q1 .quadrant-indicator {
+  background: var(--quadrant-fazer);
+  box-shadow: 0 0 8px var(--quadrant-fazer-glow), 0 0 20px var(--quadrant-fazer-glow);
+  animation: pulse-fazer 2.5s ease-in-out infinite;
+}
+
+.quadrant-card.q1 .quadrant-icon {
+  background: rgba(255, 85, 85, 0.15);
+  color: var(--quadrant-fazer);
+}
+
+.quadrant-card.q1 .quadrant-badge {
+  background: rgba(255, 85, 85, 0.15);
+  color: var(--quadrant-fazer);
+  border: 1px solid var(--quadrant-fazer-border);
+}
+
+.quadrant-card.q1 .quadrant-add-btn:hover {
+  border-color: var(--quadrant-fazer-border);
+  color: var(--quadrant-fazer);
+  background: rgba(255, 85, 85, 0.08);
+}
+
+/* === Quadrante Q2 - Agendar (Importante) === */
+.quadrant-card.q2 {
+  border-color: var(--quadrant-agendar-border);
+  box-shadow:
+    0 0 0 1px var(--quadrant-agendar-border),
+    0 4px 24px var(--quadrant-agendar-glow),
+    inset 0 1px 0 rgba(139, 233, 253, 0.08);
+}
+
+.quadrant-card.q2:hover {
+  border-color: rgba(139, 233, 253, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(139, 233, 253, 0.35),
+    0 8px 40px rgba(139, 233, 253, 0.2),
+    inset 0 1px 0 rgba(139, 233, 253, 0.1);
+}
+
+.quadrant-card.q2 .quadrant-header {
+  background: linear-gradient(135deg, rgba(139, 233, 253, 0.18) 0%, rgba(139, 233, 253, 0.08) 100%);
+  border-bottom-color: var(--quadrant-agendar-border);
+}
+
+.quadrant-card.q2 .quadrant-indicator {
+  background: var(--quadrant-agendar);
+  box-shadow: 0 0 8px var(--quadrant-agendar-glow), 0 0 20px var(--quadrant-agendar-glow);
+  animation: pulse-agendar 3s ease-in-out infinite;
+}
+
+.quadrant-card.q2 .quadrant-icon {
+  background: rgba(139, 233, 253, 0.15);
+  color: var(--quadrant-agendar);
+}
+
+.quadrant-card.q2 .quadrant-badge {
+  background: rgba(139, 233, 253, 0.15);
+  color: var(--quadrant-agendar);
+  border: 1px solid var(--quadrant-agendar-border);
+}
+
+.quadrant-card.q2 .quadrant-add-btn:hover {
+  border-color: var(--quadrant-agendar-border);
+  color: var(--quadrant-agendar);
+  background: rgba(139, 233, 253, 0.08);
+}
+
+/* === Quadrante Q3 - Delegar (Urgente) === */
+.quadrant-card.q3 {
+  border-color: var(--quadrant-delegar-border);
+  box-shadow:
+    0 0 0 1px var(--quadrant-delegar-border),
+    0 4px 24px var(--quadrant-delegar-glow),
+    inset 0 1px 0 rgba(241, 250, 140, 0.08);
+}
+
+.quadrant-card.q3:hover {
+  border-color: rgba(241, 250, 140, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(241, 250, 140, 0.35),
+    0 8px 40px rgba(241, 250, 140, 0.2),
+    inset 0 1px 0 rgba(241, 250, 140, 0.1);
+}
+
+.quadrant-card.q3 .quadrant-header {
+  background: linear-gradient(135deg, rgba(241, 250, 140, 0.16) 0%, rgba(241, 250, 140, 0.06) 100%);
+  border-bottom-color: var(--quadrant-delegar-border);
+}
+
+.quadrant-card.q3 .quadrant-indicator {
+  background: var(--quadrant-delegar);
+  box-shadow: 0 0 8px var(--quadrant-delegar-glow), 0 0 20px var(--quadrant-delegar-glow);
+  animation: pulse-delegar 3.5s ease-in-out infinite;
+}
+
+.quadrant-card.q3 .quadrant-icon {
+  background: rgba(241, 250, 140, 0.15);
+  color: var(--quadrant-delegar);
+}
+
+.quadrant-card.q3 .quadrant-badge {
+  background: rgba(241, 250, 140, 0.15);
+  color: var(--quadrant-delegar);
+  border: 1px solid var(--quadrant-delegar-border);
+}
+
+.quadrant-card.q3 .quadrant-add-btn:hover {
+  border-color: var(--quadrant-delegar-border);
+  color: var(--quadrant-delegar);
+  background: rgba(241, 250, 140, 0.08);
+}
+
+/* === Quadrante Q4 - Eliminar === */
+.quadrant-card.q4 {
+  border-color: var(--quadrant-eliminar-border);
+  box-shadow:
+    0 0 0 1px var(--quadrant-eliminar-border),
+    0 4px 24px var(--quadrant-eliminar-glow),
+    inset 0 1px 0 rgba(189, 147, 249, 0.08);
+}
+
+.quadrant-card.q4:hover {
+  border-color: rgba(189, 147, 249, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(189, 147, 249, 0.35),
+    0 8px 40px rgba(189, 147, 249, 0.2),
+    inset 0 1px 0 rgba(189, 147, 249, 0.1);
+}
+
+.quadrant-card.q4 .quadrant-header {
+  background: linear-gradient(135deg, rgba(189, 147, 249, 0.18) 0%, rgba(189, 147, 249, 0.08) 100%);
+  border-bottom-color: var(--quadrant-eliminar-border);
+}
+
+.quadrant-card.q4 .quadrant-indicator {
+  background: var(--quadrant-eliminar);
+  box-shadow: 0 0 8px var(--quadrant-eliminar-glow), 0 0 20px var(--quadrant-eliminar-glow);
+  animation: pulse-eliminar 4s ease-in-out infinite;
+}
+
+.quadrant-card.q4 .quadrant-icon {
+  background: rgba(189, 147, 249, 0.15);
+  color: var(--quadrant-eliminar);
+}
+
+.quadrant-card.q4 .quadrant-badge {
+  background: rgba(189, 147, 249, 0.15);
+  color: var(--quadrant-eliminar);
+  border: 1px solid var(--quadrant-eliminar-border);
+}
+
+.quadrant-card.q4 .quadrant-add-btn:hover {
+  border-color: var(--quadrant-eliminar-border);
+  color: var(--quadrant-eliminar);
+  background: rgba(189, 147, 249, 0.08);
+}
+
+/* === Quadrant Header Comum === */
+.quadrant-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--industrial-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quadrant-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.quadrant-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.quadrant-card:hover .quadrant-icon {
+  transform: scale(1.08);
+}
+
+.quadrant-header-text {
+  min-width: 0;
+}
+
+.quadrant-header-text h2 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f0f0f4;
+  margin: 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quadrant-header-text p {
+  font-size: 0.7rem;
+  color: #9898aa;
+  margin: 3px 0 0 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quadrant-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.quadrant-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+}
+
+.quadrant-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* === Botão Adicionar Premium === */
+.quadrant-add-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: 1px dashed var(--industrial-border);
+  color: var(--industrial-text-muted);
+  font-size: 0.7rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  margin: 0;
+}
+
+.quadrant-add-btn:hover {
+  transform: translateY(-1px);
+}
+
+.quadrant-add-btn:hover .quadrant-add-icon {
+  transform: scale(1.15) rotate(90deg);
+}
+
+.quadrant-add-icon {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* === Estado Vazio Premium === */
+.matrix-empty-state {
+  color: #3f3f46;
+  border: 1.5px dashed rgba(63, 63, 70, 0.5);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(26, 28, 36, 0.7);
+}
+
+.matrix-empty-state p {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+/* === Animações de Pulse === */
+@keyframes pulse-fazer {
+
+  0%,
+  100% {
+    box-shadow: 0 0 6px var(--quadrant-fazer-glow), 0 0 16px var(--quadrant-fazer-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 10px rgba(255, 85, 85, 0.35), 0 0 28px rgba(255, 85, 85, 0.2);
+  }
+}
+
+@keyframes pulse-agendar {
+
+  0%,
+  100% {
+    box-shadow: 0 0 6px var(--quadrant-agendar-glow), 0 0 16px var(--quadrant-agendar-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 10px rgba(139, 233, 253, 0.35), 0 0 28px rgba(139, 233, 253, 0.2);
+  }
+}
+
+@keyframes pulse-delegar {
+
+  0%,
+  100% {
+    box-shadow: 0 0 6px var(--quadrant-delegar-glow), 0 0 16px var(--quadrant-delegar-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 10px rgba(241, 250, 140, 0.35), 0 0 28px rgba(241, 250, 140, 0.2);
+  }
+}
+
+@keyframes pulse-eliminar {
+
+  0%,
+  100% {
+    box-shadow: 0 0 6px var(--quadrant-eliminar-glow), 0 0 16px var(--quadrant-eliminar-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 10px rgba(189, 147, 249, 0.35), 0 0 28px rgba(189, 147, 249, 0.2);
+  }
+}
+
+/* === Cards de Tarefa — Glass Effect === */
+.matrix-task-card {
+  background: rgba(38, 40, 50, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.matrix-task-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+}
+
+.matrix-task-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(44, 46, 56, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Botão de conclusão de tarefa */
+.task-complete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.task-complete-btn:hover {
+  background: rgba(255, 255, 255, 0.10);
+  transform: scale(1.15);
+  box-shadow: 0 0 12px rgba(204, 255, 0, 0.15);
+}
+
+.task-complete-btn:active {
+  transform: scale(0.92);
+}
+
+/* Círculo vazio (não concluído) */
+.task-complete-circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(160, 160, 180, 0.45);
+  background: transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.task-complete-btn:hover .task-complete-circle {
+  border-color: var(--industrial-accent, #ccff00);
+  box-shadow: 0 0 8px rgba(204, 255, 0, 0.25);
+  background: rgba(204, 255, 0, 0.06);
+}
+
+/* Ícone de concluído */
+.task-complete-btn svg {
+  filter: drop-shadow(0 0 4px rgba(204, 255, 0, 0.4));
+}
+
+/* Cores por quadrante */
+.quadrant-card.q1 .task-complete-btn:hover .task-complete-circle {
+  border-color: var(--quadrant-fazer);
+  box-shadow: 0 0 8px rgba(255, 85, 85, 0.3);
+  background: rgba(255, 85, 85, 0.08);
+}
+
+.quadrant-card.q2 .task-complete-btn:hover .task-complete-circle {
+  border-color: var(--quadrant-agendar);
+  box-shadow: 0 0 8px rgba(139, 233, 253, 0.3);
+  background: rgba(139, 233, 253, 0.08);
+}
+
+.quadrant-card.q3 .task-complete-btn:hover .task-complete-circle {
+  border-color: var(--quadrant-delegar);
+  box-shadow: 0 0 8px rgba(241, 250, 140, 0.3);
+  background: rgba(241, 250, 140, 0.08);
+}
+
+.quadrant-card.q4 .task-complete-btn:hover .task-complete-circle {
+  border-color: var(--quadrant-eliminar);
+  box-shadow: 0 0 8px rgba(189, 147, 249, 0.3);
+  background: rgba(189, 147, 249, 0.08);
+}
+
+/* Q1 task cards */
+.quadrant-card.q1 .matrix-task-card {
+  border-left: 2px solid rgba(255, 85, 85, 0.3);
+}
+
+.quadrant-card.q1 .matrix-task-card:hover {
+  border-left-color: rgba(255, 85, 85, 0.6);
+  box-shadow: 0 4px 20px rgba(255, 85, 85, 0.08);
+}
+
+/* Q2 task cards */
+.quadrant-card.q2 .matrix-task-card {
+  border-left: 2px solid rgba(139, 233, 253, 0.3);
+}
+
+.quadrant-card.q2 .matrix-task-card:hover {
+  border-left-color: rgba(139, 233, 253, 0.6);
+  box-shadow: 0 4px 20px rgba(139, 233, 253, 0.08);
+}
+
+/* Q3 task cards */
+.quadrant-card.q3 .matrix-task-card {
+  border-left: 2px solid rgba(241, 250, 140, 0.3);
+}
+
+.quadrant-card.q3 .matrix-task-card:hover {
+  border-left-color: rgba(241, 250, 140, 0.6);
+  box-shadow: 0 4px 20px rgba(241, 250, 140, 0.08);
+}
+
+/* Q4 task cards */
+.quadrant-card.q4 .matrix-task-card {
+  border-left: 2px solid rgba(189, 147, 249, 0.3);
+}
+
+.quadrant-card.q4 .matrix-task-card:hover {
+  border-left-color: rgba(189, 147, 249, 0.6);
+  box-shadow: 0 4px 20px rgba(189, 147, 249, 0.08);
+}
+
+/* Área de conteúdo do quadrante */
+.quadrant-content {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background: rgba(24, 26, 32, 0.95);
+  position: relative;
+}
+
+/* Footer do quadrante */
+.quadrant-footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--industrial-border);
+  background: rgba(36, 38, 46, 0.95);
+}
+
+/* Scrollbar customizado para o conteúdo */
+.quadrant-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.quadrant-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.quadrant-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+.quadrant-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Cartões de tarefas - Consolidado e específico */
@@ -163,7 +754,8 @@ button[type="submit"] {
 }
 
 /* Botões de ação das tarefas */
-.task-action-btn, .action-button {
+.task-action-btn,
+.action-button {
   background-color: transparent;
   color: var(--color-text-secondary);
   border: none;
@@ -176,23 +768,29 @@ button[type="submit"] {
   transition: all 0.2s ease;
 }
 
-.task-action-btn:hover, .action-button:hover {
+.task-action-btn:hover,
+.action-button:hover {
   background-color: var(--color-gray);
   color: var(--color-light);
 }
 
 /* Botão de marcar como concluído */
-.complete-btn, .check-button {
+.complete-btn,
+.check-button {
   color: var(--color-accent);
 }
 
 /* Botão de excluir */
-.delete-btn, .trash-button {
-  color: #ff6b6b; /* Mantido vermelho para ações destrutivas */
+.delete-btn,
+.trash-button {
+  color: #ff6b6b;
+  /* Mantido vermelho para ações destrutivas */
 }
 
 /* Formulários */
-input, textarea, select {
+input,
+textarea,
+select {
   background-color: var(--color-dark);
   border: 1px solid var(--color-gray);
   color: var(--color-light);
@@ -200,7 +798,9 @@ input, textarea, select {
   border-radius: 4px;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   border-color: var(--color-accent);
   outline: none;
 }
@@ -399,24 +999,53 @@ input:focus, textarea:focus, select:focus {
   color: white;
 }
 
+/* Handle de arrasto das tarefas */
 .matrix-grip-handle {
+  color: #52525b;
   cursor: grab;
+  transition: all 0.2s ease;
+  padding: 2px;
+  border-radius: 2px;
+}
+
+.matrix-grip-handle:hover {
+  color: var(--industrial-accent);
+  background: rgba(204, 255, 0, 0.08);
 }
 
 .matrix-grip-handle:active {
   cursor: grabbing;
-}
-  border-radius: 0.375rem;
+  color: var(--industrial-accent);
 }
 
-.matrix-grip-handle {
-  color: #52525b;
+/* Card arrastável - permite arrastar pelo card inteiro */
+.matrix-card-draggable {
   cursor: grab;
-  transition: color 0.2s ease;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.matrix-grip-handle:hover {
-  color: #a1a1aa;
+.matrix-card-draggable:active {
+  cursor: grabbing;
+}
+
+/* Estado visual quando o card está sendo arrastado */
+.matrix-card-dragging {
+  opacity: 0.4 !important;
+  transform: scale(0.98);
+  box-shadow: 0 0 0 2px var(--industrial-accent);
+}
+
+/* Card no DragOverlay (fantasma que segue o cursor) */
+.matrix-drag-overlay {
+  background: var(--industrial-surface);
+  border: 2px solid var(--industrial-accent);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(204, 255, 0, 0.15);
+  border-radius: 4px;
+  transform: scale(1.03) rotate(1deg);
 }
 
 .matrix-text-muted {
@@ -434,7 +1063,3 @@ input:focus, textarea:focus, select:focus {
 .matrix-text-xs {
   font-size: 10px;
 }
-
-.matrix-grip-handle:active {
-  cursor: grabbing;
-} 

@@ -5,6 +5,7 @@ import { AnimatedNavigationTabs } from "@/components/ui/animated-navigation-tabs
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import NavigationLink from './NavigationLink';
+import TrueFocus from './ui/TrueFocus';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -73,11 +74,8 @@ const Layout = ({
       <header className="w-full border-b border-[#27272a] bg-[#09090b]/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto">
           <div className="flex items-center justify-between h-16 px-4">
-            <NavigationLink to={user ? "/dashboard" : "/"} className="flex items-center gap-2 group" showLoadingScreen={true}>
-              <div className="w-8 h-8 bg-[#ccff00] flex items-center justify-center">
-                <Terminal className="w-5 h-5 text-black" />
-              </div>
-              <span className="font-bold tracking-tight text-white text-lg uppercase font-display">EISENHOWER<span className="text-[#ccff00]">.SYS</span></span>
+            <NavigationLink to={user ? "/dashboard" : "/"} className="flex items-center gap-0 group" showLoadingScreen={true}>
+              <TrueFocus sentence="Marcio Felix" manualMode={false} />
             </NavigationLink>
 
             <div className="flex items-center gap-4">
@@ -127,9 +125,6 @@ const Layout = ({
 
       <footer className="w-full py-6 border-t border-[#27272a] bg-[#09090b] relative z-10">
         <div className="container mx-auto px-4 text-center">
-          <div className="flex justify-center items-center gap-2 mb-2 opacity-50">
-            <span className="font-mono text-xs text-[#a1a1aa]">SYSTEM STATUS: NOMINAL</span>
-          </div>
           <p className="font-mono text-[10px] text-[#52525b] uppercase">
             © 2026 Eisenhower Task Manager. Todos os direitos reservados. Protocolo Seguro v2.4
           </p>

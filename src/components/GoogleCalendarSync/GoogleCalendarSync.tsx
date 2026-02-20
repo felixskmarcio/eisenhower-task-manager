@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Check, Calendar as CalendarIcon, CheckCircle, RefreshCw, ExternalLink, LogOut, AlertCircle, AlertTriangle, X } from 'lucide-react';
-import { 
-  loadGoogleApiScript, 
+import {
+  loadGoogleApiScript,
   initializeGoogleApi,
   getGoogleAuthInstance,
   isUserSignedIn,
@@ -23,10 +23,10 @@ interface GoogleCalendarSyncProps {
   className?: string;
 }
 
-const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({ 
-  tasks, 
-  onSync, 
-  className = '' 
+const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
+  tasks,
+  onSync,
+  className = ''
 }) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [userInfo, setUserInfo] = useState<{ name: string; email: string; imageUrl: string } | null>(null);
@@ -39,27 +39,27 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
     const initGoogleApi = async () => {
       try {
         console.log('Loading and initializing Google API...');
-        
+
         // Load the API script
         await loadGoogleApiScript();
-        
+
         // Initialize the API client
         await initializeGoogleApi();
-        
+
         // Check if user is signed in and update state
         const authInstance = getGoogleAuthInstance();
         if (authInstance) {
           const signedIn = authInstance.isSignedIn.get();
           setIsSignedIn(signedIn);
           setUserInfo(signedIn ? getGoogleUserInfo() : null);
-          
+
           // Add listener for auth state changes
           authInstance.isSignedIn.listen((signedIn: boolean) => {
             setIsSignedIn(signedIn);
             setUserInfo(signedIn ? getGoogleUserInfo() : null);
           });
         }
-        
+
         setIsLoading(false);
         console.log('Google API loaded and initialized successfully');
       } catch (error) {
@@ -75,7 +75,7 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
     };
 
     initGoogleApi();
-    
+
     // Cleanup function
     return () => {
       // Remove auth listener if needed
@@ -136,13 +136,13 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
 
     try {
       const result = await syncTasksWithCalendar(tasks);
-      
+
       setSyncStatus(`Sincronização concluída: ${result.synced} tarefas sincronizadas${result.failed > 0 ? `, ${result.failed} falhas` : ''}`);
       toast({
         title: result.success ? "Sincronização Concluída" : "Sincronização Parcial",
         description: `${result.synced} tarefas sincronizadas${result.failed > 0 ? `, ${result.failed} falhas` : ''}`
       });
-      
+
       if (onSync) {
         onSync(result.success);
       }
@@ -154,7 +154,7 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
         description: "Ocorreu um erro ao tentar sincronizar suas tarefas.",
         variant: "destructive"
       });
-      
+
       if (onSync) {
         onSync(false);
       }
@@ -168,114 +168,114 @@ const GoogleCalendarSync: React.FC<GoogleCalendarSyncProps> = ({
   };
 
   return (
-    <Card className={`google-calendar-sync p-5 ${className}`}>
-      <div className="flex items-center gap-2 mb-4 text-primary">
+    <Card className={`google-calendar-sync p-5 border-zinc-800 bg-black/40 rounded-none shadow-none ${className}`}>
+      <div className="flex items-center gap-2 mb-4 text-[#ccff00]">
         <CalendarIcon className="h-5 w-5" />
-        <h3 className="text-lg font-semibold">Sincronização com Google Calendar</h3>
+        <h3 className="text-lg font-bold uppercase tracking-wider">Sincronização com Google Calendar</h3>
       </div>
-      
-      <p className="text-sm text-muted-foreground mb-6">
-        Sincronize suas tarefas com o Google Calendar para manter tudo organizado em um só lugar.
+
+      <p className="text-sm text-zinc-400 mb-6 font-mono leading-relaxed">
+        &gt; Sincronize suas tarefas com o Google Calendar para manter tudo organizado em um só lugar.
         Tarefas concluídas serão automaticamente removidas do calendário.
       </p>
-      
+
       {initError && (
-        <div className="bg-destructive/10 border border-destructive/30 rounded-md p-4 mb-4">
+        <div className="bg-red-950/20 border border-red-900/50 rounded-none p-4 mb-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-destructive">Erro na inicialização</p>
-              <p className="text-sm text-muted-foreground mt-1">{initError}</p>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-sm font-bold text-red-500 uppercase tracking-wider">Erro na inicialização</p>
+              <p className="text-sm text-red-400 mt-1 font-mono">&gt; {initError}</p>
+              <p className="text-sm text-red-400/80 mt-2 font-mono text-xs">
                 Verifique se as credenciais da API do Google estão corretas e se o domínio está autorizado.
               </p>
             </div>
           </div>
         </div>
       )}
-      
+
       {isLoading ? (
         <div className="flex items-center justify-center py-4">
-          <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+          <RefreshCw className="h-6 w-6 animate-spin text-[#ccff00]" />
         </div>
       ) : isSignedIn && userInfo ? (
         <div className="space-y-4">
-          <div className="bg-green-500/10 border border-green-500/30 rounded-md p-4">
+          <div className="bg-green-950/20 border border-green-900/50 rounded-none p-4">
             <div className="flex items-center gap-3">
               {userInfo.imageUrl && (
-                <img 
-                  src={userInfo.imageUrl} 
-                  alt={userInfo.name} 
-                  className="w-10 h-10 rounded-full"
+                <img
+                  src={userInfo.imageUrl}
+                  alt={userInfo.name}
+                  className="w-10 h-10 rounded-none border border-green-500/50"
                 />
               )}
               <div>
-                <p className="font-medium">{userInfo.name}</p>
-                <p className="text-sm text-muted-foreground">{userInfo.email}</p>
+                <p className="font-bold text-white uppercase tracking-wide">{userInfo.name}</p>
+                <p className="text-sm text-zinc-400 font-mono">{userInfo.email}</p>
               </div>
             </div>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
-              variant="default" 
-              className="flex-1"
+              variant="default"
+              className="flex-1 bg-[#ccff00] text-black hover:bg-[#b0dd00] rounded-none font-bold uppercase tracking-wider border-none"
               onClick={handleSyncTasks}
               disabled={isSyncing}
             >
               {isSyncing ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Sincronizando...
+                  SYNCING...
                 </>
               ) : (
                 <>
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  Sincronizar Tarefas
+                  SYNC TASKS
                 </>
               )}
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               onClick={openCalendarSettings}
-              className="flex-1"
+              className="flex-1 rounded-none border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white uppercase tracking-wider font-bold"
             >
               <ExternalLink className="mr-2 h-4 w-4" />
-              Abrir Calendário
+              OPEN CALENDAR
             </Button>
           </div>
-          
-          <Button 
-            variant="ghost" 
+
+          <Button
+            variant="ghost"
             onClick={handleAuthClick}
-            className="w-full text-red-500 hover:text-red-600 hover:bg-red-500/10"
+            className="w-full text-red-500 hover:text-red-400 hover:bg-red-950/30 font-mono uppercase tracking-widest text-xs"
           >
             <LogOut className="mr-2 h-4 w-4" />
-            Desconectar Conta
+            DISCONNECT ACCOUNT
           </Button>
-          
+
           {syncStatus && (
-            <div className="mt-4 text-sm">
-              <p className="flex items-center gap-2 font-medium">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>{syncStatus}</span>
+            <div className="mt-4 text-sm border-t border-zinc-800 pt-3">
+              <p className="flex items-center gap-2 font-mono text-[#ccff00]">
+                <CheckCircle className="h-4 w-4" />
+                <span>&gt; {syncStatus}</span>
               </p>
             </div>
           )}
         </div>
       ) : (
         <div className="text-center">
-          <Button 
+          <Button
             onClick={handleAuthClick}
-            className="w-full"
+            className="w-full bg-[#ccff00] text-black hover:bg-[#b0dd00] rounded-none font-bold uppercase tracking-wider border-none h-12"
             disabled={!!initError}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            Conectar ao Google Calendar
+            <CalendarIcon className="mr-2 h-5 w-5" />
+            CONNECT GOOGLE CALENDAR
           </Button>
-          
-          {syncStatus && <p className="mt-4 text-sm text-muted-foreground">{syncStatus}</p>}
+
+          {syncStatus && <p className="mt-4 text-sm text-zinc-500 font-mono">{syncStatus}</p>}
         </div>
       )}
     </Card>

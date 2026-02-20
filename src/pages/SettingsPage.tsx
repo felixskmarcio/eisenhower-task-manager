@@ -27,7 +27,7 @@ interface Task {
 const SettingsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<FirebaseUser | null>(getCurrentUser());
-  const [googleError, setGoogleError] = useState<{code?: string; message: string; details?: Record<string, unknown>} | null>(null);
+  const [googleError, setGoogleError] = useState<{ code?: string; message: string; details?: Record<string, unknown> } | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ const SettingsPage = () => {
     try {
       setIsLoading(true);
       setGoogleError(null);
-      
+
       const user = await signInWithGoogle();
       if (user?.email) {
         toast({
@@ -69,7 +69,7 @@ const SettingsPage = () => {
       }
     } catch (error) {
       console.error('Erro no login:', error);
-      
+
       if (error instanceof Error) {
         const authError = error as AuthError;
         setGoogleError({
@@ -111,76 +111,75 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 md:px-8 relative">
-      <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-base-100 to-secondary/5"></div>
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMDIiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8L3N2Zz4=')] opacity-10"></div>
-      </div>
-      
-      <div className="container mx-auto max-w-2xl pt-10 z-10 relative animate-fade-in">
-        <div className="flex items-center gap-3 mb-8 border-b pb-4 border-primary/10">
-          <Settings className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-primary tracking-tight">Configurações</h1>
+    <div className="min-h-screen bg-[#09090b] text-zinc-300 font-sans selection:bg-[#ccff00] selection:text-black py-8 px-4 sm:px-6 md:px-8 relative">
+      <div className="container mx-auto max-w-2xl pt-4 animate-in fade-in duration-500">
+        <div className="flex items-center gap-3 mb-8 border-b border-zinc-800 pb-4">
+          <div className="p-2 bg-[#ccff00]/10 rounded-none border border-[#ccff00]/20">
+            <Settings className="h-6 w-6 text-[#ccff00]" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight uppercase">Configurações</h1>
+            <p className="text-[10px] text-[#ccff00] font-mono tracking-widest uppercase">SYSTEM.CONFIG</p>
+          </div>
         </div>
-        
-        <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
-          <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
-            <Database className="h-5 w-5 text-primary" />
+
+        <Card className="p-6 mb-8 bg-zinc-900 border-zinc-800 rounded-none shadow-none">
+          <h2 className="text-lg font-bold mb-2 flex items-center gap-2 text-white uppercase tracking-wide">
+            <Database className="h-4 w-4 text-[#ccff00]" />
             Integração com Supabase
           </h2>
-          <Separator className="my-4" />
-          
-          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            Conecte-se ao Supabase para sincronizar dados, utilizar autenticação e armazenamento.
+          <Separator className="my-4 bg-zinc-800" />
+
+          <p className="text-sm text-zinc-400 mb-6 leading-relaxed font-mono">
+            &gt; Conecte-se ao Supabase para sincronizar dados, utilizar autenticação e armazenamento.
           </p>
-          
+
           <SupabaseIntegration />
         </Card>
-        
 
-        
-        <Card className="p-6 mb-8 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
-          <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-primary/90">
-            <CalendarIcon className="h-5 w-5 text-primary" />
+
+        <Card className="p-6 mb-8 bg-zinc-900 border-zinc-800 rounded-none shadow-none">
+          <h2 className="text-lg font-bold mb-2 flex items-center gap-2 text-white uppercase tracking-wide">
+            <CalendarIcon className="h-4 w-4 text-[#ccff00]" />
             Conta Google
           </h2>
-          <Separator className="my-4" />
-          
+          <Separator className="my-4 bg-zinc-800" />
+
           <div>
             {googleError && (
               <div className="mb-4">
-                <GoogleCalendarErrorDisplay 
+                <GoogleCalendarErrorDisplay
                   error={googleError}
                   onRetry={() => handleGoogleLogin()}
                 />
               </div>
             )}
-            
+
             {user ? (
-              <div className="bg-green-500/10 border border-green-500/30 rounded-md p-5">
-                <div className="flex items-center gap-2 text-green-600 mb-3 font-medium">
-                  <CalendarIcon size={18} />
-                  <span>Conectado como <span className="font-semibold">{user.email}</span></span>
+              <div className="bg-black/40 border border-zinc-800 p-5 rounded-none">
+                <div className="flex items-center gap-2 text-[#ccff00] mb-3 font-medium font-mono text-sm">
+                  <CalendarIcon size={16} />
+                  <span>Conectado como <span className="font-bold text-white">{user.email}</span></span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                  Sua conta Google está conectada. Você pode usar os recursos de sincronização do calendário.
+                <p className="text-xs text-zinc-500 mb-4 leading-relaxed font-mono uppercase">
+                  STATUS: ONLINE | SYNC: ENABLED
                 </p>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                  className="rounded-none border-red-900/50 text-red-500 hover:text-red-400 hover:bg-red-950/30 hover:border-red-500/50 transition-all uppercase text-xs font-bold tracking-wider"
                 >
                   Desconectar
                 </Button>
                 {user && (
-                  <div className="mt-4 pt-4 border-t border-green-500/20">
-                    <h4 className="text-sm font-medium mb-3 text-primary/80">Sincronização com Google Calendar</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Sincronize suas tarefas com seu calendário Google para visualizá-las e gerenciá-las em qualquer dispositivo.
+                  <div className="mt-4 pt-4 border-t border-zinc-800">
+                    <h4 className="text-xs font-bold mb-3 text-white uppercase tracking-wider">Sincronização Calendar</h4>
+                    <p className="text-xs text-zinc-400 mb-3 font-mono">
+                      &gt; Sincronize tarefas locais com Google Calendar.
                     </p>
 
-                    <GoogleCalendarSyncButton 
+                    <GoogleCalendarSyncButton
                       tasks={tasks}
                       className="w-full mt-2"
                     />
@@ -189,12 +188,12 @@ const SettingsPage = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                  Conecte-se com sua conta Google para sincronizar suas tarefas com o Google Calendar.
+                <p className="text-sm text-zinc-400 mb-4 leading-relaxed font-mono">
+                  &gt; Conecte sua conta Google para habilitar sincronização.
                 </p>
-                <Button 
+                <Button
                   onClick={handleGoogleLogin}
-                  className="w-full"
+                  className="w-full bg-[#ccff00] text-black hover:bg-[#b0dd00] rounded-none font-bold uppercase tracking-wider border-none h-12"
                   disabled={isLoading}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -204,15 +203,15 @@ const SettingsPage = () => {
             )}
           </div>
         </Card>
-        
-        <Card className="p-6 backdrop-blur-sm bg-background/50 border border-primary/10 shadow-lg">
-          <h2 className="text-xl font-semibold mb-2 text-primary/90">Sobre</h2>
-          <Separator className="my-4" />
-          <p className="text-sm font-medium mb-3 text-primary/80">
-            Gerenciador de Tarefas - Versão 1.3.0
+
+        <Card className="p-6 bg-zinc-900 border-zinc-800 rounded-none shadow-none">
+          <h2 className="text-lg font-bold mb-2 text-white uppercase tracking-wide">Sobre</h2>
+          <Separator className="my-4 bg-zinc-800" />
+          <p className="text-xs font-bold mb-3 text-[#ccff00] font-mono">
+            VERSION 1.3.0 :: BUILD 2024
           </p>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Um aplicativo de gerenciamento de tarefas que utiliza a Matriz de Eisenhower para ajudar você a priorizar suas atividades de forma eficiente.
+          <p className="text-sm text-zinc-400 leading-relaxed max-w-prose">
+            Um sistema de gerenciamento de tarefas tático baseado na Matriz de Eisenhower para priorização de alta eficiência.
           </p>
         </Card>
       </div>
