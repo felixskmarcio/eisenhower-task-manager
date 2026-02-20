@@ -1,0 +1,8 @@
+﻿
+> task-eagle-eye@1.3.0 build
+> vite build
+
+[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+transforming...
+/*! ≡ƒî╝ daisyUI 5.0.50 */
+[32mΓ£ô[39m 4108 modules transformed.

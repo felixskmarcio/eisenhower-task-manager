@@ -1,0 +1,42 @@
+[
+  {
+    "id": "task-1",
+    "title": "Tarefa Urgente Importante",
+    "description": "Esta é uma tarefa que deve ser feita imediatamente",
+    "quadrant": "fazer",
+    "priority": "high",
+    "completed": false,
+    "due_date": "2026-02-09T21:24:15.640Z",
+    "user_id": "test-user-123"
+  },
+  {
+    "id": "task-2",
+    "title": "Tarefa Importante Não Urgente",
+    "description": "Esta tarefa pode ser agendada para depois",
+    "quadrant": "agendar",
+    "priority": "medium",
+    "completed": false,
+    "due_date": "2026-02-15T21:24:15.641Z",
+    "user_id": "test-user-123"
+  },
+  {
+    "id": "task-3",
+    "title": "Tarefa Urgente Não Importante",
+    "description": "Esta tarefa pode ser delegada",
+    "quadrant": "delegar",
+    "priority": "low",
+    "completed": false,
+    "due_date": "2026-02-11T21:24:15.641Z",
+    "user_id": "test-user-123"
+  },
+  {
+    "id": "task-4",
+    "title": "Tarefa Não Urgente Não Importante",
+    "description": "Esta tarefa pode ser eliminada",
+    "quadrant": "eliminar",
+    "priority": "low",
+    "completed": false,
+    "due_date": null,
+    "user_id": "test-user-123"
+  }
+]

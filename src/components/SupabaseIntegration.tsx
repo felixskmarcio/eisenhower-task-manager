@@ -30,7 +30,7 @@ const createSupabaseClient = (url: string, key: string) => {
           setTimeout(() => {
             callback({ data: [], error: null });
           }, 1000);
-          return { catch: () => {} };
+          return { catch: () => { } };
         }
       })
     }),
@@ -57,8 +57,8 @@ const SupabaseIntegration = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'not_connected' | 'connected' | 'testing' | 'success' | 'error'>('not_connected');
-  const [dbSetupResult, setDbSetupResult] = useState<{success: boolean, message: string} | null>(null);
-  const [syncError, setSyncError] = useState<{title: string; message: string; details?: string} | null>(null);
+  const [dbSetupResult, setDbSetupResult] = useState<{ success: boolean, message: string } | null>(null);
+  const [syncError, setSyncError] = useState<{ title: string; message: string; details?: string } | null>(null);
   const [usingDefaultClient, setUsingDefaultClient] = useState(false);
   const { user, signInWithGoogle } = useAuth();
   const [isUserChecked, setIsUserChecked] = useState(false);
@@ -71,22 +71,22 @@ const SupabaseIntegration = () => {
       const disconnected = sessionStorage.getItem(DISCONNECTION_FLAG);
       const lastDisconnectionTime = sessionStorage.getItem(LAST_DISCONNECTION_TIME);
       const disconnectRetries = Number(sessionStorage.getItem(DISCONNECT_RETRIES) || '0');
-      
+
       console.log('Estado de desconexão:', { disconnected, lastDisconnectionTime, disconnectRetries });
-      
+
       if (disconnected === 'true') {
         const now = Date.now();
         const lastTime = lastDisconnectionTime ? parseInt(lastDisconnectionTime) : 0;
         const timeDiff = now - lastTime;
-        
+
         if (timeDiff > 10000) {
           console.log('O processo de desconexão está demorando muito, tentando novamente');
           sessionStorage.removeItem(DISCONNECTION_FLAG);
           sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
-          
+
           if (isSupabaseConnected()) {
             sessionStorage.setItem(DISCONNECT_RETRIES, String(disconnectRetries + 1));
-            
+
             if (disconnectRetries < 3) {
               console.log('Tentando desconexão forçada novamente...');
               executeDisconnect(true);
@@ -102,28 +102,28 @@ const SupabaseIntegration = () => {
         sessionStorage.removeItem(DISCONNECTION_FLAG);
         sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
         sessionStorage.removeItem(DISCONNECT_RETRIES);
-        
+
         if (isSupabaseConnected()) {
           console.log('ALERTA: Ainda conectado após desconexão "concluída"!');
           forceCleanDisconnect();
         }
       }
     };
-    
+
     const url = new URL(window.location.href);
     const disconnected = url.searchParams.get('disconnected');
-    
+
     if (disconnected === 'true') {
       console.log('Redirecionado após desconexão, verificando status...');
       url.searchParams.delete('disconnected');
       window.history.replaceState({}, document.title, url.toString());
-      
+
       sessionStorage.setItem(DISCONNECTION_FLAG, 'completed');
-      
+
       if (isSupabaseConnected()) {
         console.warn('Ainda há dados de conexão do Supabase após a desconexão. Limpando novamente...');
         clearSupabaseStorage();
-        
+
         if (isSupabaseConnected()) {
           forceCleanDisconnect();
         } else {
@@ -131,28 +131,28 @@ const SupabaseIntegration = () => {
         }
       }
     }
-    
+
     checkDisconnectionState();
 
     const checkConnection = async () => {
       console.log('Verificando conexão do Supabase...');
-      
+
       if (sessionStorage.getItem(DISCONNECTION_FLAG) === 'true') {
         console.log('Em processo de desconexão, pulando verificação de conexão');
         setConnectionStatus('not_connected');
         return;
       }
-      
+
       const savedUrl = localStorage.getItem('supabaseUrl');
       const savedKey = localStorage.getItem('supabaseKey');
-      
+
       if (savedUrl && savedKey) {
         console.log('Credenciais encontradas no localStorage, configurando cliente...');
         setSupabaseUrl(savedUrl);
         setSupabaseKey(savedKey);
         setConnectionStatus('connected');
         setUsingDefaultClient(false);
-        
+
         await checkDatabaseSetup();
       } else if (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_KEY) {
         console.log('Usando credenciais padrão das variáveis de ambiente...');
@@ -160,31 +160,31 @@ const SupabaseIntegration = () => {
         setSupabaseKey(DEFAULT_SUPABASE_KEY);
         setConnectionStatus('connected');
         setUsingDefaultClient(true);
-        
+
         toast({
           title: "Credenciais padrão carregadas",
           description: "Usando configuração de Supabase das variáveis de ambiente."
         });
-        
+
         await checkDatabaseSetup();
       } else {
         console.log('Nenhuma credencial encontrada.');
         setConnectionStatus('not_connected');
-        
+
         toast({
           title: "Credenciais não encontradas",
           description: "Configure as credenciais do Supabase para usar este recurso.",
           variant: "destructive"
         });
       }
-      
+
       setIsUserChecked(true);
     };
-    
+
     if (!sessionStorage.getItem(DISCONNECTION_FLAG)) {
       checkConnection();
     }
-    
+
     return () => {
       if (disconnectTimeoutRef.current) {
         clearTimeout(disconnectTimeoutRef.current);
@@ -195,15 +195,15 @@ const SupabaseIntegration = () => {
   useEffect(() => {
     const url = new URL(window.location.href);
     const disconnected = url.searchParams.get('disconnected');
-    
+
     if (disconnected === 'true') {
       url.searchParams.delete('disconnected');
       window.history.replaceState({}, document.title, url.toString());
-      
+
       if (isSupabaseConnected()) {
         console.warn("Ainda existem dados do Supabase após a desconexão. Tentando limpar novamente.");
         clearSupabaseStorage();
-        
+
         if (isSupabaseConnected()) {
           forceCleanDisconnect();
         } else {
@@ -213,7 +213,7 @@ const SupabaseIntegration = () => {
     } else {
       const shouldBeConnected = isSupabaseConnected();
       console.log("Estado atual de conexão (pela verificação):", shouldBeConnected);
-      
+
       if (shouldBeConnected && connectionStatus === 'not_connected') {
         setConnectionStatus('connected');
       } else if (!shouldBeConnected && connectionStatus === 'connected') {
@@ -226,7 +226,7 @@ const SupabaseIntegration = () => {
     try {
       const result = await setupDatabase();
       setDbSetupResult(result);
-      
+
       if (!result.success) {
         toast({
           title: "Atenção",
@@ -234,7 +234,7 @@ const SupabaseIntegration = () => {
           variant: "destructive",
         });
       }
-      
+
       return result;
     } catch (error) {
       console.error("Erro ao verificar banco de dados:", error);
@@ -251,7 +251,7 @@ const SupabaseIntegration = () => {
 
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!supabaseUrl || !supabaseKey) {
       toast({
         title: "Campos obrigatórios",
@@ -263,19 +263,19 @@ const SupabaseIntegration = () => {
 
     setIsConnecting(true);
     setConnectionStatus('testing');
-    
+
     try {
       const supabase = createSupabaseClient(supabaseUrl, supabaseKey);
-      
+
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       localStorage.setItem('supabaseUrl', supabaseUrl);
       localStorage.setItem('supabaseKey', supabaseKey);
-      
+
       setConnectionStatus('connected');
-      
+
       await checkDatabaseSetup();
-      
+
       toast({
         title: "Conectado com sucesso!",
         description: "Sua integração com o Supabase foi configurada",
@@ -283,7 +283,7 @@ const SupabaseIntegration = () => {
     } catch (error) {
       console.error("Erro ao conectar com Supabase:", error);
       setConnectionStatus('error');
-      
+
       toast({
         title: "Erro na conexão",
         description: "Não foi possível conectar ao Supabase",
@@ -297,12 +297,12 @@ const SupabaseIntegration = () => {
   const handleTestConnection = async () => {
     setIsTesting(true);
     setConnectionStatus('testing');
-    
+
     try {
       const supabase = createSupabaseClient(supabaseUrl, supabaseKey);
-      
+
       await checkDatabaseSetup();
-      
+
       await new Promise<boolean>((resolve, reject) => {
         setTimeout(() => {
           if (Math.random() > 0.1) {
@@ -312,9 +312,9 @@ const SupabaseIntegration = () => {
           }
         }, 1500);
       });
-      
+
       setConnectionStatus('success');
-      
+
       toast({
         title: "Conexão testada com sucesso!",
         description: "Sua conexão com o Supabase está funcionando corretamente",
@@ -322,7 +322,7 @@ const SupabaseIntegration = () => {
     } catch (error) {
       console.error("Erro ao verificar conexão:", error);
       setConnectionStatus('error');
-      
+
       toast({
         title: "Falha na conexão",
         description: "Não foi possível conectar ao Supabase. Verifique suas credenciais.",
@@ -353,10 +353,10 @@ const SupabaseIntegration = () => {
 
     setIsSyncing(true);
     setSyncError(null);
-    
+
     try {
       const localTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-      
+
       if (localTasks.length === 0) {
         toast({
           title: "Nenhuma tarefa para sincronizar",
@@ -366,39 +366,39 @@ const SupabaseIntegration = () => {
         setIsSyncing(false);
         return;
       }
-      
+
       console.log("Iniciando sincronização de", localTasks.length, "tarefas");
-      
+
       if (!user) {
         console.log("Sincronizando como usuário anônimo");
       }
-      
+
       const result = await syncTasks(localTasks);
-      
+
       if (result.success) {
         toast({
           title: "Sincronização concluída",
           description: `${result.syncedCount} tarefas sincronizadas com sucesso.`
         });
-        
+
         if (result.syncedCount > 0) {
           localStorage.removeItem('tasks');
         }
       } else {
         console.error("Erro na sincronização:", result.message);
-        
+
         if (!retry && result.message.includes('violates row-level security')) {
           toast({
             title: "Tentando método alternativo",
             description: "Sincronizando com configurações alternativas"
           });
-          
+
           setTimeout(() => {
             handleSyncData(true);
           }, 1000);
           return;
         }
-        
+
         setSyncError({
           title: "Erro na sincronização",
           message: result.message,
@@ -409,7 +409,7 @@ const SupabaseIntegration = () => {
             retryCount: syncRetryCount
           }, null, 2)
         });
-        
+
         toast({
           title: "Erro na sincronização",
           description: "Não foi possível sincronizar as tarefas. Verifique os detalhes do erro.",
@@ -423,7 +423,7 @@ const SupabaseIntegration = () => {
         message: error instanceof Error ? error.message : "Erro desconhecido",
         details: error instanceof Error ? error.stack : undefined
       });
-      
+
       toast({
         title: "Erro na sincronização",
         description: "Ocorreu um erro inesperado. Tente novamente mais tarde.",
@@ -436,11 +436,11 @@ const SupabaseIntegration = () => {
 
   const forceCleanDisconnect = () => {
     clearSupabaseStorage();
-    
+
     sessionStorage.removeItem(DISCONNECTION_FLAG);
     sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
     sessionStorage.removeItem(DISCONNECT_RETRIES);
-    
+
     const cacheBuster = new Date().getTime();
     window.location.href = `/config?cache=${cacheBuster}`;
   };
@@ -450,17 +450,17 @@ const SupabaseIntegration = () => {
       if (!force) {
         setIsDisconnecting(true);
       }
-      
+
       sessionStorage.setItem(DISCONNECTION_FLAG, 'true');
       sessionStorage.setItem(LAST_DISCONNECTION_TIME, Date.now().toString());
-      
+
       if (!force) {
         toast({
           title: "Desconectando...",
           description: "Aguarde enquanto finalizamos o processo de desconexão."
         });
       }
-      
+
       try {
         await supabase.auth.signOut({
           scope: 'global'
@@ -469,57 +469,57 @@ const SupabaseIntegration = () => {
       } catch (signOutError) {
         console.error("Erro no signOut do Supabase:", signOutError);
       }
-      
-      clearSupabaseStorage();
-      console.log("Limpeza do storage realizada");
-      
+
+      const cleanupSuccess = clearSupabaseStorage();
+      console.log("Resultado da limpeza:", cleanupSuccess ? "Sucesso" : "Falha");
+
       setSupabaseUrl('');
       setSupabaseKey('');
       setConnectionStatus('not_connected');
       setDbSetupResult(null);
       setUsingDefaultClient(false);
       setSyncError(null);
-      
+
       if (!force) {
         toast({
           title: "Desconectado com sucesso",
           description: "Integração com Supabase removida completamente."
         });
       }
-      
+
       const stillConnected = isSupabaseConnected();
       console.log("Ainda conectado após limpeza?", stillConnected);
-      
+
       if (stillConnected) {
         console.warn("Ainda detectados vestígios de conexão. Realizando limpeza forçada...");
-        
+
         clearSupabaseStorage();
         setDisconnectionAttempts(prev => prev + 1);
-        
+
         if (disconnectionAttempts >= 2) {
           console.warn("Múltiplas tentativas de desconexão falharam. Forçando recarga completa...");
           forceCleanDisconnect();
           return;
         }
       }
-      
+
       const url = new URL(window.location.href);
       url.searchParams.set('disconnected', 'true');
-      
+
       url.searchParams.delete('cache');
       url.pathname = '/config';
-      
+
       url.searchParams.set('t', Date.now().toString());
-      
+
       console.log("Redirecionando para:", url.toString());
-      
+
       disconnectTimeoutRef.current = window.setTimeout(() => {
         window.location.href = url.toString();
       }, 500);
-      
+
     } catch (error) {
       console.error("Erro ao desconectar:", error);
-      
+
       if (!force) {
         toast({
           title: "Erro ao desconectar",
@@ -527,10 +527,10 @@ const SupabaseIntegration = () => {
           variant: "destructive"
         });
       }
-      
+
       sessionStorage.removeItem(DISCONNECTION_FLAG);
       sessionStorage.removeItem(LAST_DISCONNECTION_TIME);
-      
+
     } finally {
       if (!force) {
         setIsDisconnecting(false);
@@ -599,7 +599,7 @@ const SupabaseIntegration = () => {
     setSyncError(null);
     handleSyncData(true);
   };
-  
+
   const handleLogin = async () => {
     try {
       if (signInWithGoogle) {
@@ -622,44 +622,42 @@ const SupabaseIntegration = () => {
   return (
     <div>
       {isConnected ? (
-        <div className={`border rounded-md p-4 mb-4 ${getConnectionStatusClass()}`}>
+        <div className={`border rounded-none p-4 mb-4 ${getConnectionStatusClass()} bg-black/40`}>
           {getStatusIndicator()}
-          <p className="text-sm text-muted-foreground my-3">
-            Sua conta Supabase está conectada. Agora você pode sincronizar seus dados e utilizar autenticação.
+          <p className="text-sm text-zinc-400 my-3 font-mono">
+            &gt; STATUS: CONECTADO AO SUPABASE. SINCRONIZAÇÃO ATIVA.
           </p>
-          
+
           {dbSetupResult && !dbSetupResult.success && (
-            <div className="mb-4 p-3 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600">
+            <div className="mb-4 p-3 rounded-none bg-amber-900/20 border border-amber-500/30 text-amber-500">
               <div className="flex items-start gap-2">
                 <Info size={16} className="mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-medium">Configuração necessária</p>
-                  <p className="text-xs mt-1">Para utilizar o Supabase, você precisa criar a tabela "tasks" no seu banco de dados.</p>
-                  
+                  <p className="text-sm font-bold uppercase tracking-wider">Configuração necessária</p>
+                  <p className="text-xs mt-1 font-mono">Required: table "tasks" creation via SQL Editor.</p>
+
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="mt-2 text-xs">
-                        <Code className="mr-1 h-3 w-3" /> Ver SQL para criar tabela
+                      <Button variant="outline" size="sm" className="mt-2 text-xs rounded-none border-amber-500/50 text-amber-500 hover:bg-amber-900/40">
+                        <Code className="mr-1 h-3 w-3" /> VER SQL_QUERY
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="bg-[#09090b] border-zinc-800 text-zinc-300">
                       <DialogHeader>
-                        <DialogTitle>SQL para criar tabela no Supabase</DialogTitle>
-                        <DialogDescription>
-                          Execute o seguinte SQL no Editor SQL do seu projeto Supabase para criar a tabela de tarefas:
+                        <DialogTitle className="text-white uppercase tracking-wider">SQL Configuration</DialogTitle>
+                        <DialogDescription className="font-mono text-xs">
+                          Execute o seguinte SQL no Editor SQL do seu projeto Supabase:
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="bg-black/90 text-white p-4 rounded-md font-mono text-xs overflow-x-auto">
+                      <div className="bg-black border border-zinc-800 text-[#ccff00] p-4 rounded-none font-mono text-xs overflow-x-auto">
                         <pre>{createTableSQL}</pre>
                       </div>
                       <div className="text-sm mt-4">
-                        <h4 className="font-medium">Como executar:</h4>
-                        <ol className="list-decimal pl-4 mt-2 space-y-1 text-muted-foreground">
-                          <li>Acesse o dashboard do Supabase ({supabaseUrl.replace('https://', '')})</li>
-                          <li>Navegue para "SQL Editor" no menu lateral</li>
-                          <li>Crie uma nova consulta</li>
-                          <li>Cole o código SQL acima</li>
-                          <li>Clique em "Executar" ou pressione Ctrl+Enter</li>
+                        <h4 className="font-bold text-white uppercase tracking-wide">Instruções:</h4>
+                        <ol className="list-decimal pl-4 mt-2 space-y-1 text-zinc-500 font-mono text-xs">
+                          <li>Acesse o dashboard do Supabase</li>
+                          <li>Navegue para "SQL Editor"</li>
+                          <li>Cole e execute o código acima</li>
                         </ol>
                       </div>
                     </DialogContent>
@@ -668,22 +666,22 @@ const SupabaseIntegration = () => {
               </div>
             </div>
           )}
-          
+
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={handleDisconnect}
               disabled={isDisconnecting}
-              className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+              className="rounded-none text-red-500 border-red-900/50 hover:bg-red-950/30 hover:text-red-400 hover:border-red-500/50 uppercase text-xs font-bold tracking-wider"
             >
               {isDisconnecting ? (
                 <>
-                  <RefreshCw size={14} className="mr-1 animate-spin" /> Desconectando...
+                  <RefreshCw size={14} className="mr-1 animate-spin" /> DISCONNECTING...
                 </>
               ) : (
                 <>
-                  Desconectar
+                  DISCONNECT
                 </>
               )}
             </Button>
@@ -692,29 +690,29 @@ const SupabaseIntegration = () => {
               size="sm"
               onClick={handleTestConnection}
               disabled={isTesting || isDisconnecting}
-              className="text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
+              className="rounded-none text-amber-500 border-amber-900/50 hover:bg-amber-950/30 hover:text-amber-400 hover:border-amber-500/50 uppercase text-xs font-bold tracking-wider"
             >
               {isTesting ? (
                 <>
-                  <RefreshCw size={14} className="mr-1 animate-spin" /> Testando...
+                  <RefreshCw size={14} className="mr-1 animate-spin" /> TESTING...
                 </>
               ) : (
-                <>Testar Conexão</>
+                <>TEST CONNECTION</>
               )}
             </Button>
             <Button
               size="sm"
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 rounded-none bg-[#ccff00] text-black hover:bg-[#b0dd00] border-none uppercase text-xs font-bold tracking-wider"
               onClick={() => handleSyncData(false)}
               disabled={isSyncing || isDisconnecting || (dbSetupResult && !dbSetupResult.success)}
             >
               {isSyncing ? (
                 <>
-                  <RefreshCw size={14} className="mr-1 animate-spin" /> Sincronizando...
+                  <RefreshCw size={14} className="mr-1 animate-spin" /> SYNCING...
                 </>
               ) : (
                 <>
-                  <Save size={14} /> Sincronizar Dados
+                  <Save size={14} /> SYNC DATA
                 </>
               )}
             </Button>
@@ -723,7 +721,7 @@ const SupabaseIntegration = () => {
       ) : (
         <form onSubmit={handleConnect} className="space-y-4">
           <div>
-            <label htmlFor="supabaseUrl" className="block text-sm font-medium mb-1">
+            <label htmlFor="supabaseUrl" className="block text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-1">
               URL do Projeto Supabase
             </label>
             <div className="relative">
@@ -733,13 +731,13 @@ const SupabaseIntegration = () => {
                 value={supabaseUrl}
                 onChange={(e) => setSupabaseUrl(e.target.value)}
                 placeholder="https://xxxxxxxxxxxxx.supabase.co"
-                className="w-full pr-10"
+                className="w-full pr-10 bg-black/50 border-zinc-800 rounded-none text-zinc-300 placeholder:text-zinc-700 focus-visible:ring-[#ccff00]/50"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-zinc-500 hover:text-white"
                 onClick={() => setShowUrl(!showUrl)}
               >
                 {showUrl ? (
@@ -749,13 +747,10 @@ const SupabaseIntegration = () => {
                 )}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Encontrada nas configurações do seu projeto no Supabase
-            </p>
           </div>
-          
+
           <div>
-            <label htmlFor="supabaseKey" className="block text-sm font-medium mb-1">
+            <label htmlFor="supabaseKey" className="block text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-1">
               Chave de API do Supabase
             </label>
             <div className="relative">
@@ -765,13 +760,13 @@ const SupabaseIntegration = () => {
                 value={supabaseKey}
                 onChange={(e) => setSupabaseKey(e.target.value)}
                 placeholder="eyJxxxxxxxxxxxxxxxxxxxxxxxx"
-                className="w-full pr-10"
+                className="w-full pr-10 bg-black/50 border-zinc-800 rounded-none text-zinc-300 placeholder:text-zinc-700 focus-visible:ring-[#ccff00]/50"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-zinc-500 hover:text-white"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
@@ -781,19 +776,16 @@ const SupabaseIntegration = () => {
                 )}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Utilize a chave anon/public key encontrada nas configurações do API do seu projeto
-            </p>
           </div>
-          
-          <Button type="submit" disabled={isConnecting} className="w-full">
+
+          <Button type="submit" disabled={isConnecting} className="w-full bg-[#ccff00] text-black hover:bg-[#b0dd00] rounded-none font-bold uppercase tracking-wider h-10 border-none">
             {isConnecting ? (
               <>
                 <RefreshCw size={16} className="mr-2 animate-spin" />
-                Conectando...
+                CONNECTING...
               </>
             ) : (
-              "Conectar ao Supabase"
+              "CONNECT TO SUPABASE"
             )}
           </Button>
         </form>

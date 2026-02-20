@@ -13,8 +13,8 @@ interface GoogleCalendarErrorProps {
   className?: string;
 }
 
-const GoogleCalendarErrorDisplay: React.FC<GoogleCalendarErrorProps> = ({ 
-  error, 
+const GoogleCalendarErrorDisplay: React.FC<GoogleCalendarErrorProps> = ({
+  error,
   onRetry,
   className = ''
 }) => {
@@ -22,7 +22,7 @@ const GoogleCalendarErrorDisplay: React.FC<GoogleCalendarErrorProps> = ({
 
   const handleCopyError = () => {
     const errorDetails = JSON.stringify(error, null, 2);
-    
+
     navigator.clipboard.writeText(errorDetails)
       .then(() => {
         setCopied(true);
@@ -36,7 +36,7 @@ const GoogleCalendarErrorDisplay: React.FC<GoogleCalendarErrorProps> = ({
   // Mapa de códigos de erro comuns do Google para mensagens amigáveis
   const getErrorMessage = () => {
     if (!error.code) return error.message;
-    
+
     switch (error.code) {
       case 'popup_closed_by_user':
         return 'A janela de autenticação foi fechada antes da conclusão. Por favor, tente novamente.';
@@ -64,7 +64,7 @@ const GoogleCalendarErrorDisplay: React.FC<GoogleCalendarErrorProps> = ({
   // Dicas de solução com base no código de erro
   const getTroubleshootingTips = () => {
     if (!error.code) return null;
-    
+
     switch (error.code) {
       case 'popup_blocked_by_browser':
         return (
@@ -94,45 +94,47 @@ const GoogleCalendarErrorDisplay: React.FC<GoogleCalendarErrorProps> = ({
   };
 
   return (
-    <Card className={`border-red-200 dark:border-red-800 shadow-md ${className}`}>
+    <Card className={`border-red-900/50 bg-red-950/20 shadow-none rounded-none ${className}`}>
       <div className="p-4">
         <div className="flex flex-col space-y-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle size={20} className="text-red-500 flex-shrink-0" />
-              <h3 className="text-red-700 dark:text-red-400 font-semibold">
+              <h3 className="text-red-500 font-bold uppercase tracking-wider text-sm">
                 Erro na Conexão
               </h3>
             </div>
-            
+
             {error.code && (
-              <span className="bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 text-xs px-2 py-1 rounded-full font-medium">
+              <span className="bg-red-900/50 text-red-400 text-[10px] px-2 py-1 font-mono uppercase tracking-widest border border-red-900/50">
                 {error.code}
               </span>
             )}
           </div>
-          
-          <p className="text-sm text-red-600 dark:text-red-300">
-            {getErrorMessage()}
+
+          <p className="text-sm text-red-400 font-mono">
+            &gt; {getErrorMessage()}
           </p>
-          
+
           {getTroubleshootingTips() && (
             <div className="mt-1">
-              <details className="text-xs text-red-600 dark:text-red-300">
-                <summary className="cursor-pointer font-medium">
+              <details className="text-xs text-red-400/80 font-mono">
+                <summary className="cursor-pointer font-bold uppercase tracking-wide hover:text-red-300">
                   Sugestões para resolver
                 </summary>
-                {getTroubleshootingTips()}
+                <div className="mt-2 pl-2 border-l-2 border-red-900/50">
+                  {getTroubleshootingTips()}
+                </div>
               </details>
             </div>
           )}
-          
+
           <div className="flex justify-end items-center gap-2 pt-2">
             <Button
               variant="outline"
               size="sm"
               onClick={handleCopyError}
-              className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/50 flex items-center gap-1"
+              className="text-red-500 border-red-900/50 hover:bg-red-950/30 rounded-none uppercase text-[10px] font-bold tracking-wider flex items-center gap-1"
             >
               {copied ? (
                 <>
@@ -146,28 +148,28 @@ const GoogleCalendarErrorDisplay: React.FC<GoogleCalendarErrorProps> = ({
                 </>
               )}
             </Button>
-            
+
             {onRetry && (
               <Button
                 variant="default"
                 size="sm"
                 onClick={onRetry}
-                className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-1"
+                className="bg-red-600 hover:bg-red-700 text-white rounded-none uppercase text-[10px] font-bold tracking-wider flex items-center gap-1 border-none"
               >
                 <RefreshCw size={14} />
                 <span>Tentar novamente</span>
               </Button>
             )}
           </div>
-          
-          <div className="mt-1 pt-2 border-t border-red-100 dark:border-red-800/50">
-            <a 
-              href="https://support.google.com/calendar/answer/2917929?hl=pt-BR" 
-              target="_blank" 
+
+          <div className="mt-1 pt-2 border-t border-red-900/30">
+            <a
+              href="https://support.google.com/calendar/answer/2917929?hl=pt-BR"
+              target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-1"
+              className="text-[10px] text-red-500 hover:text-red-400 flex items-center gap-1 font-mono uppercase tracking-wider"
             >
-              <ExternalLink size={12} />
+              <ExternalLink size={10} />
               <span>Ver soluções na Ajuda do Google Calendar</span>
             </a>
           </div>

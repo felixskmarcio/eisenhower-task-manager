@@ -17,14 +17,7 @@ mas idealmente devemos limpar ou comentar estilos que conflitam */
   transition: background-color 0.2s;
 } */
 
-.card {
-  /* Mantendo card generico por enquanto */
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
+/* Card removido - usar versão do main.css que é mais específica para a aplicação */
 
 .logo {
   height: 6em;
