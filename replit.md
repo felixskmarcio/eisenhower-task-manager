@@ -56,6 +56,7 @@ Configured as a static site deployment. Build output goes to `dist/` folder.
 - **Dual Auth**: Password reset works for both Firebase and Supabase users
 
 ## Recent Changes
+- Redesigned Landing page with improved hero section, "How It Works" steps, testimonials, enhanced matrix preview, modernized contact/footer (Feb 2026)
 - Improved "Forgot Password" flow with better visibility and clearer instructions
 - Added admin panel with user CRUD, pagination, and role management
 - Implemented user access control with data isolation
