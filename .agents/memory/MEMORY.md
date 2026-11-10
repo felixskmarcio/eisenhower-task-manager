@@ -1,0 +1,1 @@
+- [Route loading scope](route-loading.md) — preserve dual-provider session initialization when optimizing screen loading; auth deferral needs separate verification.
