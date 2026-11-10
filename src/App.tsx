@@ -3,7 +3,7 @@ import React, { lazy, Suspense } from 'react';
 import { Toaster } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Layout from "./components/Layout";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound";
@@ -43,10 +43,11 @@ const queryClient = new QueryClient({
 // Componente para renderizar a tela de carregamento com o conteúdo da aplicação
 const AppContent = () => {
   const { isLoading } = useLoading();
+  const { pathname } = useLocation();
 
   return (
     <>
-      {isLoading && <LoadingScreen />}
+      {isLoading && pathname !== '/' && <LoadingScreen />}
       <AuthProvider>
         <TagProvider>
           <TooltipProvider>
